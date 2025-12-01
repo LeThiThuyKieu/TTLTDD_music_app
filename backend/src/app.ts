@@ -1,0 +1,53 @@
+import express, { Application } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import dotenv from "dotenv";
+
+// Import routes
+import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
+import songRoutes from "./routes/songRoutes";
+import playlistRoutes from "./routes/playlistRoutes";
+import favoriteRoutes from "./routes/favoriteRoutes";
+import historyRoutes from "./routes/historyRoutes";
+import genreRoutes from "./routes/genreRoutes";
+
+// Import middleware
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+
+// Load environment variables
+dotenv.config();
+
+const app: Application = express();
+
+// Middleware
+app.use(helmet()); // Security headers
+app.use(cors()); // Enable CORS
+app.use(morgan("dev")); // Logging
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+
+// Health check
+app.get("/health", (_req, res) => {
+  res.json({
+    success: true,
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/songs", songRoutes);
+app.use("/api/playlists", playlistRoutes);
+app.use("/api/favorites", favoriteRoutes);
+app.use("/api/history", historyRoutes);
+app.use("/api/genres", genreRoutes);
+
+// Error handling middleware (phải đặt cuối cùng)
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+export default app;

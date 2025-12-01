@@ -1,0 +1,157 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
+import '../config/api_config.dart';
+import '../utils/constants.dart';
+
+class ApiService {
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
+  ApiService._internal();
+
+  Future<String?> _getAuthToken() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        return await user.getIdToken();
+      }
+    } catch (e) {
+      print('Error getting auth token: $e');
+    }
+    return null;
+  }
+
+  Future<Map<String, String>> _getHeaders({bool includeAuth = true}) async {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+    };
+
+    if (includeAuth) {
+      final token = await _getAuthToken();
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    return headers;
+  }
+
+  Future<Map<String, dynamic>> _handleResponse(http.Response response) async {
+    // Success: Parse JSON và trả về
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    } else if (response.statusCode == 401) {
+      //Unauthorized: Token hết hạn hoặc không hợp lệ
+      throw Exception(AppConstants.errorUnauthorized);
+    } else if (response.statusCode >= 500) {
+      //Server Error: Lỗi từ phía server
+      throw Exception(AppConstants.errorServer);
+    } else {
+      //Client Error (400-499): Lỗi từ phía client
+      //Parse error message và trả về
+      final errorData = json.decode(response.body) as Map<String, dynamic>;
+      throw Exception(errorData['error'] ?? AppConstants.errorUnknown);
+    }
+  }
+
+  // GET request
+  Future<Map<String, dynamic>> get(
+    String endpoint, {
+    Map<String, String>? queryParams,
+    bool includeAuth = true,
+  }) async {
+    try {
+      // 1. Tạo URI từ baseUrl + endpoint
+      var uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
+      // 2. Thêm query parameters nếu có
+      if (queryParams != null && queryParams.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParams);
+      }
+
+      // 3. Gửi GET request với headers
+      final response = await http.get(
+        uri,
+        headers: await _getHeaders(includeAuth: includeAuth),
+      );
+
+      // 4. Xử lý response
+      return await _handleResponse(response);
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(AppConstants.errorNetwork);
+      }
+      rethrow;
+    }
+  }
+
+  // POST request
+  Future<Map<String, dynamic>> post(
+    String endpoint,
+    Map<String, dynamic> body, {
+    bool includeAuth = true,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}$endpoint'),
+        headers: await _getHeaders(includeAuth: includeAuth),
+        body: json.encode(body),
+      );
+
+      return await _handleResponse(response);
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(AppConstants.errorNetwork);
+      }
+      rethrow;
+    }
+  }
+
+  // PUT request
+  Future<Map<String, dynamic>> put(
+    String endpoint,
+    Map<String, dynamic> body, {
+    bool includeAuth = true,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}$endpoint'),
+        headers: await _getHeaders(includeAuth: includeAuth),
+        body: json.encode(body),
+      );
+
+      return await _handleResponse(response);
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(AppConstants.errorNetwork);
+      }
+      rethrow;
+    }
+  }
+
+  // DELETE request
+  Future<Map<String, dynamic>> delete(
+    String endpoint, {
+    bool includeAuth = true,
+  }) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('${ApiConfig.baseUrl}$endpoint'),
+        headers: await _getHeaders(includeAuth: includeAuth),
+      );
+
+      return await _handleResponse(response);
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(AppConstants.errorNetwork);
+      }
+      rethrow;
+    }
+  }
+}
+
+
+
