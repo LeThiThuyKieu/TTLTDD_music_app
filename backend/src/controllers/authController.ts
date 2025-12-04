@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../types";
-import { UserModel } from "../models/User";
-import { firebaseAuth } from "../config/firebase";
+import { AuthService } from "../services/authService";
 
 export class AuthController {
   // Đăng ký/Đăng nhập - Tạo hoặc cập nhật user trong DB
@@ -18,33 +17,7 @@ export class AuthController {
       const { uid, email } = req.user;
       const { name, avatar_url } = req.body;
 
-      // Lấy thông tin từ Firebase
-      const firebaseUser = await firebaseAuth.getUser(uid);
-
-      // Kiểm tra user đã tồn tại chưa
-      let user = await UserModel.findByFirebaseUid(uid);
-
-      if (user) {
-        // Cập nhật thông tin nếu có thay đổi
-        const updates: any = {};
-        if (name) updates.name = name;
-        if (avatar_url !== undefined) updates.avatar_url = avatar_url;
-        if (firebaseUser.email && firebaseUser.email !== user.email) {
-          updates.email = firebaseUser.email;
-        }
-
-        if (Object.keys(updates).length > 0) {
-          user = await UserModel.update(user.user_id!, updates);
-        }
-      } else {
-        // Tạo user mới
-        user = await UserModel.create({
-          firebase_uid: uid,
-          name: name || firebaseUser.displayName || "User",
-          email: email || firebaseUser.email || "",
-          avatar_url: avatar_url || firebaseUser.photoURL || null,
-        });
-      }
+      const user = await AuthService.syncUser(uid, email, name, avatar_url);
 
       res.json({
         success: true,
@@ -70,7 +43,7 @@ export class AuthController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
+      const user = await AuthService.getCurrentUser(req.user.uid);
 
       if (!user) {
         res.status(404).json({ error: "User not found" });
@@ -90,7 +63,3 @@ export class AuthController {
     }
   }
 }
-
-
-
-

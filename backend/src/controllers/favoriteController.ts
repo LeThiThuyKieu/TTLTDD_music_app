@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../types";
-import { FavoriteModel } from "../models/Favorite";
-import { UserModel } from "../models/User";
+import { FavoriteService } from "../services/favoriteService";
 
 export class FavoriteController {
   // Thêm vào favorites
@@ -12,19 +11,13 @@ export class FavoriteController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-
       const songId = parseInt(req.params.songId);
       if (isNaN(songId)) {
         res.status(400).json({ error: "Invalid song ID" });
         return;
       }
 
-      const success = await FavoriteModel.add(user.user_id!, songId);
+      const success = await FavoriteService.addFavorite(req.user.uid, songId);
       if (!success) {
         res.status(400).json({ error: "Failed to add to favorites" });
         return;
@@ -51,19 +44,16 @@ export class FavoriteController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-
       const songId = parseInt(req.params.songId);
       if (isNaN(songId)) {
         res.status(400).json({ error: "Invalid song ID" });
         return;
       }
 
-      const success = await FavoriteModel.remove(user.user_id!, songId);
+      const success = await FavoriteService.removeFavorite(
+        req.user.uid,
+        songId
+      );
       if (!success) {
         res.status(400).json({ error: "Failed to remove from favorites" });
         return;
@@ -90,13 +80,7 @@ export class FavoriteController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-
-      const favorites = await FavoriteModel.findByUserId(user.user_id!);
+      const favorites = await FavoriteService.getFavorites(req.user.uid);
 
       res.json({
         success: true,
@@ -119,19 +103,13 @@ export class FavoriteController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-
       const songId = parseInt(req.params.songId);
       if (isNaN(songId)) {
         res.status(400).json({ error: "Invalid song ID" });
         return;
       }
 
-      const isFavorite = await FavoriteModel.isFavorite(user.user_id!, songId);
+      const isFavorite = await FavoriteService.isFavorite(req.user.uid, songId);
 
       res.json({
         success: true,
@@ -146,7 +124,3 @@ export class FavoriteController {
     }
   }
 }
-
-
-
-

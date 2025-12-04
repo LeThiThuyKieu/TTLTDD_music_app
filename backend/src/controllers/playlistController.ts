@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../types";
-import { PlaylistModel } from "../models/Playlist";
-import { UserModel } from "../models/User";
+import { PlaylistService } from "../services/playlistService";
 
 export class PlaylistController {
   // Tạo playlist mới
@@ -12,19 +11,13 @@ export class PlaylistController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-
       const { name, cover_url, is_public } = req.body;
-      const playlist = await PlaylistModel.create({
-        user_id: user.user_id!,
+      const playlist = await PlaylistService.createPlaylist(
+        req.user.uid,
         name,
         cover_url,
-        is_public: is_public ? 1 : 0,
-      });
+        is_public
+      );
 
       res.status(201).json({
         success: true,
@@ -50,13 +43,7 @@ export class PlaylistController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-
-      const playlists = await PlaylistModel.findByUserId(user.user_id!);
+      const playlists = await PlaylistService.getMyPlaylists(req.user.uid);
 
       res.json({
         success: true,
@@ -83,27 +70,23 @@ export class PlaylistController {
         return;
       }
 
-      const playlist = await PlaylistModel.findById(playlistId);
+      const playlist = await PlaylistService.getPlaylistById(playlistId);
       if (!playlist) {
         res.status(404).json({ error: "Playlist not found" });
         return;
       }
 
       // Kiểm tra quyền truy cập
-      if (playlist.is_public === 0) {
-        if (!req.user) {
-          res.status(401).json({ error: "Unauthorized" });
-          return;
-        }
-
-        const user = await UserModel.findByFirebaseUid(req.user.uid);
-        if (!user || user.user_id !== playlist.user_id) {
-          res.status(403).json({ error: "Forbidden" });
-          return;
-        }
+      const hasAccess = await PlaylistService.checkPlaylistAccess(
+        playlist,
+        req.user?.uid
+      );
+      if (!hasAccess) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
       }
 
-      const songs = await PlaylistModel.getSongs(playlistId);
+      const songs = await PlaylistService.getPlaylistSongs(playlistId);
 
       res.json({
         success: true,
@@ -140,19 +123,11 @@ export class PlaylistController {
         return;
       }
 
-      const playlist = await PlaylistModel.findById(playlistId);
-      if (!playlist) {
-        res.status(404).json({ error: "Playlist not found" });
-        return;
-      }
-
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user || user.user_id !== playlist.user_id) {
-        res.status(403).json({ error: "Forbidden" });
-        return;
-      }
-
-      const success = await PlaylistModel.addSong(playlistId, songId);
+      const success = await PlaylistService.addSongToPlaylist(
+        playlistId,
+        songId,
+        req.user.uid
+      );
       if (!success) {
         res.status(400).json({ error: "Failed to add song to playlist" });
         return;
@@ -190,19 +165,11 @@ export class PlaylistController {
         return;
       }
 
-      const playlist = await PlaylistModel.findById(playlistId);
-      if (!playlist) {
-        res.status(404).json({ error: "Playlist not found" });
-        return;
-      }
-
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user || user.user_id !== playlist.user_id) {
-        res.status(403).json({ error: "Forbidden" });
-        return;
-      }
-
-      const success = await PlaylistModel.removeSong(playlistId, songId);
+      const success = await PlaylistService.removeSongFromPlaylist(
+        playlistId,
+        songId,
+        req.user.uid
+      );
       if (!success) {
         res.status(400).json({ error: "Failed to remove song from playlist" });
         return;
@@ -235,19 +202,10 @@ export class PlaylistController {
         return;
       }
 
-      const playlist = await PlaylistModel.findById(playlistId);
-      if (!playlist) {
-        res.status(404).json({ error: "Playlist not found" });
-        return;
-      }
-
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user || user.user_id !== playlist.user_id) {
-        res.status(403).json({ error: "Forbidden" });
-        return;
-      }
-
-      const success = await PlaylistModel.delete(playlistId);
+      const success = await PlaylistService.deletePlaylist(
+        playlistId,
+        req.user.uid
+      );
       if (!success) {
         res.status(400).json({ error: "Failed to delete playlist" });
         return;
@@ -266,7 +224,3 @@ export class PlaylistController {
     }
   }
 }
-
-
-
-

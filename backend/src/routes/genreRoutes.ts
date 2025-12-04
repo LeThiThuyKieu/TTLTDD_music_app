@@ -31,3 +31,5 @@ router.put(
 router.delete("/:id", authenticateFirebase, GenreController.delete);
 
 export default router;
+
+

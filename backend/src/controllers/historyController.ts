@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../types";
-import { HistoryModel } from "../models/History";
-import { UserModel } from "../models/User";
+import { HistoryService } from "../services/historyService";
 
 export class HistoryController {
   // Thêm vào history
@@ -9,12 +8,6 @@ export class HistoryController {
     try {
       if (!req.user) {
         res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
-
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
         return;
       }
 
@@ -26,11 +19,11 @@ export class HistoryController {
         return;
       }
 
-      const history = await HistoryModel.create({
-        user_id: user.user_id!,
-        song_id: songId,
-        listened_duration: listened_duration || 0,
-      });
+      const history = await HistoryService.addHistory(
+        req.user.uid,
+        songId,
+        listened_duration || 0
+      );
 
       res.status(201).json({
         success: true,
@@ -53,14 +46,8 @@ export class HistoryController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-
       const limit = parseInt(req.query.limit as string) || 50;
-      const history = await HistoryModel.findByUserId(user.user_id!, limit);
+      const history = await HistoryService.getHistory(req.user.uid, limit);
 
       res.json({
         success: true,
@@ -83,13 +70,7 @@ export class HistoryController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
-        res.status(404).json({ error: "User not found" });
-        return;
-      }
-
-      const success = await HistoryModel.deleteByUserId(user.user_id!);
+      const success = await HistoryService.clearHistory(req.user.uid);
       if (!success) {
         res.status(400).json({ error: "Failed to clear history" });
         return;
@@ -108,7 +89,3 @@ export class HistoryController {
     }
   }
 }
-
-
-
-
