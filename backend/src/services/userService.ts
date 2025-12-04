@@ -1,15 +1,15 @@
-import { UserModel } from "../models/User";
-import { User } from "../types";
+import { UserRepository } from "../repositories/UserRepository";
+import { User } from "../models";
 
 export class UserService {
   // Lấy user theo Firebase UID
   static async getUserByFirebaseUid(firebaseUid: string): Promise<User | null> {
-    return await UserModel.findByFirebaseUid(firebaseUid);
+    return await UserRepository.findByFirebaseUid(firebaseUid);
   }
 
   // Lấy user theo ID
   static async getUserById(userId: number): Promise<User | null> {
-    return await UserModel.findById(userId);
+    return await UserRepository.findById(userId);
   }
 
   // Cập nhật profile
@@ -22,6 +22,6 @@ export class UserService {
     if (updates.avatar_url !== undefined)
       updateData.avatar_url = updates.avatar_url;
 
-    return await UserModel.update(userId, updateData);
+    return await UserRepository.update(userId, updateData);
   }
 }

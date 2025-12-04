@@ -1,13 +1,13 @@
-import { FavoriteModel } from "../models/Favorite";
-import { UserModel } from "../models/User";
-import { Song } from "../types";
+import { FavoriteRepository } from "../repositories/FavoriteRepository";
+import { UserRepository } from "../repositories/UserRepository";
+import { Song } from "../models";
 
 export class FavoriteService {
   // Lấy user từ Firebase UID
   private static async getUserByFirebaseUid(
     firebaseUid: string
   ): Promise<{ user_id: number } | null> {
-    const user = await UserModel.findByFirebaseUid(firebaseUid);
+    const user = await UserRepository.findByFirebaseUid(firebaseUid);
     if (!user || !user.user_id) return null;
     return { user_id: user.user_id };
   }
@@ -20,7 +20,7 @@ export class FavoriteService {
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user) return false;
 
-    return await FavoriteModel.add(user.user_id, songId);
+    return await FavoriteRepository.add(user.user_id, songId);
   }
 
   // Xóa khỏi favorites
@@ -31,7 +31,7 @@ export class FavoriteService {
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user) return false;
 
-    return await FavoriteModel.remove(user.user_id, songId);
+    return await FavoriteRepository.remove(user.user_id, songId);
   }
 
   // Lấy danh sách favorites
@@ -39,7 +39,7 @@ export class FavoriteService {
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user) return [];
 
-    return await FavoriteModel.findByUserId(user.user_id);
+    return await FavoriteRepository.findByUserId(user.user_id);
   }
 
   // Kiểm tra có trong favorites không
@@ -50,6 +50,6 @@ export class FavoriteService {
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user) return false;
 
-    return await FavoriteModel.isFavorite(user.user_id, songId);
+    return await FavoriteRepository.isFavorite(user.user_id, songId);
   }
 }

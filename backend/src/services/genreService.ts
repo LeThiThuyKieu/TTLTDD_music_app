@@ -1,20 +1,20 @@
-import { GenreModel } from "../models/Genre";
-import { Genre } from "../types";
+import { GenreRepository } from "../repositories/GenreRepository";
+import { Genre } from "../models";
 
 export class GenreService {
   // Lấy danh sách genres
   static async getAllGenres(): Promise<Genre[]> {
-    return await GenreModel.findAll();
+    return await GenreRepository.findAll();
   }
 
   // Lấy genre theo ID
   static async getGenreById(genreId: number): Promise<Genre | null> {
-    return await GenreModel.findById(genreId);
+    return await GenreRepository.findById(genreId);
   }
 
   // Tạo genre mới
   static async createGenre(name: string): Promise<Genre> {
-    return await GenreModel.create({ name });
+    return await GenreRepository.create({ name });
   }
 
   // Cập nhật genre
@@ -22,11 +22,11 @@ export class GenreService {
     genreId: number,
     name: string
   ): Promise<Genre | null> {
-    return await GenreModel.update(genreId, { name });
+    return await GenreRepository.update(genreId, { name });
   }
 
   // Xóa genre
   static async deleteGenre(genreId: number): Promise<boolean> {
-    return await GenreModel.delete(genreId);
+    return await GenreRepository.delete(genreId);
   }
 }

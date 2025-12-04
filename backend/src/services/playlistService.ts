@@ -1,13 +1,13 @@
-import { PlaylistModel } from "../models/Playlist";
-import { UserModel } from "../models/User";
-import { Playlist, Song } from "../types";
+import { PlaylistRepository } from "../repositories/PlaylistRepository";
+import { UserRepository } from "../repositories/UserRepository";
+import { Playlist, Song } from "../models";
 
 export class PlaylistService {
   // Lấy user từ Firebase UID
   private static async getUserByFirebaseUid(
     firebaseUid: string
   ): Promise<{ user_id: number } | null> {
-    const user = await UserModel.findByFirebaseUid(firebaseUid);
+    const user = await UserRepository.findByFirebaseUid(firebaseUid);
     if (!user || !user.user_id) return null;
     return { user_id: user.user_id };
   }
@@ -24,7 +24,7 @@ export class PlaylistService {
       throw new Error("User not found");
     }
 
-    return await PlaylistModel.create({
+    return await PlaylistRepository.create({
       user_id: user.user_id,
       name,
       cover_url,
@@ -37,12 +37,12 @@ export class PlaylistService {
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user) return [];
 
-    return await PlaylistModel.findByUserId(user.user_id);
+    return await PlaylistRepository.findByUserId(user.user_id);
   }
 
   // Lấy playlist theo ID
   static async getPlaylistById(playlistId: number): Promise<Playlist | null> {
-    return await PlaylistModel.findById(playlistId);
+    return await PlaylistRepository.findById(playlistId);
   }
 
   // Kiểm tra quyền truy cập playlist
@@ -64,7 +64,7 @@ export class PlaylistService {
 
   // Lấy danh sách bài hát trong playlist
   static async getPlaylistSongs(playlistId: number): Promise<Song[]> {
-    return await PlaylistModel.getSongs(playlistId);
+    return await PlaylistRepository.getSongs(playlistId);
   }
 
   // Thêm bài hát vào playlist
@@ -73,13 +73,13 @@ export class PlaylistService {
     songId: number,
     firebaseUid: string
   ): Promise<boolean> {
-    const playlist = await PlaylistModel.findById(playlistId);
+    const playlist = await PlaylistRepository.findById(playlistId);
     if (!playlist) return false;
 
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user || user.user_id !== playlist.user_id) return false;
 
-    return await PlaylistModel.addSong(playlistId, songId);
+    return await PlaylistRepository.addSong(playlistId, songId);
   }
 
   // Xóa bài hát khỏi playlist
@@ -88,13 +88,13 @@ export class PlaylistService {
     songId: number,
     firebaseUid: string
   ): Promise<boolean> {
-    const playlist = await PlaylistModel.findById(playlistId);
+    const playlist = await PlaylistRepository.findById(playlistId);
     if (!playlist) return false;
 
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user || user.user_id !== playlist.user_id) return false;
 
-    return await PlaylistModel.removeSong(playlistId, songId);
+    return await PlaylistRepository.removeSong(playlistId, songId);
   }
 
   // Xóa playlist
@@ -102,12 +102,12 @@ export class PlaylistService {
     playlistId: number,
     firebaseUid: string
   ): Promise<boolean> {
-    const playlist = await PlaylistModel.findById(playlistId);
+    const playlist = await PlaylistRepository.findById(playlistId);
     if (!playlist) return false;
 
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user || user.user_id !== playlist.user_id) return false;
 
-    return await PlaylistModel.delete(playlistId);
+    return await PlaylistRepository.delete(playlistId);
   }
 }

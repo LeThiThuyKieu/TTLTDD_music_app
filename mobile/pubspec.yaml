@@ -49,4 +49,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-
+  # Assets (hình ảnh, fonts, etc.)
+  assets:
+    - assets/images/

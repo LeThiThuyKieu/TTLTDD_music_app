@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../types";
+import { AuthenticatedRequest } from "../models";
 import { PlaylistService } from "../services/playlistService";
 
 export class PlaylistController {

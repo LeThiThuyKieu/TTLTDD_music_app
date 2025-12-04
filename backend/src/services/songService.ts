@@ -1,5 +1,5 @@
-import { SongModel } from "../models/Song";
-import { Song, SongWithArtists } from "../types";
+import { SongRepository } from "../repositories/SongRepository";
+import { Song, SongWithArtists } from "../models";
 
 export class SongService {
   // Lấy danh sách bài hát
@@ -7,17 +7,17 @@ export class SongService {
     limit: number = 50,
     offset: number = 0
   ): Promise<Song[]> {
-    return await SongModel.findAll(limit, offset);
+    return await SongRepository.findAll(limit, offset);
   }
 
   // Lấy bài hát theo ID
   static async getSongById(songId: number): Promise<SongWithArtists | null> {
-    return await SongModel.findByIdWithArtists(songId);
+    return await SongRepository.findByIdWithArtists(songId);
   }
 
   // Tìm kiếm bài hát
   static async searchSongs(query: string, limit: number = 50): Promise<Song[]> {
-    return await SongModel.search(query, limit);
+    return await SongRepository.search(query, limit);
   }
 
   // Lấy bài hát theo genre
@@ -26,11 +26,11 @@ export class SongService {
     limit: number = 50,
     offset: number = 0
   ): Promise<Song[]> {
-    return await SongModel.findByGenre(genreId, limit, offset);
+    return await SongRepository.findByGenre(genreId, limit, offset);
   }
 
   // Tạo bài hát mới
   static async createSong(songData: Song): Promise<Song> {
-    return await SongModel.create(songData);
+    return await SongRepository.create(songData);
   }
 }

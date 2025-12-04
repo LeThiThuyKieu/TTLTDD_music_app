@@ -1,13 +1,13 @@
-import { HistoryModel } from "../models/History";
-import { UserModel } from "../models/User";
-import { History, Song } from "../types";
+import { HistoryRepository } from "../repositories/HistoryRepository";
+import { UserRepository } from "../repositories/UserRepository";
+import { History, Song } from "../models";
 
 export class HistoryService {
   // Lấy user từ Firebase UID
   private static async getUserByFirebaseUid(
     firebaseUid: string
   ): Promise<{ user_id: number } | null> {
-    const user = await UserModel.findByFirebaseUid(firebaseUid);
+    const user = await UserRepository.findByFirebaseUid(firebaseUid);
     if (!user || !user.user_id) return null;
     return { user_id: user.user_id };
   }
@@ -23,7 +23,7 @@ export class HistoryService {
       throw new Error("User not found");
     }
 
-    return await HistoryModel.create({
+    return await HistoryRepository.create({
       user_id: user.user_id,
       song_id: songId,
       listened_duration: listenedDuration,
@@ -38,7 +38,7 @@ export class HistoryService {
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user) return [];
 
-    return await HistoryModel.findByUserId(user.user_id, limit);
+    return await HistoryRepository.findByUserId(user.user_id, limit);
   }
 
   // Xóa lịch sử
@@ -46,6 +46,6 @@ export class HistoryService {
     const user = await this.getUserByFirebaseUid(firebaseUid);
     if (!user) return false;
 
-    return await HistoryModel.deleteByUserId(user.user_id);
+    return await HistoryRepository.deleteByUserId(user.user_id);
   }
 }

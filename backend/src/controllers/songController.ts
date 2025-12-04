@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../types";
+import { AuthenticatedRequest } from "../models";
 import { SongService } from "../services/songService";
 
 export class SongController {

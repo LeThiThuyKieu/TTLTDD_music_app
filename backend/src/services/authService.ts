@@ -1,6 +1,6 @@
-import { UserModel } from "../models/User";
+import { UserRepository } from "../repositories/UserRepository";
 import { firebaseAuth } from "../config/firebase";
-import { User } from "../types";
+import { User } from "../models";
 
 export class AuthService {
   // Đồng bộ user từ Firebase vào DB
@@ -14,7 +14,7 @@ export class AuthService {
     const firebaseUser = await firebaseAuth.getUser(firebaseUid);
 
     // Kiểm tra user đã tồn tại chưa
-    let user = await UserModel.findByFirebaseUid(firebaseUid);
+    let user = await UserRepository.findByFirebaseUid(firebaseUid);
 
     if (user) {
       // Cập nhật thông tin nếu có thay đổi
@@ -26,11 +26,11 @@ export class AuthService {
       }
 
       if (Object.keys(updates).length > 0) {
-        user = await UserModel.update(user.user_id!, updates);
+        user = await UserRepository.update(user.user_id!, updates);
       }
     } else {
       // Tạo user mới
-      user = await UserModel.create({
+      user = await UserRepository.create({
         firebase_uid: firebaseUid,
         name: name || firebaseUser.displayName || "User",
         email: email || firebaseUser.email || "",
@@ -47,6 +47,6 @@ export class AuthService {
 
   // Lấy thông tin user hiện tại
   static async getCurrentUser(firebaseUid: string): Promise<User | null> {
-    return await UserModel.findByFirebaseUid(firebaseUid);
+    return await UserRepository.findByFirebaseUid(firebaseUid);
   }
 }

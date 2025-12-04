@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../types";
+import { AuthenticatedRequest } from "../models";
 import { FavoriteService } from "../services/favoriteService";
 
 export class FavoriteController {

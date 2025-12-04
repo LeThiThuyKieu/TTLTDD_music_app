@@ -24,7 +24,14 @@ class _SplashScreenState extends State<SplashScreen>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
-    _controller.forward();
+    _controller.forward().then((_) {
+      // Sau khi animation xong, chờ thêm một chút rồi navigate
+      Timer(const Duration(milliseconds: 2000), () {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/onboarding');
+        }
+      });
+    });
   }
 
   @override
