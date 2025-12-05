@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { firebaseAuth } from "../config/firebase";
-import { AuthenticatedRequest } from "../types";
+import { AuthenticatedRequest } from "../models";
 
 /**
  * Middleware để xác thực Firebase token

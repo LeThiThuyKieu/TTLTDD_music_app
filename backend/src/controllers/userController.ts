@@ -1,6 +1,6 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../types";
-import { UserModel } from "../models/User";
+import { AuthenticatedRequest } from "../models";
+import { UserService } from "../services/userService";
 
 export class UserController {
   // Cập nhật profile
@@ -14,18 +14,22 @@ export class UserController {
         return;
       }
 
-      const user = await UserModel.findByFirebaseUid(req.user.uid);
-      if (!user) {
+      const user = await UserService.getUserByFirebaseUid(req.user.uid);
+      if (!user || !user.user_id) {
         res.status(404).json({ error: "User not found" });
         return;
       }
 
       const { name, avatar_url } = req.body;
-      const updates: any = {};
-      if (name) updates.name = name;
-      if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+      const updatedUser = await UserService.updateProfile(user.user_id, {
+        name,
+        avatar_url,
+      });
 
-      const updatedUser = await UserModel.update(user.user_id!, updates);
+      if (!updatedUser) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
 
       res.json({
         success: true,
@@ -52,7 +56,7 @@ export class UserController {
         return;
       }
 
-      const user = await UserModel.findById(userId);
+      const user = await UserService.getUserById(userId);
       if (!user) {
         res.status(404).json({ error: "User not found" });
         return;
@@ -71,7 +75,3 @@ export class UserController {
     }
   }
 }
-
-
-
-

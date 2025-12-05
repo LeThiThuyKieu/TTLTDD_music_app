@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { GenreModel } from "../models/Genre";
+import { GenreService } from "../services/genreService";
 
 export class GenreController {
   static async getAll(_req: Request, res: Response): Promise<void> {
     try {
-      const genres = await GenreModel.findAll();
+      const genres = await GenreService.getAllGenres();
       res.json({
         success: true,
         data: genres,
@@ -28,7 +28,7 @@ export class GenreController {
         return;
       }
 
-      const genre = await GenreModel.findById(genreId);
+      const genre = await GenreService.getGenreById(genreId);
 
       if (!genre) {
         res.status(404).json({ success: false, error: "Genre not found" });
@@ -50,7 +50,7 @@ export class GenreController {
 
   static async create(req: Request, res: Response): Promise<void> {
     try {
-      const genre = await GenreModel.create({ name: req.body.name });
+      const genre = await GenreService.createGenre(req.body.name);
       res.status(201).json({
         success: true,
         data: genre,
@@ -73,7 +73,7 @@ export class GenreController {
         return;
       }
 
-      const updated = await GenreModel.update(genreId, { name: req.body.name });
+      const updated = await GenreService.updateGenre(genreId, req.body.name);
 
       if (!updated) {
         res.status(404).json({ success: false, error: "Genre not found" });
@@ -102,7 +102,7 @@ export class GenreController {
         return;
       }
 
-      const deleted = await GenreModel.delete(genreId);
+      const deleted = await GenreService.deleteGenre(genreId);
 
       if (!deleted) {
         res.status(404).json({ success: false, error: "Genre not found" });

@@ -1,6 +1,6 @@
 import { Response } from "express";
-import { AuthenticatedRequest } from "../types";
-import { SongModel } from "../models/Song";
+import { AuthenticatedRequest } from "../models";
+import { SongService } from "../services/songService";
 
 export class SongController {
   // Lấy danh sách bài hát
@@ -9,7 +9,7 @@ export class SongController {
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
 
-      const songs = await SongModel.findAll(limit, offset);
+      const songs = await SongService.getAllSongs(limit, offset);
 
       res.json({
         success: true,
@@ -41,7 +41,7 @@ export class SongController {
         return;
       }
 
-      const song = await SongModel.findByIdWithArtists(songId);
+      const song = await SongService.getSongById(songId);
       if (!song) {
         res.status(404).json({ error: "Song not found" });
         return;
@@ -70,7 +70,7 @@ export class SongController {
       }
 
       const limit = parseInt(req.query.limit as string) || 50;
-      const songs = await SongModel.search(query, limit);
+      const songs = await SongService.searchSongs(query, limit);
 
       res.json({
         success: true,
@@ -101,7 +101,7 @@ export class SongController {
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
 
-      const songs = await SongModel.findByGenre(genreId, limit, offset);
+      const songs = await SongService.getSongsByGenre(genreId, limit, offset);
 
       res.json({
         success: true,
@@ -120,7 +120,7 @@ export class SongController {
   static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const songData = req.body;
-      const song = await SongModel.create(songData);
+      const song = await SongService.createSong(songData);
 
       res.status(201).json({
         success: true,
@@ -135,7 +135,3 @@ export class SongController {
     }
   }
 }
-
-
-
-
