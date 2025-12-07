@@ -3,6 +3,9 @@ import '../models/song_model.dart';
 import '../models/artist_model.dart';
 import '../services/home_api_service.dart';
 
+// TODO: Import widget BottomNavigationBar tái sử dụng
+import '../widgets/app_bottom_nav.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -47,7 +50,17 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomNav(),
+
+      // Đưa AppBottomNav
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: 0,
+        onTap: (index) {
+          // TODO: Xử lý khi chọn tab nếu cần
+          debugPrint("Selected tab: $index");
+        },
+      ),
+
+
       body: SafeArea(
         child: isLoading
             ? const Center(
@@ -61,35 +74,21 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
             _buildHeader(),
             const SizedBox(height: 30),
-            _buildSectionHeader("Trending Now"),
+            _buildSectionHeader("Nhạc hot thịnh hành"),
             const SizedBox(height: 12),
             _buildSongList(trendingSongs),
             const SizedBox(height: 30),
-            _buildSectionHeader("Popular Artists"),
+            _buildSectionHeader("Nghệ sĩ nổi bật"),
             const SizedBox(height: 12),
             _buildArtistList(popularArtists),
             const SizedBox(height: 30),
-            _buildSectionHeader("Top Charts"),
+            _buildSectionHeader("Bảng xếp hạng"),
             const SizedBox(height: 12),
             _buildSongList(topCharts),
             const SizedBox(height: 40),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      selectedItemColor: const Color(0xFF4CAF50),
-      unselectedItemColor: Colors.grey,
-      currentIndex: 0,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.explore), label: "Explore"),
-        BottomNavigationBarItem(icon: Icon(Icons.library_music), label: "Library"),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-      ],
     );
   }
 
@@ -104,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text("Good Morning 👋",
+            Text("Hi 👋",
                 style: TextStyle(fontSize: 14, color: Colors.black54)),
             Text("Andrew Ainsley",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
@@ -125,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(title,
             style: const TextStyle(
                 fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black87)),
-        const Text("See All",
+        const Text("Xem thêm",
             style: TextStyle(
                 fontSize: 14,
                 color: Color(0xFF4CAF50),
