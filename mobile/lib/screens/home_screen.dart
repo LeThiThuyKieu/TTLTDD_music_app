@@ -5,7 +5,10 @@ import '../models/artist_model.dart';
 import '../models/album_model.dart';
 import '../services/home_api_service.dart';
 import '../widgets/app_bottom_nav.dart';
+import '../widgets/mini_player.dart';
 import 'song_list_screen.dart';
+import 'package:provider/provider.dart';
+import '../services/audio_player_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -50,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -57,47 +61,61 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: 0,
         onTap: (index) {},
       ),
-      body: SafeArea(
-        child: isLoading
-            ? const Center(
-          child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
-        )
-            : ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          children: [
-            const SizedBox(height: 20),
-            _buildHeader(),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: isLoading
+                ? const Center(
+              child: CircularProgressIndicator(
+                  color: Color(0xFF4CAF50)),
+            )
+                : ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              children: [
+                const SizedBox(height: 20),
+                _buildHeader(),
 
-            const SizedBox(height: 30),
-            _buildSectionHeader(
-              title: 'Album hot',
-              onSeeMore: () {},
+                const SizedBox(height: 30),
+                _buildSectionHeader(
+                  title: 'Album hot',
+                  onSeeMore: () {},
+                ),
+                const SizedBox(height: 12),
+                _buildAlbumList(),
+
+                const SizedBox(height: 30),
+                _buildSectionHeader(
+                  title: 'Nghệ sĩ nổi bật',
+                  onSeeMore: () {},
+                ),
+                const SizedBox(height: 12),
+                _buildArtistList(),
+
+                const SizedBox(height: 30),
+                _buildSectionHeader(
+                  title: 'Nhạc hot thịnh hành',
+                  onSeeMore: _openAllSongs,
+                ),
+                const SizedBox(height: 12),
+                _buildSongList(),
+
+                const SizedBox(height: 100), // chừa chỗ cho mini player
+              ],
             ),
-            const SizedBox(height: 12),
-            _buildAlbumList(),
+          ),
 
-            const SizedBox(height: 30),
-            _buildSectionHeader(
-              title: 'Nghệ sĩ nổi bật',
-              onSeeMore: () {},
-            ),
-            const SizedBox(height: 12),
-            _buildArtistList(),
-
-            const SizedBox(height: 30),
-            _buildSectionHeader(
-              title: 'Nhạc hot thịnh hành',
-              onSeeMore: _openAllSongs,
-            ),
-            const SizedBox(height: 12),
-            _buildSongList(),
-
-            const SizedBox(height: 40),
-          ],
-        ),
+          /// MINI PLAYER NẰM DƯỚI
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: MiniPlayer(),
+          ),
+        ],
       ),
     );
   }
+
 
   /// ================= HEADER =================
   Widget _buildHeader() {
@@ -257,7 +275,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: GestureDetector(
                           onTap: () {
                             // TODO: Gọi AudioPlayerService.playSong(song)
-                            debugPrint('Play song: ${song.songId}');
+                            // debugPrint('Play song: ${song.songId}');
+                            context.read<AudioPlayerService>().playSong(song);
                           },
                           child: Container(
                             padding: const EdgeInsets.all(10),
