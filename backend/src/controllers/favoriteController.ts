@@ -17,7 +17,15 @@ export class FavoriteController {
         return;
       }
 
-      const success = await FavoriteService.addFavorite(req.user.uid, songId);
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const success = await FavoriteService.addFavorite(
+        req.user.user_id,
+        songId
+      );
       if (!success) {
         res.status(400).json({ error: "Failed to add to favorites" });
         return;
@@ -50,8 +58,13 @@ export class FavoriteController {
         return;
       }
 
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
       const success = await FavoriteService.removeFavorite(
-        req.user.uid,
+        req.user.user_id,
         songId
       );
       if (!success) {
@@ -80,7 +93,12 @@ export class FavoriteController {
         return;
       }
 
-      const favorites = await FavoriteService.getFavorites(req.user.uid);
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const favorites = await FavoriteService.getFavorites(req.user.user_id);
 
       res.json({
         success: true,
@@ -109,7 +127,15 @@ export class FavoriteController {
         return;
       }
 
-      const isFavorite = await FavoriteService.isFavorite(req.user.uid, songId);
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const isFavorite = await FavoriteService.isFavorite(
+        req.user.user_id,
+        songId
+      );
 
       res.json({
         success: true,

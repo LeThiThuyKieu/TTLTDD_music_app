@@ -22,11 +22,11 @@ dotenv.config();
 const app: Application = express();
 
 // Middleware
-app.use(helmet()); // Security headers
+app.use(helmet()); // Security header
 app.use(cors()); // Enable CORS
 app.use(morgan("dev")); // Logging
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(express.json()); // Parse JSON body
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded body
 
 // Health check
 app.get("/health", (_req, res) => {

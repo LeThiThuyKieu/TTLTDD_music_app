@@ -1,11 +1,14 @@
 import { Response, NextFunction } from "express";
-import { firebaseAuth } from "../config/firebase";
+import jwt from "jsonwebtoken";
 import { AuthenticatedRequest } from "../models";
 
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+
 /**
- * Middleware để xác thực Firebase token
+ * Middleware để xác thực JWT token
  */
-export const authenticateFirebase = async (
+export const authenticate = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -20,18 +23,33 @@ export const authenticateFirebase = async (
 
     const token = authHeader.split("Bearer ")[1];
 
-    // Verify Firebase token
-    const decodedToken = await firebaseAuth.verifyIdToken(token);
+    // Verify JWT token
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      user_id: number;
+      email: string;
+    };
 
     // Attach user info to request
     req.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
+      user_id: decoded.user_id,
+      email: decoded.email,
     };
 
     next();
   } catch (error: any) {
     console.error("Authentication error:", error);
+    if (error.name === "TokenExpiredError") {
+      res.status(401).json({
+        error: "Unauthorized: Token expired",
+      });
+      return;
+    }
+    if (error.name === "JsonWebTokenError") {
+      res.status(401).json({
+        error: "Unauthorized: Invalid token",
+      });
+      return;
+    }
     res.status(401).json({
       error: "Unauthorized: Invalid token",
       message: error.message,
@@ -52,11 +70,14 @@ export const optionalAuth = async (
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.split("Bearer ")[1];
-      const decodedToken = await firebaseAuth.verifyIdToken(token);
+      const decoded = jwt.verify(token, JWT_SECRET) as {
+        user_id: number;
+        email: string;
+      };
 
       req.user = {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
+        user_id: decoded.user_id,
+        email: decoded.email,
       };
     }
 

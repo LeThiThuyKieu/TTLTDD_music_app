@@ -1,20 +1,19 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
 import '../config/api_config.dart';
 import '../utils/constants.dart';
+import 'auth_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
   ApiService._internal();
 
+  final _authService = AuthService();
+
   Future<String?> _getAuthToken() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        return await user.getIdToken();
-      }
+      return await _authService.getToken();
     } catch (e) {
       print('Error getting auth token: $e');
     }

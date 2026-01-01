@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { UserController } from "../controllers/userController";
-import { authenticateFirebase } from "../middleware/auth";
+import { authenticate } from "../middleware/auth";
 
 const router = Router();
 
 // Tất cả routes đều cần authentication
-router.use(authenticateFirebase);
+router.use(authenticate);
 
 // Cập nhật profile
 router.put("/profile", UserController.updateProfile);
@@ -14,7 +14,3 @@ router.put("/profile", UserController.updateProfile);
 router.get("/:id", UserController.getUserById);
 
 export default router;
-
-
-
-

@@ -6,6 +6,7 @@ class SongModel {
   final int? albumId;
   final int? genreId;
   final int? duration; // seconds
+  final String? lyrics;
   final String fileUrl;
   final String? coverUrl;
   final DateTime? releaseDate;
@@ -18,6 +19,7 @@ class SongModel {
     this.albumId,
     this.genreId,
     this.duration,
+    this.lyrics,
     required this.fileUrl,
     this.coverUrl,
     this.releaseDate,
@@ -32,6 +34,7 @@ class SongModel {
       albumId: json['album_id'] as int?,
       genreId: json['genre_id'] as int?,
       duration: json['duration'] as int?,
+      lyrics: json['lyrics'] as String?,
       fileUrl: json['file_url'] as String,
       coverUrl: json['cover_url'] as String?,
       releaseDate: json['release_date'] != null
@@ -53,6 +56,7 @@ class SongModel {
       'album_id': albumId,
       'genre_id': genreId,
       'duration': duration,
+      'lyrics': lyrics,
       'file_url': fileUrl,
       'cover_url': coverUrl,
       'release_date': releaseDate?.toIso8601String(),

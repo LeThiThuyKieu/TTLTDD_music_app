@@ -14,14 +14,13 @@ export class UserController {
         return;
       }
 
-      const user = await UserService.getUserByFirebaseUid(req.user.uid);
-      if (!user || !user.user_id) {
-        res.status(404).json({ error: "User not found" });
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
         return;
       }
 
       const { name, avatar_url } = req.body;
-      const updatedUser = await UserService.updateProfile(user.user_id, {
+      const updatedUser = await UserService.updateProfile(req.user.user_id, {
         name,
         avatar_url,
       });
