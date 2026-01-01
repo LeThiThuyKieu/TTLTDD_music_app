@@ -43,6 +43,7 @@ import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/forgot_password_screen.dart';
 import 'services/audio_player_service.dart';
 
 void main() {
@@ -70,6 +71,7 @@ class MyApp extends StatelessWidget {
           '/onboarding': (context) => const OnboardingScreen(),
           '/register': (context) => const RegisterScreen(),
           '/login': (context) => const LoginScreen(),
+          '/forgot-password': (context) => const ForgotPasswordScreen(),
           '/home': (context) => const HomeScreen(),
         },
       ),

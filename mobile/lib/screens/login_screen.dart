@@ -210,15 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                                'Tính năng quên mật khẩu đang phát triển'),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        );
+                        Navigator.pushNamed(context, '/forgot-password');
                       },
                       child: const Text(
                         'Quên mật khẩu?',
