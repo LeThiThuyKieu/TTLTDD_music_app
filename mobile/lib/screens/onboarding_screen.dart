@@ -247,7 +247,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/home');
+                  Navigator.pushReplacementNamed(context, '/register');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1ED760),

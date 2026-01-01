@@ -41,6 +41,8 @@ import 'package:provider/provider.dart';
 
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/register_screen.dart';
+import 'screens/login_screen.dart';
 import 'services/audio_player_service.dart';
 
 void main() {
@@ -66,6 +68,8 @@ class MyApp extends StatelessWidget {
         home: const SplashScreen(),
         routes: {
           '/onboarding': (context) => const OnboardingScreen(),
+          '/register': (context) => const RegisterScreen(),
+          '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
         },
       ),
