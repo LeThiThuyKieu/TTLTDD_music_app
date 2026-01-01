@@ -4,6 +4,7 @@ import '../models/song_model.dart';
 import '../models/artist_model.dart';
 import '../models/album_model.dart';
 import '../services/home_api_service.dart';
+import '../services/auth_service.dart';
 import '../widgets/app_bottom_nav.dart';
 import '../widgets/mini_player.dart';
 import 'song_list_screen.dart';
@@ -19,6 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final HomeApiService _api = HomeApiService();
+  final AuthService _authService = AuthService();
 
   /// Data cho từng section
   List<SongModel> topCharts = [];
@@ -26,11 +28,21 @@ class _HomeScreenState extends State<HomeScreen> {
   List<AlbumModel> hotAlbums = [];
 
   bool isLoading = true;
+  String? userName;
 
   @override
   void initState() {
     super.initState();
+    _loadUserInfo();
     _loadHomeData();
+  }
+
+  /// Load thông tin user
+  Future<void> _loadUserInfo() async {
+    final name = await _authService.getUserName();
+    setState(() {
+      userName = name;
+    });
   }
 
   /// Load data cho Home
@@ -120,20 +132,20 @@ class _HomeScreenState extends State<HomeScreen> {
   /// ================= HEADER =================
   Widget _buildHeader() {
     return Row(
-      children: const [
-        CircleAvatar(
+      children: [
+        const CircleAvatar(
           radius: 22,
           backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=3'),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Text(
-          'Hi 👋 Andrew',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          'Hi 👋 ${userName ?? 'User'}',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
-        Spacer(),
-        Icon(Icons.search),
-        SizedBox(width: 16),
-        Icon(Icons.notifications_none),
+        const Spacer(),
+        const Icon(Icons.search),
+        const SizedBox(width: 16),
+        const Icon(Icons.notifications_none),
       ],
     );
   }

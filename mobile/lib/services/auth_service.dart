@@ -44,5 +44,23 @@ class AuthService {
     final token = await getToken();
     return token != null && token.isNotEmpty;
   }
+
+  // Lấy tên user
+  Future<String?> getUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.keyUserName);
+  }
+
+  // Lấy email user
+  Future<String?> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.keyUserEmail);
+  }
+
+  // Lấy user ID
+  Future<int?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(AppConstants.keyUserId);
+  }
 }
 
