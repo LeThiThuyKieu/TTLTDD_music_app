@@ -41,35 +41,33 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Gọi API reset password
-      // final response = await _apiService.post(
-      //   '/auth/reset-password',
-      //   {
-      //     'email': widget.email,
-      //     'otp': widget.otp,
-      //     'new_password': _passwordController.text,
-      //   },
-      //   includeAuth: false,
-      // );
+      final response = await _apiService.post(
+        '/auth/reset-password',
+        {
+          'email': widget.email,
+          'otp': widget.otp,
+          'new_password': _passwordController.text,
+        },
+        includeAuth: false,
+      );
 
-      // Tạm thời mock - hiện dialog chúc mừng
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (mounted) {
-        // Hiện dialog chúc mừng
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const SuccessDialog(),
-        );
-
-        // Sau khi đóng dialog, chuyển về login
+      if (response['success'] == true) {
         if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
+          // Hiện dialog chúc mừng
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const SuccessDialog(),
           );
+
+          // Sau khi đóng dialog, chuyển về login
+          if (mounted) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+              (route) => false,
+            );
+          }
         }
       }
     } catch (e) {

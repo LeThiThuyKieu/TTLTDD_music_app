@@ -29,25 +29,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Gọi API gửi OTP
-      // final response = await _apiService.post(
-      //   '/auth/forgot-password',
-      //   {'email': _emailController.text.trim()},
-      //   includeAuth: false,
-      // );
+      final response = await _apiService.post(
+        '/auth/forgot-password',
+        {'email': _emailController.text.trim()},
+        includeAuth: false,
+      );
 
-      // Tạm thời mock - chuyển sang màn hình verify OTP
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VerifyOTPScreen(
-              email: _emailController.text.trim(),
+      if (response['success'] == true) {
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VerifyOTPScreen(
+                email: _emailController.text.trim(),
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -206,4 +204,3 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
-

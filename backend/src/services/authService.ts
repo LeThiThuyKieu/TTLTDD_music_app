@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { UserRepository } from "../repositories/UserRepository";
 import { User } from "../models";
+import { OTPService } from "./otpService";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -99,5 +100,64 @@ export class AuthService {
     // Không trả về password_hash
     const { password_hash: _, ...userWithoutPassword } = user;
     return userWithoutPassword as User;
+  }
+
+  // Gửi OTP cho forgot password
+  static async sendForgotPasswordOTP(email: string): Promise<string> {
+    // Kiểm tra user có tồn tại không
+    const user = await UserRepository.findByEmail(email);
+    if (!user) {
+      // Không báo lỗi để tránh email enumeration attack
+      // Vẫn trả về success nhưng không gửi OTP
+      return "";
+    }
+
+    // Tạo OTP
+    const otp = OTPService.generateOTP();
+
+    // Lưu OTP (10 phút)
+    OTPService.saveOTP(email, otp, 10);
+
+    // TODO: Gửi email với OTP
+    // Ở đây chỉ log ra console, trong production cần tích hợp email service
+    console.log(`OTP for ${email}: ${otp}`);
+
+    return otp;
+  }
+
+  // Verify OTP
+  static async verifyForgotPasswordOTP(
+    email: string,
+    otp: string
+  ): Promise<boolean> {
+    return OTPService.verifyOTP(email, otp);
+  }
+
+  // Reset password
+  static async resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<void> {
+    // Verify OTP trước
+    const isValidOTP = await this.verifyForgotPasswordOTP(email, otp);
+    if (!isValidOTP) {
+      throw new Error("Invalid or expired OTP");
+    }
+
+    // Tìm user
+    const user = await UserRepository.findByEmail(email);
+    if (!user || !user.user_id) {
+      throw new Error("User not found");
+    }
+
+    // Hash password mới
+    const password_hash = await bcrypt.hash(newPassword, 10);
+
+    // Cập nhật password
+    await UserRepository.update(user.user_id, { password_hash });
+
+    // Xóa OTP sau khi reset password thành công
+    OTPService.deleteOTP(email);
   }
 }

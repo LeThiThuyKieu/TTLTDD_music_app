@@ -27,7 +27,7 @@ class _SuccessDialogState extends State<SuccessDialog>
     _controller.forward();
 
     // Tự động đóng sau 3 giây
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 5), () {
       if (mounted) {
         Navigator.of(context).pop();
       }

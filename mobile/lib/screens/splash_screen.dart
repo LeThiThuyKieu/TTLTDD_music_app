@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _controller.forward().then((_) {
       // Sau khi animation xong, chờ thêm một chút rồi navigate
-      Timer(const Duration(milliseconds: 1000), () {
+      Timer(const Duration(milliseconds: 2000), () {
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/onboarding');
         }

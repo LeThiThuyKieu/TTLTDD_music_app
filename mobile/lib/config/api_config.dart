@@ -12,6 +12,9 @@ class ApiConfig {
   static const String authRegister = '/auth/register';
   static const String authLogin = '/auth/login';
   static const String authMe = '/auth/me';
+  static const String authForgotPassword = '/auth/forgot-password';
+  static const String authVerifyOTP = '/auth/verify-otp';
+  static const String authResetPassword = '/auth/reset-password';
   
   static const String usersProfile = '/users/profile';
   static const String usersById = '/users';

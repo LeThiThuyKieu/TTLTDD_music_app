@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import '../services/api_service.dart';
 import 'reset_password_screen.dart';
 
 class VerifyOTPScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
   int _resendCountdown = 60;
   Timer? _countdownTimer;
   bool _isLoading = false;
+  final _apiService = ApiService();
 
   @override
   void initState() {
@@ -83,26 +85,24 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // TODO: Gọi API verify OTP
-      // final response = await _apiService.post(
-      //   '/auth/verify-otp',
-      //   {'email': widget.email, 'otp': otp},
-      //   includeAuth: false,
-      // );
+      final response = await _apiService.post(
+        '/auth/verify-otp',
+        {'email': widget.email, 'otp': otp},
+        includeAuth: false,
+      );
 
-      // Tạm thời mock - chuyển sang màn hình reset password
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResetPasswordScreen(
-              email: widget.email,
-              otp: otp,
+      if (response['success'] == true) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResetPasswordScreen(
+                email: widget.email,
+                otp: otp,
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -124,16 +124,37 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
   Future<void> _handleResend() async {
     if (_resendCountdown > 0) return;
 
-    setState(() => _resendCountdown = 60);
-    _startCountdown();
+    try {
+      final response = await _apiService.post(
+        '/auth/forgot-password',
+        {'email': widget.email},
+        includeAuth: false,
+      );
 
-    // TODO: Gọi API resend OTP
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Đã gửi lại mã xác minh'),
-        backgroundColor: Colors.green,
-      ),
-    );
+      if (response['success'] == true) {
+        setState(() => _resendCountdown = 60);
+        _startCountdown();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đã gửi lại mã xác minh'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Gửi lại mã thất bại: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override

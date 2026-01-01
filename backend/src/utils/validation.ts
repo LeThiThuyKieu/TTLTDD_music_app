@@ -38,14 +38,50 @@ export const validateLogin = [
 ];
 
 export const validateSong = [
-  body("title").trim().notEmpty().withMessage("Tiêu đề bài hát không được để trống"),
-  body("file_url").notEmpty().withMessage("Đường dẫn file nhạc không được để trống"),
+  body("title")
+    .trim()
+    .notEmpty()
+    .withMessage("Tiêu đề bài hát không được để trống"),
+  body("file_url")
+    .notEmpty()
+    .withMessage("Đường dẫn file nhạc không được để trống"),
 ];
 
 export const validatePlaylist = [
-  body("name").trim().notEmpty().withMessage("Tên playlist không được để trống"),
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Tên playlist không được để trống"),
 ];
 
 export const validateGenre = [
-  body("name").trim().notEmpty().withMessage("Tên thể loại không được để trống"),
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Tên thể loại không được để trống"),
+];
+
+export const validateForgotPassword = [
+  body("email").isEmail().withMessage("Email không hợp lệ"),
+];
+
+export const validateVerifyOTP = [
+  body("email").isEmail().withMessage("Email không hợp lệ"),
+  body("otp")
+    .isLength({ min: 4, max: 4 })
+    .withMessage("OTP phải có 4 số")
+    .isNumeric()
+    .withMessage("OTP phải là số"),
+];
+
+export const validateResetPassword = [
+  body("email").isEmail().withMessage("Email không hợp lệ"),
+  body("otp")
+    .isLength({ min: 4, max: 4 })
+    .withMessage("OTP phải có 4 số")
+    .isNumeric()
+    .withMessage("OTP phải là số"),
+  body("new_password")
+    .isLength({ min: 6 })
+    .withMessage("Mật khẩu phải có ít nhất 6 ký tự"),
 ];
