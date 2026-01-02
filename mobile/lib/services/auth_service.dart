@@ -84,5 +84,10 @@ class AuthService {
     await clearToken();
   }
 
+  // Lưu avatar user
+  Future<void> saveUserAvatar(String avatarUrl) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.keyUserAvatar, avatarUrl);
+  }
 }
 

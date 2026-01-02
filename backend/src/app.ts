@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import path from "path";
 
 // Import routes
 import authRoutes from "./routes/authRoutes";
@@ -40,6 +41,7 @@ app.get("/health", (_req, res) => {
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/songs", songRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/favorites", favoriteRoutes);

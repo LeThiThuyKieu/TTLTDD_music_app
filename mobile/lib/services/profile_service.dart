@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'api_service.dart';
 import 'auth_service.dart';
 
@@ -47,6 +49,30 @@ class ProfileService {
       if (response['success'] != true) {
         throw Exception(response['error'] ?? 'Đổi mật khẩu thất bại');
       }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Upload avatar
+  Future<String> uploadAvatar(File image) async {
+    try {
+      final response = await _apiService.uploadFile(
+        '/users/upload-avatar',
+        file: image,
+        fieldName: 'avatar',
+      );
+
+      if (response['success'] != true) {
+        throw Exception(response['error'] ?? 'Upload avatar thất bại');
+      }
+
+      final avatarUrl = response['data']['avatar_url'];
+
+      // lưu local
+      await _authService.saveUserAvatar(avatarUrl);
+
+      return avatarUrl;
     } catch (e) {
       rethrow;
     }

@@ -86,7 +86,7 @@ export class UserController {
     }
   }
 
-  // Cập nhật name của user trong profile 
+  // Cập nhật name của user trong profile
   static async updateNameProfile(
     req: AuthenticatedRequest,
     res: Response
@@ -125,6 +125,43 @@ export class UserController {
       });
     } catch (error: any) {
       console.error("Update profile error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Internal server error",
+      });
+    }
+  }
+
+  // Upload avatar
+  static async uploadAvatar(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      const userId = req.user?.user_id;
+
+      if (!userId) {
+        res.status(401).json({ success: false, error: "Unauthorized" });
+        return;
+      }
+
+      if (!req.file) {
+        res.status(400).json({ success: false, error: "No file uploaded" });
+        return;
+      }
+
+      const avatarUrl = `/uploads/avatar/${req.file.filename}`;
+
+      await UserService.updateAvatar(userId, avatarUrl);
+
+      res.json({
+        success: true,
+        data: {
+          avatar_url: avatarUrl,
+        },
+      });
+    } catch (error: any) {
+      console.error("Upload avatar error:", error);
       res.status(500).json({
         success: false,
         error: error.message || "Internal server error",

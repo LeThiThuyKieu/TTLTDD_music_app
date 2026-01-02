@@ -58,4 +58,19 @@ export class UserService {
     const { password_hash: _, ...userWithoutPassword } = updated;
     return userWithoutPassword as User;
   }
+
+  // Update avatar
+  static async updateAvatar(
+    userId: number,
+    avatarUrl: string
+  ): Promise<User | null> {
+    const updated = await UserRepository.update(userId, {
+      avatar_url: avatarUrl,
+    });
+
+    if (!updated) return null;
+
+    const { password_hash: _, ...userWithoutPassword } = updated;
+    return userWithoutPassword as User;
+  }
 }

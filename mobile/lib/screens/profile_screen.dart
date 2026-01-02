@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import '../config/api_config.dart';
+import '../services/profile_service.dart';
 import '../utils/theme_provider.dart';
 import '../services/auth_service.dart';
 import 'change_password_screen.dart';
@@ -18,6 +20,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
+  final ProfileService _profileService = ProfileService();
 
   String? name;
   String? email;
@@ -46,36 +49,97 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  // logout
   Future<void> _handleLogout() async {
     final navigator = Navigator.of(context);
 
-    await _authService.logout();
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Đăng xuất'),
+        content: const Text('Bạn có chắc muốn đăng xuất không?'),
+        actions: [
+          TextButton(
+            onPressed: () => navigator.pop(),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () async {
+              navigator.pop(); // đóng dialog
 
-    if (!mounted) return;
+              await _authService.logout();
 
-    navigator.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
+              if (!mounted) return;
+
+              navigator.pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            },
+            child: const Text(
+              'Đăng xuất',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Future<void> _pickAvatar() async {
+    final messenger = ScaffoldMessenger.of(context);
     final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 70,
     );
 
     if (image == null) return;
-
+    final file = File(image.path);
     setState(() {
-      _localAvatar = File(image.path);
+      _localAvatar = file;
     });
 
-    // TODO: gọi API upload avatar sau
+    try {
+      final avatarPath = await _profileService.uploadAvatar(file);
+      // ví dụ avatarPath = "/uploads/avatar/avatar-xxx.png"
+
+      if (!mounted) return;
+
+      // Ghép baseUrl (do backend trả về tuong đối như trên
+      final fullAvatarUrl = '${ApiConfig.baseUrl}$avatarPath';
+
+      // Lưu vào local
+      await _authService.saveUserAvatar(fullAvatarUrl);
+
+      // Update UI
+      setState(() {
+        avatarUrl = fullAvatarUrl;
+        _localAvatar = null; // chuyển sang ảnh từ server
+      });
+
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Cập nhật avatar thành công')),
+      );
+    } catch (e) {
+      setState(() {
+        _localAvatar = null; // rollback nếu lỗi
+      });
+
+      messenger.showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    ImageProvider? avatarImage;
+    if (_localAvatar != null) {
+      avatarImage = FileImage(_localAvatar!);
+    } else if (avatarUrl != null && avatarUrl!.isNotEmpty) {
+      avatarImage = NetworkImage(avatarUrl!);
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -97,13 +161,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   CircleAvatar(
                     radius: 52,
                     backgroundColor: Colors.grey.shade300,
-                    backgroundImage: _localAvatar != null
-                        ? FileImage(_localAvatar!)
-                        : (avatarUrl != null && avatarUrl!.isNotEmpty
-                            ? NetworkImage(avatarUrl!)
-                            : null) as ImageProvider?,
-                    child: (_localAvatar == null &&
-                            (avatarUrl == null || avatarUrl!.isEmpty))
+                    backgroundImage: avatarImage,
+                    child: avatarImage == null
                         ? const Icon(Icons.person,
                             size: 52, color: Colors.white)
                         : null,
@@ -140,7 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 24),
 
-              //Edit info (name, mail)
+              //Edit info (name, mail ko đổi)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.edit_outlined),
@@ -161,7 +220,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     await _loadUser();
                   }
                 },
-
               ),
 
               const SizedBox(height: 24),
