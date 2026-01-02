@@ -13,8 +13,7 @@ import { Request } from "express";
 
 export interface AuthenticatedRequest extends Request {
   user?: {
-    uid: string;
+    user_id: number;
     email?: string;
-    user_id?: number;
   };
 }

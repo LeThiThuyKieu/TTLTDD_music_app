@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { GenreController } from "../controllers/genreController";
-import { authenticateFirebase, optionalAuth } from "../middleware/auth";
+import { authenticate, optionalAuth } from "../middleware/auth";
 import { validate, validateGenre } from "../utils/validation";
 
 const router = Router();
@@ -12,24 +12,17 @@ router.get("/", optionalAuth, GenreController.getAll);
 router.get("/:id", optionalAuth, GenreController.getById);
 
 // Protected - create genre
-router.post(
-  "/",
-  authenticateFirebase,
-  validate(validateGenre),
-  GenreController.create
-);
+router.post("/", authenticate, validate(validateGenre), GenreController.create);
 
 // Protected - update genre
 router.put(
   "/:id",
-  authenticateFirebase,
+  authenticate,
   validate(validateGenre),
   GenreController.update
 );
 
 // Protected - delete genre
-router.delete("/:id", authenticateFirebase, GenreController.delete);
+router.delete("/:id", authenticate, GenreController.delete);
 
 export default router;
-
-

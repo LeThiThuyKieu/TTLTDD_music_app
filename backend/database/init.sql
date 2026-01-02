@@ -6,12 +6,15 @@ USE music_app;
 
 -- 3. Tạo bảng users
 CREATE TABLE IF NOT EXISTS users (
-user_id INT AUTO_INCREMENT PRIMARY KEY,
-firebase_uid VARCHAR(128) NOT NULL UNIQUE,
-name VARCHAR(200) NOT NULL,
-email VARCHAR(200) NOT NULL UNIQUE,
-avatar_url VARCHAR(512),
-created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  user_id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  email VARCHAR(200) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL, -- dùng bcrypt
+  avatar_url VARCHAR(512),
+  role ENUM('user', 'admin') DEFAULT 'user',
+  is_active TINYINT DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 4. Tạo bảng artists
@@ -47,6 +50,7 @@ title VARCHAR(255) NOT NULL,
 album_id INT,
 genre_id INT,
 duration INT,
+lyrics LONGTEXT,
 file_url VARCHAR(1024) NOT NULL,
 cover_url VARCHAR(512),
 release_date DATE,

@@ -5,8 +5,14 @@ export class UserRepository {
   // Tạo user mới
   static async create(user: User): Promise<User> {
     const [result] = await pool.execute(
-      "INSERT INTO users (firebase_uid, name, email, avatar_url) VALUES (?, ?, ?, ?)",
-      [user.firebase_uid, user.name, user.email, user.avatar_url || null]
+      "INSERT INTO users (name, email, password_hash, avatar_url, role) VALUES (?, ?, ?, ?, ?)",
+      [
+        user.name,
+        user.email,
+        user.password_hash,
+        user.avatar_url || null,
+        user.role || "user",
+      ]
     );
     const insertId = (result as any).insertId;
     const created = await this.findById(insertId);
@@ -21,16 +27,6 @@ export class UserRepository {
     const [rows] = await pool.execute("SELECT * FROM users WHERE user_id = ?", [
       userId,
     ]);
-    const users = rows as User[];
-    return users[0] || null;
-  }
-
-  // Tìm user theo Firebase UID
-  static async findByFirebaseUid(firebaseUid: string): Promise<User | null> {
-    const [rows] = await pool.execute(
-      "SELECT * FROM users WHERE firebase_uid = ?",
-      [firebaseUid]
-    );
     const users = rows as User[];
     return users[0] || null;
   }
@@ -59,6 +55,10 @@ export class UserRepository {
     if (updates.avatar_url !== undefined) {
       fields.push("avatar_url = ?");
       values.push(updates.avatar_url);
+    }
+    if (updates.password_hash) {
+      fields.push("password_hash = ?");
+      values.push(updates.password_hash);
     }
 
     if (fields.length === 0) {

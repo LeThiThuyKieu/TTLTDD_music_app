@@ -11,9 +11,14 @@ export class PlaylistController {
         return;
       }
 
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
       const { name, cover_url, is_public } = req.body;
       const playlist = await PlaylistService.createPlaylist(
-        req.user.uid,
+        req.user.user_id,
         name,
         cover_url,
         is_public
@@ -43,7 +48,12 @@ export class PlaylistController {
         return;
       }
 
-      const playlists = await PlaylistService.getMyPlaylists(req.user.uid);
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const playlists = await PlaylistService.getMyPlaylists(req.user.user_id);
 
       res.json({
         success: true,
@@ -79,7 +89,7 @@ export class PlaylistController {
       // Kiểm tra quyền truy cập
       const hasAccess = await PlaylistService.checkPlaylistAccess(
         playlist,
-        req.user?.uid
+        req.user?.user_id
       );
       if (!hasAccess) {
         res.status(403).json({ error: "Forbidden" });
@@ -123,10 +133,15 @@ export class PlaylistController {
         return;
       }
 
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
       const success = await PlaylistService.addSongToPlaylist(
         playlistId,
         songId,
-        req.user.uid
+        req.user.user_id
       );
       if (!success) {
         res.status(400).json({ error: "Failed to add song to playlist" });
@@ -165,10 +180,15 @@ export class PlaylistController {
         return;
       }
 
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
       const success = await PlaylistService.removeSongFromPlaylist(
         playlistId,
         songId,
-        req.user.uid
+        req.user.user_id
       );
       if (!success) {
         res.status(400).json({ error: "Failed to remove song from playlist" });
@@ -202,9 +222,14 @@ export class PlaylistController {
         return;
       }
 
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
       const success = await PlaylistService.deletePlaylist(
         playlistId,
-        req.user.uid
+        req.user.user_id
       );
       if (!success) {
         res.status(400).json({ error: "Failed to delete playlist" });

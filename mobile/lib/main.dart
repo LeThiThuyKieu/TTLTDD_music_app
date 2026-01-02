@@ -36,9 +36,14 @@
 // }
 //
 import 'package:flutter/material.dart';
+import 'package:music_app/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 
-import 'screens/home_screen.dart';
+import 'screens/main_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/register_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/forgot_password_screen.dart';
 import 'services/audio_player_service.dart';
 
 void main() {
@@ -61,7 +66,14 @@ class MyApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        home: const HomeScreen(),
+        home: const SplashScreen(),
+        routes: {
+          '/onboarding': (context) => const OnboardingScreen(),
+          '/register': (context) => const RegisterScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/forgot-password': (context) => const ForgotPasswordScreen(),
+          '/main': (context) => const MainScreen(),
+        },
       ),
     );
   }

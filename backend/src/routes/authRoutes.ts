@@ -1,23 +1,45 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/authController";
-import { authenticateFirebase } from "../middleware/auth";
-import { validate, validateUser } from "../utils/validation";
+import { authenticate } from "../middleware/auth";
+import {
+  validate,
+  validateRegister,
+  validateLogin,
+  validateForgotPassword,
+  validateVerifyOTP,
+  validateResetPassword,
+} from "../utils/validation";
 
 const router = Router();
 
-// Sync user sau khi đăng nhập Firebase
-router.post(
-  "/sync",
-  authenticateFirebase,
-  validate(validateUser),
-  AuthController.syncUser
-);
+// Đăng ký user mới
+router.post("/register", validate(validateRegister), AuthController.register);
+
+// Đăng nhập
+router.post("/login", validate(validateLogin), AuthController.login);
 
 // Lấy thông tin user hiện tại
-router.get("/me", authenticateFirebase, AuthController.getCurrentUser);
+router.get("/me", authenticate, AuthController.getCurrentUser);
+
+// Quên mật khẩu - Gửi OTP
+router.post(
+  "/forgot-password",
+  validate(validateForgotPassword),
+  AuthController.forgotPassword
+);
+
+// Verify OTP
+router.post(
+  "/verify-otp",
+  validate(validateVerifyOTP),
+  AuthController.verifyOTP
+);
+
+// Reset password
+router.post(
+  "/reset-password",
+  validate(validateResetPassword),
+  AuthController.resetPassword
+);
 
 export default router;
-
-
-
-
