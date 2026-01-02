@@ -61,11 +61,17 @@ class AuthService {
     return prefs.getString(AppConstants.keyUserEmail);
   }
 
+  // Lấy avatar user
   Future<String?> getUserAvatar() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(AppConstants.keyUserAvatar);
   }
 
+  //lưu update name user
+  Future<void> saveUserName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.keyUserName, name);
+  }
 
   // Lấy user ID
   Future<int?> getUserId() async {
@@ -77,5 +83,6 @@ class AuthService {
   Future<void> logout() async {
     await clearToken();
   }
+
 }
 

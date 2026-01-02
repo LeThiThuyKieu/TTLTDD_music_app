@@ -1,6 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../utils/theme_provider.dart';
 import '../services/auth_service.dart';
 import 'change_password_screen.dart';
+import 'edit_profile_screen.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -16,6 +22,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? name;
   String? email;
   String? avatarUrl;
+
+  File? _localAvatar;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -35,6 +44,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
       email = userEmail;
       avatarUrl = userAvatarUrl;
     });
+  }
+
+  Future<void> _handleLogout() async {
+    final navigator = Navigator.of(context);
+
+    await _authService.logout();
+
+    if (!mounted) return;
+
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  Future<void> _pickAvatar() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (image == null) return;
+
+    setState(() {
+      _localAvatar = File(image.path);
+    });
+
+    // TODO: gọi API upload avatar sau
   }
 
   @override
@@ -60,24 +97,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   CircleAvatar(
                     radius: 52,
                     backgroundColor: Colors.grey.shade300,
-                    backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
-                        ? NetworkImage(avatarUrl!)
-                        : null,
-                    child: avatarUrl == null || avatarUrl!.isEmpty
-                        ? const Icon(
-                            Icons.person,
-                            size: 52,
-                            color: Colors.white,
-                          )
+                    backgroundImage: _localAvatar != null
+                        ? FileImage(_localAvatar!)
+                        : (avatarUrl != null && avatarUrl!.isNotEmpty
+                            ? NetworkImage(avatarUrl!)
+                            : null) as ImageProvider?,
+                    child: (_localAvatar == null &&
+                            (avatarUrl == null || avatarUrl!.isEmpty))
+                        ? const Icon(Icons.person,
+                            size: 52, color: Colors.white)
                         : null,
                   ),
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Color(0xFF1ED760),
-                    child: Icon(
-                      Icons.edit,
-                      size: 16,
-                      color: Colors.white,
+                  GestureDetector(
+                    onTap: _pickAvatar,
+                    child: const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: Color(0xFF1ED760),
+                      child: Icon(Icons.edit, size: 16, color: Colors.white),
                     ),
                   )
                 ],
@@ -85,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 16),
 
-              /// NAME
+              // NAME
               Text(
                 name ?? '',
                 style: const TextStyle(
@@ -96,15 +132,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 4),
 
-              /// EMAIL
+              // EMAIL
               Text(
                 email ?? '',
                 style: const TextStyle(color: Colors.grey),
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 24),
 
-              /// CHANGE PASSWORD
+              //Edit info (name, mail)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('Chỉnh sửa thông tin'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () async {
+                  final result = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => EditProfileScreen(
+                        currentName: name ?? '',
+                      ),
+                    ),
+                  );
+
+                  // Nếu edit profile thành công → reload lại user
+                  if (result == true) {
+                    await _loadUser();
+                  }
+                },
+
+              ),
+
+              const SizedBox(height: 24),
+
+              // CHANGE PASSWORD
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.lock_outline),
@@ -123,9 +185,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
 
+              const SizedBox(height: 24),
+
+              // Light/Dark mode
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.dark_mode_outlined),
+                title: const Text('Dark mode'),
+                trailing: Switch(
+                  value: context.watch<ThemeProvider>().isDarkMode,
+                  onChanged: (value) {
+                    context.read<ThemeProvider>().toggleTheme(value);
+                  },
+                ),
+              ),
+
               const Spacer(),
 
-              /// LOGOUT BUTTON
+              // LOGOUT BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -151,19 +228,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> _handleLogout() async {
-    final navigator = Navigator.of(context);
-
-    await _authService.logout();
-
-    if (!mounted) return;
-
-    navigator.pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
     );
   }
 }

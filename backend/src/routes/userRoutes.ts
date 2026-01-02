@@ -7,10 +7,14 @@ const router = Router();
 // Tất cả routes đều cần authentication
 router.use(authenticate);
 
-// Cập nhật profile
-router.put("/profile", UserController.updateProfile);
 
 // Lấy thông tin user theo ID
 router.get("/:id", UserController.getUserById);
+
+// Change password (trong profile)
+router.post("/change-password", UserController.changePassword);
+
+// Cập nhật profile
+router.put("/name-profile", UserController.updateNameProfile);
 
 export default router;
