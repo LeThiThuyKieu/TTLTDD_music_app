@@ -4,7 +4,8 @@ class AppConstants {
   static const String keyUserId = 'user_id';
   static const String keyUserEmail = 'user_email';
   static const String keyUserName = 'user_name';
-  
+  static const String keyUserAvatar = 'user_avatar';
+
   // Error Messages
   static const String errorNetwork = 'Lỗi kết nối mạng';
   static const String errorUnauthorized = 'Phiên đăng nhập đã hết hạn';

@@ -18,7 +18,7 @@ class AuthService {
     return prefs.getString(AppConstants.keyAuthToken);
   }
 
-  // Xóa token (logout)
+  // Xóa token
   Future<void> clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(AppConstants.keyAuthToken);
@@ -32,11 +32,15 @@ class AuthService {
     required int userId,
     required String email,
     required String name,
+    String? avatarUrl,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(AppConstants.keyUserId, userId);
     await prefs.setString(AppConstants.keyUserEmail, email);
     await prefs.setString(AppConstants.keyUserName, name);
+    if (avatarUrl != null) {
+      await prefs.setString(AppConstants.keyUserAvatar, avatarUrl);
+    }
   }
 
   // Kiểm tra đã đăng nhập chưa
@@ -57,10 +61,21 @@ class AuthService {
     return prefs.getString(AppConstants.keyUserEmail);
   }
 
+  Future<String?> getUserAvatar() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.keyUserAvatar);
+  }
+
+
   // Lấy user ID
   Future<int?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(AppConstants.keyUserId);
+  }
+
+  //logout
+  Future<void> logout() async {
+    await clearToken();
   }
 }
 

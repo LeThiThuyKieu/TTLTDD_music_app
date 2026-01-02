@@ -5,8 +5,8 @@ import '../models/artist_model.dart';
 import '../models/album_model.dart';
 import '../services/home_api_service.dart';
 import '../services/auth_service.dart';
-import '../widgets/app_bottom_nav.dart';
 import '../widgets/mini_player.dart';
+import 'login_screen.dart';
 import 'song_list_screen.dart';
 import 'package:provider/provider.dart';
 import '../services/audio_player_service.dart';
@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool isLoading = true;
   String? userName;
+  String? avatarUrl;
 
   @override
   void initState() {
@@ -40,10 +41,50 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Load thông tin user
   Future<void> _loadUserInfo() async {
     final name = await _authService.getUserName();
+    final avatar = await _authService.getUserAvatar();// có thể null
     setState(() {
       userName = name;
+      avatarUrl = avatar;
     });
   }
+
+  // logout
+  Future<void> _handleLogout() async {
+    final navigator = Navigator.of(context);
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Đăng xuất'),
+        content: const Text('Bạn có chắc muốn đăng xuất không?'),
+        actions: [
+          TextButton(
+            onPressed: () => navigator.pop(),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () async {
+              navigator.pop(); // đóng dialog
+
+              await _authService.logout();
+
+              if (!mounted) return;
+
+              navigator.pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (route) => false,
+              );
+            },
+            child: const Text(
+              'Đăng xuất',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   /// Load data cho Home
   Future<void> _loadHomeData() async {
@@ -69,10 +110,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 0,
-        onTap: (index) {},
-      ),
       body: Stack(
         children: [
           SafeArea(
@@ -133,9 +170,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHeader() {
     return Row(
       children: [
-        const CircleAvatar(
+        CircleAvatar(
           radius: 22,
-          backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=3'),
+          backgroundColor: Colors.grey.shade300,
+          backgroundImage:
+          avatarUrl != null && avatarUrl!.isNotEmpty
+              ? NetworkImage(avatarUrl!)
+              : null,
+          child: avatarUrl == null || avatarUrl!.isEmpty
+              ? const Icon(
+            Icons.person,
+            color: Colors.white,
+            size: 26,
+          )
+              : null,
         ),
         const SizedBox(width: 12),
         Text(
@@ -145,7 +193,10 @@ class _HomeScreenState extends State<HomeScreen> {
         const Spacer(),
         const Icon(Icons.search),
         const SizedBox(width: 16),
-        const Icon(Icons.notifications_none),
+        IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: _handleLogout,
+        ),
       ],
     );
   }

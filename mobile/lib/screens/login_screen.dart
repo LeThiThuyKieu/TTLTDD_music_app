@@ -58,10 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
+          Navigator.pushReplacementNamed(context, '/main');
         }
       }
     } catch (e) {
