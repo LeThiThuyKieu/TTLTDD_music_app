@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 import '../utils/toast.dart';
@@ -18,7 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
-  final _apiService = ApiService();
   final _authService = AuthService();
 
   @override
@@ -33,47 +31,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
-      final response = await _apiService.post(
-        '/auth/register',
-        {
-          'name': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'password': _passwordController.text,
-        },
-        includeAuth: false,
+      await _authService.register(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        final data = response['data'];
-        final token = data['token'] as String;
-        final userData = data['user'] as Map<String, dynamic>;
+      showToast(
+        message: 'Đăng ký thành công',
+      );
 
-        // Lưu token và thông tin user
-        await _authService.saveToken(token);
-
-        await _authService.saveUserInfo(
-          userId: userData['user_id'] as int,
-          email: userData['email'] as String,
-          name: userData['name'] as String,
-        );
-
-        showToast(
-          message: 'Đăng ký thành công',
-        );
-
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/main');
-        }
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/main');
       }
     } catch (e) {
       if (mounted) {
         showToast(
           message:
-              'Đăng nhập thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+              'Đăng ký thất bại: ${e.toString().replaceAll('Exception: ', '')}',
           isSuccess: false,
         );
       }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
 import '../services/auth_service.dart';
-import '../config/api_config.dart';
 import 'register_screen.dart';
 import '../utils/toast.dart';
 
@@ -18,7 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
-  final _apiService = ApiService();
   final _authService = AuthService();
 
   @override
@@ -32,47 +29,19 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
-      final response = await _apiService.post(
-        '/auth/login',
-        {
-          'email': _emailController.text.trim(),
-          'password': _passwordController.text,
-        },
-        includeAuth: false,
+      await _authService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
 
-      if (response['success'] == true && response['data'] != null) {
-        final data = response['data'];
-        final token = data['token'] as String;
-        final userData = data['user'] as Map<String, dynamic>;
+      showToast(
+        message: 'Đăng nhập thành công',
+      );
 
-        // Lưu token và thông tin user
-        await _authService.saveToken(token);
-        // lưu avatar nếu có sẵn (convert relative path to full URL)
-        String? avatarUrl = userData['avatar_url'] as String?;
-        if (avatarUrl != null &&
-            avatarUrl.isNotEmpty &&
-            avatarUrl.startsWith('/')) {
-          avatarUrl = '${ApiConfig.baseUrl}$avatarUrl';
-        }
-        await _authService.saveUserInfo(
-          userId: userData['user_id'] as int,
-          email: userData['email'] as String,
-          name: userData['name'] as String,
-          avatarUrl: avatarUrl,
-        );
-
-        showToast(
-          message: 'Đăng nhập thành công',
-        );
-
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/main');
-        }
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/main');
       }
     } catch (e) {
       if (mounted) {
