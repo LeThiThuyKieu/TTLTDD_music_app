@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../models/song_model.dart';
-import '../models/artist_model.dart';
-import '../models/album_model.dart';
-import '../services/home_api_service.dart';
-import '../services/auth_service.dart';
-import '../widgets/mini_player.dart';
-import 'login_screen.dart';
+import '../../models/song_model.dart';
+import '../../models/artist_model.dart';
+import '../../models/album_model.dart';
+import '../../services/home_api_service.dart';
+import '../../services/auth_service.dart';
+import '../../utils/toast.dart';
+import '../../widgets/mini_player.dart';
+import '../auth/login_screen.dart';
 import 'song_list_screen.dart';
 import 'package:provider/provider.dart';
-import '../services/audio_player_service.dart';
+import '../../services/audio_player_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -41,7 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Load thông tin user
   Future<void> _loadUserInfo() async {
     final name = await _authService.getUserName();
-    final avatar = await _authService.getUserAvatar();// có thể null
+    final avatar = await _authService.getUserAvatar(); // có thể null
+
     setState(() {
       userName = name;
       avatarUrl = avatar;
@@ -72,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               navigator.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    (route) => false,
+                (route) => false,
               );
             },
             child: const Text(
@@ -84,7 +86,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
   /// Load data cho Home
   Future<void> _loadHomeData() async {
@@ -115,42 +116,41 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(
             child: isLoading
                 ? const Center(
-              child: CircularProgressIndicator(
-                  color: Color(0xFF4CAF50)),
-            )
+                    child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+                  )
                 : ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                const SizedBox(height: 20),
-                _buildHeader(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildHeader(),
 
-                const SizedBox(height: 30),
-                _buildSectionHeader(
-                  title: 'Album hot',
-                  onSeeMore: () {},
-                ),
-                const SizedBox(height: 12),
-                _buildAlbumList(),
+                      const SizedBox(height: 30),
+                      _buildSectionHeader(
+                        title: 'Album hot',
+                        onSeeMore: () {},
+                      ),
+                      const SizedBox(height: 12),
+                      _buildAlbumList(),
 
-                const SizedBox(height: 30),
-                _buildSectionHeader(
-                  title: 'Nghệ sĩ nổi bật',
-                  onSeeMore: () {},
-                ),
-                const SizedBox(height: 12),
-                _buildArtistList(),
+                      const SizedBox(height: 30),
+                      _buildSectionHeader(
+                        title: 'Nghệ sĩ nổi bật',
+                        onSeeMore: () {},
+                      ),
+                      const SizedBox(height: 12),
+                      _buildArtistList(),
 
-                const SizedBox(height: 30),
-                _buildSectionHeader(
-                  title: 'Nhạc hot thịnh hành',
-                  onSeeMore: _openAllSongs,
-                ),
-                const SizedBox(height: 12),
-                _buildSongList(),
+                      const SizedBox(height: 30),
+                      _buildSectionHeader(
+                        title: 'Nhạc hot thịnh hành',
+                        onSeeMore: _openAllSongs,
+                      ),
+                      const SizedBox(height: 12),
+                      _buildSongList(),
 
-                const SizedBox(height: 100), // chừa chỗ cho mini player
-              ],
-            ),
+                      const SizedBox(height: 100), // chừa chỗ cho mini player
+                    ],
+                  ),
           ),
 
           /// MINI PLAYER NẰM DƯỚI
@@ -165,7 +165,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   /// ================= HEADER =================
   Widget _buildHeader() {
     return Row(
@@ -173,16 +172,15 @@ class _HomeScreenState extends State<HomeScreen> {
         CircleAvatar(
           radius: 22,
           backgroundColor: Colors.grey.shade300,
-          backgroundImage:
-          avatarUrl != null && avatarUrl!.isNotEmpty
+          backgroundImage: (avatarUrl != null && avatarUrl!.startsWith('http'))
               ? NetworkImage(avatarUrl!)
               : null,
-          child: avatarUrl == null || avatarUrl!.isEmpty
+          child: (avatarUrl == null || !avatarUrl!.startsWith('http'))
               ? const Icon(
-            Icons.person,
-            color: Colors.white,
-            size: 26,
-          )
+                  Icons.person,
+                  color: Colors.white,
+                  size: 26,
+                )
               : null,
         ),
         const SizedBox(width: 12),
@@ -391,7 +389,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
 
   /// ================= SEE MORE SONGS =================
   void _openAllSongs() {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../../services/auth_service.dart';
 import 'verify_otp_screen.dart';
+import '../../utils/toast.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -13,7 +14,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
-  final _apiService = ApiService();
+  final _authService = AuthService();
 
   @override
   void dispose() {
@@ -25,36 +26,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
-      final response = await _apiService.post(
-        '/auth/forgot-password',
-        {'email': _emailController.text.trim()},
-        includeAuth: false,
+      await _authService.forgotPassword(
+        email: _emailController.text.trim(),
       );
 
-      if (response['success'] == true) {
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => VerifyOTPScreen(
-                email: _emailController.text.trim(),
-              ),
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerifyOTPScreen(
+              email: _emailController.text.trim(),
             ),
-          );
-        }
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Gửi mã thất bại: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
-          ),
+        showToast(
+          message:
+              'Gửi mã thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+          isSuccess: false,
         );
       }
     } finally {

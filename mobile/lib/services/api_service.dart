@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../utils/constants.dart';
@@ -6,7 +7,9 @@ import 'auth_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
+
   factory ApiService() => _instance;
+
   ApiService._internal();
 
   final _authService = AuthService();
@@ -150,7 +153,39 @@ class ApiService {
       rethrow;
     }
   }
+
+  // UPLOAD FILE (multipart/form-data)
+  Future<Map<String, dynamic>> uploadFile(
+    String endpoint, {
+    required File file,
+    required String fieldName,
+    bool includeAuth = true,
+  }) async {
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
+      final request = http.MultipartRequest('POST', uri);
+      final headers = await _getHeaders(includeAuth: includeAuth);
+      // Multipart không dùng Content-Type: application/json
+      headers.remove('Content-Type');
+      request.headers.addAll(headers);
+
+      // Add file
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          fieldName,
+          file.path,
+        ),
+      );
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return await _handleResponse(response);
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(AppConstants.errorNetwork);
+      }
+      rethrow;
+    }
+  }
 }
-
-
-

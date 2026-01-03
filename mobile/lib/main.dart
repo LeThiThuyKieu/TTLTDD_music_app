@@ -36,14 +36,15 @@
 // }
 //
 import 'package:flutter/material.dart';
-import 'package:music_app/screens/splash_screen.dart';
+import 'package:music_app/screens/onboarding/splash_screen.dart';
+import 'package:music_app/utils/theme_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'screens/main_screen.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/register_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/forgot_password_screen.dart';
+import 'screens/onboarding/onboarding_screen.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/forgot_password_screen.dart';
 import 'services/audio_player_service.dart';
 
 void main() {
@@ -55,27 +56,41 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AudioPlayerService(),
-      child: MaterialApp(
-        title: 'Musea',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF4CAF50),
-          ),
-          useMaterial3: true,
-        ),
-        home: const SplashScreen(),
-        routes: {
-          '/onboarding': (context) => const OnboardingScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/login': (context) => const LoginScreen(),
-          '/forgot-password': (context) => const ForgotPasswordScreen(),
-          '/main': (context) => const MainScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AudioPlayerService()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return MaterialApp(
+            title: 'Musea',
+            debugShowCheckedModeBanner: false,
+
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF4CAF50),
+              ),
+              useMaterial3: true,
+            ),
+
+            darkTheme: ThemeData.dark(),
+
+            themeMode: themeProvider.themeMode,
+
+            home: const SplashScreen(),
+            routes: {
+              '/onboarding': (context) => const OnboardingScreen(),
+              '/register': (context) => const RegisterScreen(),
+              '/login': (context) => const LoginScreen(),
+              '/forgot-password': (context) => const ForgotPasswordScreen(),
+              '/main': (context) => const MainScreen(),
+            },
+          );
         },
       ),
     );
+
   }
 }
 
