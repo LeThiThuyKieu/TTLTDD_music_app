@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import 'login_screen.dart';
-import '../utils/toast.dart';
+import '../../services/auth_service.dart';
+import 'register_screen.dart';
+import '../../utils/toast.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
   final _authService = AuthService();
@@ -23,24 +22,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _nameController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleRegister() async {
+  Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
     setState(() => _isLoading = true);
     try {
-      await _authService.register(
-        name: _nameController.text.trim(),
+      await _authService.login(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
       showToast(
-        message: 'Đăng ký thành công',
+        message: 'Đăng nhập thành công',
       );
 
       if (mounted) {
@@ -50,7 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         showToast(
           message:
-              'Đăng ký thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+              'Đăng nhập thất bại: ${e.toString().replaceAll('Exception: ', '')}',
           isSuccess: false,
         );
       }
@@ -110,11 +107,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           )
                         ],
                       ),
-                      child: const Icon(
-                        Icons.music_note,
-                        color: Colors.white,
-                        size: 36,
-                      ),
+                      child: const Icon(Icons.music_note,
+                          color: Colors.white, size: 36),
                     ),
                   ),
 
@@ -122,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   /// Title
                   const Text(
-                    'Tạo tài khoản',
+                    'Chào mừng trở lại',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 26,
@@ -132,29 +126,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 8),
                   const Text(
-                    'Đăng ký để bắt đầu nghe nhạc',
+                    'Đăng nhập để tiếp tục nghe nhạc',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey),
                   ),
 
                   const SizedBox(height: 40),
-
-                  /// Name
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: _inputDecoration(
-                      label: 'Tên',
-                      icon: Icons.person_outline,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Vui lòng nhập tên';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
 
                   /// Email
                   TextFormField(
@@ -199,20 +176,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Vui lòng nhập mật khẩu';
                       }
-                      if (value.length < 6) {
-                        return 'Mật khẩu tối thiểu 6 ký tự';
-                      }
                       return null;
                     },
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 12),
 
-                  /// Register button
+                  /// Forgot password
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/forgot-password');
+                      },
+                      child: const Text(
+                        'Quên mật khẩu?',
+                        style: TextStyle(color: Color(0xFF1ED760)),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  /// Login button
                   SizedBox(
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleRegister,
+                      onPressed: _isLoading ? null : _handleLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1ED760),
                         shape: RoundedRectangleBorder(
@@ -231,7 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             )
                           : const Text(
-                              'Đăng ký',
+                              'Đăng nhập',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -242,24 +232,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 28),
 
-                  /// Login
+                  /// Register
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'Đã có tài khoản? ',
-                        style: TextStyle(color: Colors.grey),
-                      ),
+                      const Text('Chưa có tài khoản? ',
+                          style: TextStyle(color: Colors.grey)),
                       GestureDetector(
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const LoginScreen()),
+                                builder: (_) => const RegisterScreen()),
                           );
                         },
                         child: const Text(
-                          'Đăng nhập',
+                          'Đăng ký',
                           style: TextStyle(
                             color: Color(0xFF1ED760),
                             fontWeight: FontWeight.bold,
@@ -268,6 +256,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 40),
                 ],
               ),

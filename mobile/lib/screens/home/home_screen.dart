@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../models/song_model.dart';
-import '../models/artist_model.dart';
-import '../models/album_model.dart';
-import '../services/home_api_service.dart';
-import '../services/auth_service.dart';
-import '../utils/toast.dart';
-import '../widgets/mini_player.dart';
-import 'login_screen.dart';
+import '../../models/song_model.dart';
+import '../../models/artist_model.dart';
+import '../../models/album_model.dart';
+import '../../services/home_api_service.dart';
+import '../../services/auth_service.dart';
+import '../../utils/toast.dart';
+import '../../widgets/mini_player.dart';
+import '../auth/login_screen.dart';
 import 'song_list_screen.dart';
 import 'package:provider/provider.dart';
-import '../services/audio_player_service.dart';
+import '../../services/audio_player_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../config/api_config.dart';
-import '../services/profile_service.dart';
-import '../utils/theme_provider.dart';
-import '../services/auth_service.dart';
+import '../../config/api_config.dart';
+import '../../services/profile_service.dart';
+import '../../utils/theme_provider.dart';
+import '../../services/auth_service.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
-import 'login_screen.dart';
-import '../utils/toast.dart';
+import '../auth/login_screen.dart';
+import '../../utils/toast.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

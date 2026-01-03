@@ -1,73 +1,52 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import 'login_screen.dart';
-import '../widgets/success_dialog.dart';
-import '../utils/toast.dart';
+import '../../services/auth_service.dart';
+import 'verify_otp_screen.dart';
+import '../../utils/toast.dart';
 
-class ResetPasswordScreen extends StatefulWidget {
-  final String email;
-  final String otp;
-
-  const ResetPasswordScreen({
-    super.key,
-    required this.email,
-    required this.otp,
-  });
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
-  State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final _emailController = TextEditingController();
   bool _isLoading = false;
   final _authService = AuthService();
 
   @override
   void dispose() {
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleResetPassword() async {
+  Future<void> _handleSendOTP() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
     setState(() => _isLoading = true);
     try {
-      await _authService.resetPassword(
-        email: widget.email,
-        otp: widget.otp,
-        newPassword: _passwordController.text,
+      await _authService.forgotPassword(
+        email: _emailController.text.trim(),
       );
 
       if (mounted) {
-        // Hiện dialog chúc mừng
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const SuccessDialog(),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerifyOTPScreen(
+              email: _emailController.text.trim(),
+            ),
+          ),
         );
-
-        // Sau khi đóng dialog, chuyển về login
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
         showToast(
           message:
-              'Đặt lại mật khẩu thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+              'Gửi mã thất bại: ${e.toString().replaceAll('Exception: ', '')}',
           isSuccess: false,
         );
       }
@@ -111,18 +90,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   const SizedBox(height: 16),
                   // Title
                   const Text(
-                    'Tạo mật khẩu mới',
+                    'Quên mật khẩu',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Tạo mật khẩu mới của bạn',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -134,66 +105,36 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(
-                      Icons.lock_outline,
+                      Icons.lock_reset,
                       size: 80,
                       color: Color(0xFF1ED760),
                     ),
                   ),
                   const SizedBox(height: 40),
-                  // New password field
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: _inputDecoration(
-                      label: 'Mật khẩu mới',
-                      icon: Icons.lock_outline,
-                      suffix: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscurePassword = !_obscurePassword);
-                        },
-                      ),
+                  // Instruction text
+                  const Text(
+                    'Nhập email của bạn để nhận mã xác minh',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập mật khẩu mới';
-                      }
-                      if (value.length < 6) {
-                        return 'Mật khẩu tối thiểu 6 ký tự';
-                      }
-                      return null;
-                    },
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
-                  // Confirm password field
+                  const SizedBox(height: 32),
+                  // Email field
                   TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: _obscureConfirmPassword,
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: _inputDecoration(
-                      label: 'Xác nhận mật khẩu',
-                      icon: Icons.lock_outline,
-                      suffix: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () {
-                          setState(() => _obscureConfirmPassword =
-                              !_obscureConfirmPassword);
-                        },
-                      ),
+                      label: 'Email',
+                      icon: Icons.email_outlined,
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng xác nhận mật khẩu';
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Vui lòng nhập email';
                       }
-                      if (value != _passwordController.text) {
-                        return 'Mật khẩu không khớp';
+                      if (!value.contains('@')) {
+                        return 'Email không hợp lệ';
                       }
                       return null;
                     },
@@ -203,7 +144,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   SizedBox(
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _handleResetPassword,
+                      onPressed: _isLoading ? null : _handleSendOTP,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1ED760),
                         shape: RoundedRectangleBorder(
@@ -243,12 +184,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
-    Widget? suffix,
   }) {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon),
-      suffixIcon: suffix,
       filled: true,
       fillColor: Colors.grey.shade100,
       border: OutlineInputBorder(

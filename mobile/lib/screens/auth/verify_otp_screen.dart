@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import '../services/auth_service.dart';
+import '../../services/auth_service.dart';
 import 'reset_password_screen.dart';
-import '../utils/toast.dart';
+import '../../utils/toast.dart';
 
 class VerifyOTPScreen extends StatefulWidget {
   final String email;

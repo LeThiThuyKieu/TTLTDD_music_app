@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/profile_service.dart';
-import '../utils/toast.dart';
+import '../../services/profile_service.dart';
+import '../../utils/toast.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});

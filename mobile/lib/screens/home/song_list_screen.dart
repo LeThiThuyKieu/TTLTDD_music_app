@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/song_model.dart';
-import '../widgets/song_item.dart';
+import '../../models/song_model.dart';
+import '../../widgets/song_item.dart';
 
 class SongListScreen extends StatelessWidget {
   final List<SongModel> songs;

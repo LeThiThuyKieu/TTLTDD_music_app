@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:music_app/services/profile_service.dart';
-import '../utils/toast.dart';
+import '../../utils/toast.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String currentName;
