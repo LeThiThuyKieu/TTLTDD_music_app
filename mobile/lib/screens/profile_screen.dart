@@ -10,6 +10,7 @@ import '../services/auth_service.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import 'login_screen.dart';
+import '../utils/toast.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -117,16 +118,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _localAvatar = null; // chuyển sang ảnh từ server
       });
 
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Cập nhật avatar thành công')),
+      showToast(
+        message: 'Cập nhật avatar thành công',
       );
     } catch (e) {
       setState(() {
         _localAvatar = null; // rollback nếu lỗi
       });
 
-      messenger.showSnackBar(
-        SnackBar(content: Text(e.toString())),
+      showToast(
+        message: 'Cập nhật avatar thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+        isSuccess: false,
       );
     }
   }

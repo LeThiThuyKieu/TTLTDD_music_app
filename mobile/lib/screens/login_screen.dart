@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart';
+import '../utils/toast.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -56,18 +57,20 @@ class _LoginScreenState extends State<LoginScreen> {
           name: userData['name'] as String,
         );
 
+        showToast(
+          message: 'Đăng nhập thành công',
+        );
+
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/main');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Đăng nhập thất bại: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
-          ),
+        showToast(
+          message:
+          'Đăng nhập thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+          isSuccess: false,
         );
       }
     } finally {

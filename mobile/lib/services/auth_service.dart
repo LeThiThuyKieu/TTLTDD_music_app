@@ -25,6 +25,7 @@ class AuthService {
     await prefs.remove(AppConstants.keyUserId);
     await prefs.remove(AppConstants.keyUserEmail);
     await prefs.remove(AppConstants.keyUserName);
+    await prefs.remove(AppConstants.keyUserAvatar);
   }
 
   // Lưu thông tin user

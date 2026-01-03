@@ -37,6 +37,9 @@ dependencies:
   intl: ^0.18.1
   uuid: ^4.2.1
 
+  #toast
+  fluttertoast: ^8.2.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
