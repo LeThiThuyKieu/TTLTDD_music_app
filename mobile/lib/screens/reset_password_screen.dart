@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
 import '../widgets/success_dialog.dart';
+import '../utils/toast.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -72,12 +73,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Đặt lại mật khẩu thất bại: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
-          ),
+        showToast(
+          message:
+              'Đặt lại mật khẩu thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+          isSuccess: false,
         );
       }
     } finally {
@@ -192,8 +191,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               : Icons.visibility_off_outlined,
                         ),
                         onPressed: () {
-                          setState(() =>
-                              _obscureConfirmPassword = !_obscureConfirmPassword);
+                          setState(() => _obscureConfirmPassword =
+                              !_obscureConfirmPassword);
                         },
                       ),
                     ),
@@ -267,4 +266,3 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 }
-

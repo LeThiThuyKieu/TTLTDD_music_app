@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../config/api_config.dart';
 import 'register_screen.dart';
 import '../utils/toast.dart';
 
@@ -51,10 +52,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Lưu token và thông tin user
         await _authService.saveToken(token);
+        // lưu avatar nếu có sẵn (convert relative path to full URL)
+        String? avatarUrl = userData['avatar_url'] as String?;
+        if (avatarUrl != null &&
+            avatarUrl.isNotEmpty &&
+            avatarUrl.startsWith('/')) {
+          avatarUrl = '${ApiConfig.baseUrl}$avatarUrl';
+        }
         await _authService.saveUserInfo(
           userId: userData['user_id'] as int,
           email: userData['email'] as String,
           name: userData['name'] as String,
+          avatarUrl: avatarUrl,
         );
 
         showToast(
@@ -69,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         showToast(
           message:
-          'Đăng nhập thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+              'Đăng nhập thất bại: ${e.toString().replaceAll('Exception: ', '')}',
           isSuccess: false,
         );
       }

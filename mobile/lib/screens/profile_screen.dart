@@ -88,7 +88,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _pickAvatar() async {
-    final messenger = ScaffoldMessenger.of(context);
     final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 70,
@@ -127,7 +126,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
 
       showToast(
-        message: 'Cập nhật avatar thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+        message:
+            'Cập nhật avatar thất bại: ${e.toString().replaceAll('Exception: ', '')}',
         isSuccess: false,
       );
     }

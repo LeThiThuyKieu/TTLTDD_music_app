@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
-import 'home_screen.dart';
 import '../utils/toast.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -55,6 +54,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         // Lưu token và thông tin user
         await _authService.saveToken(token);
+
         await _authService.saveUserInfo(
           userId: userData['user_id'] as int,
           email: userData['email'] as String,
@@ -73,7 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) {
         showToast(
           message:
-          'Đăng nhập thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+              'Đăng nhập thất bại: ${e.toString().replaceAll('Exception: ', '')}',
           isSuccess: false,
         );
       }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:music_app/services/profile_service.dart';
+import '../utils/toast.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String currentName;
@@ -16,7 +17,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final ProfileService _profileService=ProfileService();
+  final ProfileService _profileService = ProfileService();
   bool _isLoading = false;
 
   @override
@@ -35,24 +36,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thông tin thành công'),
-          backgroundColor: Color(0xFF1ED760),
-        ),
+      showToast(
+        message: 'Cập nhật thông tin thành công',
+        isSuccess: true,
       );
 
       Navigator.of(context).pop(true); // quay về profile
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString().replaceAll('Exception: ', ''),
-          ),
-          backgroundColor: Colors.red,
-        ),
+      showToast(
+        message: e.toString().replaceAll('Exception: ', ''),
+        isSuccess: false,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

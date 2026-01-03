@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/profile_service.dart';
+import '../utils/toast.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -44,24 +45,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đổi mật khẩu thành công'),
-          backgroundColor: Color(0xFF1ED760),
-        ),
+      showToast(
+        message: 'Đổi mật khẩu thành công',
+        isSuccess: true,
       );
 
       Navigator.of(context).pop(); // quay về profile
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString().replaceAll('Exception: ', ''),
-          ),
-          backgroundColor: Colors.red,
-        ),
+      showToast(
+        message: e.toString().replaceAll('Exception: ', ''),
+        isSuccess: false,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
