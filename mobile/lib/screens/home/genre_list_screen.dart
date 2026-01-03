@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../config/api_config.dart';
-import '../models/genre_model.dart';
-import '../services/api_service.dart';
+import '../../config/api_config.dart';
+import '../../models/genre_model.dart';
+import '../../services/api_service.dart';
 
 class GenreListScreen extends StatefulWidget {
   const GenreListScreen({super.key});

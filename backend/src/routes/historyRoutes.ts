@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { HistoryController } from "../controllers/historyController";
-import { authenticateFirebase } from "../middleware/auth";
+import { authenticate } from "../middleware/auth";
 
 const router = Router();
 
 // Tất cả routes đều cần authentication
-router.use(authenticateFirebase);
+router.use(authenticate);
 
 // Lấy lịch sử nghe
 router.get("/", HistoryController.getAll);
@@ -17,7 +17,3 @@ router.post("/", HistoryController.add);
 router.delete("/", HistoryController.clear);
 
 export default router;
-
-
-
-

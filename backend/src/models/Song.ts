@@ -7,6 +7,7 @@ export interface Song {
   album_id?: number;
   genre_id?: number;
   duration?: number;
+  lyrics?: string;
   file_url: string;
   cover_url?: string;
   release_date?: Date;

@@ -14,19 +14,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<OnboardingPage> _pages = [
     OnboardingPage(
       image: 'assets/images/onboarding_1.png',
-      title: 'Listen to the best music everyday with ',
+      title: 'Nghe nhạc hay mỗi ngày cùng ',
       highlightedText: 'Musea',
-      subtitle: ' now!',
+      subtitle: ' ngay!',
     ),
     OnboardingPage(
       image: 'assets/images/onboarding_2.png',
-      title: 'Discover millions of songs and ',
-      highlightedText: 'create',
-      subtitle: ' your perfect playlist!',
+      title: 'Khám phá hàng triệu bài hát và ',
+      highlightedText: 'tạo',
+      subtitle: ' playlist hoàn hảo của bạn!',
     ),
     OnboardingPage(
       image: 'assets/images/onboarding_3.png',
-      title: 'Stream music anywhere, anytime with ',
+      title: 'Nghe nhạc mọi lúc, mọi nơi với ',
       highlightedText: 'Musea',
       subtitle: '!',
     ),
@@ -51,7 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 SizedBox(
                   height: topAreaH,
                   width: double.infinity,
-                  // ---- PageView để vuốt + chuyển ảnh ----
+                  //  PageView để vuốt + chuyển ảnh
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: _pages.length,
@@ -211,7 +211,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // ---- DOT INDICATOR CLICKABLE ----
+            // ---- dot click page ----
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
@@ -242,12 +242,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             const SizedBox(height: 14),
 
-            // ---- BUTTON ----
+            // ---- button ----
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/home');
+                  Navigator.pushReplacementNamed(context, '/register');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1ED760),
@@ -260,7 +260,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   shadowColor: const Color(0xFF1ED760).withOpacity(0.5),
                 ),
                 child: const Text(
-                  'Get Started',
+                  'Bắt đầu',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                 ),
               ),

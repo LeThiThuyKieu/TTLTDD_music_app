@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import path from "path";
 
 // Import routes
 import authRoutes from "./routes/authRoutes";
@@ -22,11 +23,11 @@ dotenv.config();
 const app: Application = express();
 
 // Middleware
-app.use(helmet()); // Security headers
+app.use(helmet()); // Security header
 app.use(cors()); // Enable CORS
 app.use(morgan("dev")); // Logging
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(express.json()); // Parse JSON body
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded body
 
 // Health check
 app.get("/health", (_req, res) => {
@@ -40,6 +41,7 @@ app.get("/health", (_req, res) => {
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/songs", songRoutes);
 app.use("/api/playlists", playlistRoutes);
 app.use("/api/favorites", favoriteRoutes);

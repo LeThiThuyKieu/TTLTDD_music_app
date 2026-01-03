@@ -5,13 +5,14 @@ export class SongRepository {
   // Tạo bài hát mới
   static async create(song: Song): Promise<Song> {
     const [result] = await pool.execute(
-      `INSERT INTO songs (title, album_id, genre_id, duration, file_url, cover_url, release_date, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO songs (title, album_id, genre_id, duration, lyrics, file_url, cover_url, release_date, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         song.title,
         song.album_id || null,
         song.genre_id || null,
         song.duration || null,
+        song.lyrics || null,
         song.file_url,
         song.cover_url || null,
         song.release_date || null,

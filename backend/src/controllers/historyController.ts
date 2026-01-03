@@ -19,8 +19,13 @@ export class HistoryController {
         return;
       }
 
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
       const history = await HistoryService.addHistory(
-        req.user.uid,
+        req.user.user_id,
         songId,
         listened_duration || 0
       );
@@ -47,7 +52,12 @@ export class HistoryController {
       }
 
       const limit = parseInt(req.query.limit as string) || 50;
-      const history = await HistoryService.getHistory(req.user.uid, limit);
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const history = await HistoryService.getHistory(req.user.user_id, limit);
 
       res.json({
         success: true,
@@ -70,7 +80,12 @@ export class HistoryController {
         return;
       }
 
-      const success = await HistoryService.clearHistory(req.user.uid);
+      if (!req.user || !req.user.user_id) {
+        res.status(401).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const success = await HistoryService.clearHistory(req.user.user_id);
       if (!success) {
         res.status(400).json({ error: "Failed to clear history" });
         return;
