@@ -20,13 +20,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final HomeApiService _api = HomeApiService();
+  final HomeApiService _homeApiService = HomeApiService();
   final AuthService _authService = AuthService();
 
-  /// Data cho từng section
-  List<SongModel> topCharts = [];
-  List<ArtistModel> popularArtists = [];
+  // Data cho từng section
   List<AlbumModel> hotAlbums = [];
+  List<ArtistModel> popularArtists = [];
+  List<SongModel> trendingSongs = [];
 
   bool isLoading = true;
   String? userName;
@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadHomeData();
   }
 
-  /// Load thông tin user
+  // Load thông tin user
   Future<void> _loadUserInfo() async {
     final name = await _authService.getUserName();
     final avatar = await _authService.getUserAvatar(); // có thể null
@@ -87,17 +87,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Load data cho Home
+  // Load data cho Home
   Future<void> _loadHomeData() async {
     try {
-      final charts = await _api.getTopCharts();
-      final artists = await _api.getPopularArtists();
-      final albums = await _api.getHotAlbums();
+      final albums = await _homeApiService.getHotAlbums();
+      final artists = await _homeApiService.getPopularArtists();
+      final songs = await _homeApiService.getTrendingSongs();
 
       setState(() {
-        topCharts = charts;
-        popularArtists = artists;
         hotAlbums = albums;
+        popularArtists = artists;
+        trendingSongs = songs;
         isLoading = false;
       });
     } catch (e) {
@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
           ),
 
-          /// MINI PLAYER NẰM DƯỚI
+          // MINI PLAYER NẰM DƯỚI (nghe nhạc mini)
           const Positioned(
             left: 0,
             right: 0,
@@ -165,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// ================= HEADER =================
+  // ================= HEADER =================
   Widget _buildHeader() {
     return Row(
       children: [
@@ -199,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// ================= SECTION HEADER =================
+  // ================= SECTION HEADER =================
   Widget _buildSectionHeader({
     required String title,
     required VoidCallback onSeeMore,
@@ -228,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// ================= ALBUM LIST =================
+  // ================= ALBUM LIST =================
   Widget _buildAlbumList() {
     return SizedBox(
       height: 210,
@@ -266,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// ================= ARTIST LIST =================
+  // ================= ARTIST LIST =================
   Widget _buildArtistList() {
     return SizedBox(
       height: 120,
@@ -298,38 +298,36 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// ================= SONG LIST =================
-  /// ================= SONG LIST =================
-  /// Danh sách bài hát thịnh hành (có nút play)
+  // ================= SONG LIST =================
+  // Danh sách nhạc (song) hot thịnh hành (có nút play)
   Widget _buildSongList() {
     return SizedBox(
       height: 230,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: topCharts.length,
+        itemCount: trendingSongs.length,
         itemBuilder: (context, index) {
-          final song = topCharts[index];
-
+          final song = trendingSongs[index];
           return Container(
             width: 150,
             margin: const EdgeInsets.only(right: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// ẢNH + NÚT PLAY
+                // ẢNH + NÚT PLAY
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Stack(
                     children: [
-                      /// Ảnh bài hát
+                      // Ảnh bài hát
                       Image.network(
-                        song.coverUrl ?? 'https://via.placeholder.com/150',
+                        song.coverUrl ?? '',
                         height: 150,
                         width: 150,
                         fit: BoxFit.cover,
                       ),
 
-                      /// Nút play
+                      // Nút play
                       Positioned(
                         bottom: 5,
                         right: 5,
@@ -356,10 +354,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
-                /// Tên bài hát
+                // Tên bài hát
                 Text(
                   song.title,
                   maxLines: 1,
@@ -369,8 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-
-                /// Nghệ sĩ
+                // Tên nghệ sĩ
                 Text(
                   song.artists != null && song.artists!.isNotEmpty
                       ? song.artists!.first.name
@@ -379,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 13,
-                    color: Colors.black54,
+                    // color: Colors.black54,
                   ),
                 ),
               ],
@@ -395,7 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => SongListScreen(songs: topCharts),
+        builder: (_) => SongListScreen(songs: trendingSongs),
       ),
     );
   }
