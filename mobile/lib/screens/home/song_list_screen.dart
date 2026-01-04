@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/song_model.dart';
 import '../../widgets/song_item.dart';
+import '../../services/audio_player_service.dart';
 
 class SongListScreen extends StatelessWidget {
   final List<SongModel> songs;
@@ -30,8 +32,9 @@ class SongListScreen extends StatelessWidget {
 
             // bấm play
             onPlay: () {
-              // TODO: gọi AudioPlayerService.play(song)
-              debugPrint('Play: ${song.title}');
+              // Gọi AudioPlayerService để phát bài này
+              // ignore: use_build_context_synchronously
+              context.read<AudioPlayerService>().playSong(song);
             },
 
             // bấm vào item

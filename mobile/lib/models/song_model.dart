@@ -11,7 +11,7 @@ class SongModel {
   final String? coverUrl;
   final DateTime? releaseDate;
   final int? isActive;
-  final List<ArtistModel>? artists;
+  final List<ArtistModel> artists;
 
   SongModel({
     this.songId,
@@ -24,7 +24,7 @@ class SongModel {
     this.coverUrl,
     this.releaseDate,
     this.isActive,
-    this.artists,
+    this.artists = const [],
   });
 
   factory SongModel.fromJson(Map<String, dynamic> json) {
@@ -41,11 +41,9 @@ class SongModel {
           ? DateTime.parse(json['release_date'] as String)
           : null,
       isActive: json['is_active'] as int?,
-      artists: json['artists'] != null
-          ? (json['artists'] as List)
-              .map((artist) => ArtistModel.fromJson(artist))
-              .toList()
-          : null,
+      artists: (json['artists'] as List? ?? [])
+          .map((e) => ArtistModel.fromJson(e))
+          .toList(),
     );
   }
 
@@ -72,4 +70,3 @@ class SongModel {
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
 }
-
