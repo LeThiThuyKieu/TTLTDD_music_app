@@ -5,7 +5,7 @@ import fs from "fs";
 const uploadDir = path.join(__dirname, "../../uploads/avatar");
 
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  fs.mkdirSync(uploadDir, { recursive: true }); //recursive: tạo các thư mục cha nếu chưa tồn tại
 }
 
 const storage = multer.diskStorage({
