@@ -98,4 +98,15 @@ export class AlbumRepository {
     );
     return (result as any).affectedRows > 0;
   }
+
+// Tìm kiếm album
+  static async search(query: string, limit: number = 50): Promise<Album[]> {
+    const [rows] = await pool.execute(
+      `SELECT * FROM albums al JOIN artists a ON a.artist_id = al.artist_id
+       WHERE al.title LIKE ? AND al.is_active = 1
+       ORDER BY al.album_id DESC LIMIT ?`,
+      [`%${query}%`, limit]
+    );
+    return rows as Album[];
+  }
 }

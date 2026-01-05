@@ -66,4 +66,14 @@ export class GenreRepository {
     );
     return (result as any).affectedRows > 0;
   }
+ // Tìm kiếm genre
+  static async search(query: string, limit: number = 50): Promise<Genre[]> {
+    const [rows] = await pool.execute(
+      `SELECT * FROM genres
+       WHERE name LIKE ?` ,
+      [`%${query}%`]
+    );
+    return rows as Genre[];
+  }
+
 }

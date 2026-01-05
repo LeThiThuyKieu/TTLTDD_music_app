@@ -72,10 +72,11 @@ export class SongRepository {
   // Tìm kiếm bài hát
   static async search(query: string, limit: number = 50): Promise<Song[]> {
     const [rows] = await pool.execute(
-      `SELECT * FROM songs 
-       WHERE (title LIKE ? OR title LIKE ?) AND is_active = 1 
-       ORDER BY song_id DESC LIMIT ?`,
-      [`%${query}%`, `%${query}%`, limit]
+      `SELECT * FROM songs s JOIN song_artists sa ON s.song_id = sa.song_id
+                              JOIN artists a ON a.artist_id = sa.artist_id
+       WHERE s.title LIKE ? AND s.is_active = 1
+       ORDER BY s.song_id DESC LIMIT ?`,
+      [`%${query}%`, limit]
     );
     return rows as Song[];
   }

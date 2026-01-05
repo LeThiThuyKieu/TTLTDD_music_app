@@ -47,9 +47,9 @@ export class ArtistRepository {
   static async search(query: string, limit: number = 50): Promise<Artist[]> {
     const [rows] = await pool.execute(
       `SELECT * FROM artists 
-       WHERE (name LIKE ? OR description LIKE ?) AND is_active = 1 
+       WHERE name LIKE ? AND is_active = 1
        ORDER BY name LIMIT ?`,
-      [`%${query}%`, `%${query}%`, limit]
+      [`%${query}%`, limit]
     );
     return rows as Artist[];
   }
