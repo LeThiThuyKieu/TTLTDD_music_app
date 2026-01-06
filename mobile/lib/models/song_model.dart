@@ -71,5 +71,9 @@ class SongModel {
     final seconds = duration! % 60;
     return '$minutes:${seconds.toString().padLeft(2, '0')}';
   }
+  String get artistNames {
+    if (artists == null || artists!.isEmpty) return 'Không rõ';
+    return artists!.map((a) => a.name).join(', ');
+  }
 }
 
