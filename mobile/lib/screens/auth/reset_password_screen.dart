@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../../services/auth_service.dart';
 import 'login_screen.dart';
-import '../widgets/success_dialog.dart';
+import '../../widgets/success_dialog.dart';
+import '../../utils/toast.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -24,7 +25,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
-  final _apiService = ApiService();
+  final _authService = AuthService();
 
   @override
   void dispose() {
@@ -37,47 +38,37 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
-      final response = await _apiService.post(
-        '/auth/reset-password',
-        {
-          'email': widget.email,
-          'otp': widget.otp,
-          'new_password': _passwordController.text,
-        },
-        includeAuth: false,
+      await _authService.resetPassword(
+        email: widget.email,
+        otp: widget.otp,
+        newPassword: _passwordController.text,
       );
 
-      if (response['success'] == true) {
-        if (mounted) {
-          // Hiện dialog chúc mừng
-          await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => const SuccessDialog(),
-          );
+      if (mounted) {
+        // Hiện dialog chúc mừng
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const SuccessDialog(),
+        );
 
-          // Sau khi đóng dialog, chuyển về login
-          if (mounted) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (route) => false,
-            );
-          }
+        // Sau khi đóng dialog, chuyển về login
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
+          );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Đặt lại mật khẩu thất bại: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
-          ),
+        showToast(
+          message:
+              'Đặt lại mật khẩu thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+          isSuccess: false,
         );
       }
     } finally {
@@ -192,8 +183,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               : Icons.visibility_off_outlined,
                         ),
                         onPressed: () {
-                          setState(() =>
-                              _obscureConfirmPassword = !_obscureConfirmPassword);
+                          setState(() => _obscureConfirmPassword =
+                              !_obscureConfirmPassword);
                         },
                       ),
                     ),
@@ -267,4 +258,3 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 }
-

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import '../services/api_service.dart';
+import '../../services/auth_service.dart';
 import 'reset_password_screen.dart';
+import '../../utils/toast.dart';
 
 class VerifyOTPScreen extends StatefulWidget {
   final String email;
@@ -20,7 +21,7 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
   int _resendCountdown = 60;
   Timer? _countdownTimer;
   bool _isLoading = false;
-  final _apiService = ApiService();
+  final _authService = AuthService();
 
   @override
   void initState() {
@@ -57,14 +58,15 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
       _focusNodes[index - 1].requestFocus();
     }
 
-    // Auto verify when all fields are filled
+    // auto verify khi đien đủ 4 số
     if (index == 3 && value.isNotEmpty) {
       _checkAllFieldsFilled();
     }
   }
 
   void _checkAllFieldsFilled() {
-    bool allFilled = _controllers.every((controller) => controller.text.isNotEmpty);
+    bool allFilled =
+        _controllers.every((controller) => controller.text.isNotEmpty);
     if (allFilled) {
       _handleVerify();
     }
@@ -73,45 +75,29 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
   Future<void> _handleVerify() async {
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length != 4) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng nhập đầy đủ 4 số'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showToast(message: 'Vui lòng nhập đầy đủ 4 số', isSuccess: false);
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
-      final response = await _apiService.post(
-        '/auth/verify-otp',
-        {'email': widget.email, 'otp': otp},
-        includeAuth: false,
-      );
-
-      if (response['success'] == true) {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResetPasswordScreen(
-                email: widget.email,
-                otp: otp,
-              ),
+      await _authService.verifyOTP(email: widget.email, otp: otp);
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ResetPasswordScreen(
+              email: widget.email,
+              otp: otp,
             ),
-          );
-        }
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Mã xác minh không đúng: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
-          ),
+        showToast(
+          message:
+              'Mã xác minh không đúng: ${e.toString().replaceAll('Exception: ', '')}',
+          isSuccess: false,
         );
       }
     } finally {
@@ -123,35 +109,19 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
 
   Future<void> _handleResend() async {
     if (_resendCountdown > 0) return;
-
     try {
-      final response = await _apiService.post(
-        '/auth/forgot-password',
-        {'email': widget.email},
-        includeAuth: false,
-      );
-
-      if (response['success'] == true) {
-        setState(() => _resendCountdown = 60);
-        _startCountdown();
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Đã gửi lại mã xác minh'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
+      await _authService.forgotPassword(email: widget.email);
+      setState(() => _resendCountdown = 60);
+      _startCountdown();
+      if (mounted) {
+        showToast(message: 'Đã gửi lại mã xác minh', isSuccess: true);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Gửi lại mã thất bại: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: Colors.red,
-          ),
+        showToast(
+          message:
+              'Gửi lại mã thất bại: ${e.toString().replaceAll('Exception: ', '')}',
+          isSuccess: false,
         );
       }
     }
@@ -307,4 +277,3 @@ class _VerifyOTPScreenState extends State<VerifyOTPScreen> {
     );
   }
 }
-

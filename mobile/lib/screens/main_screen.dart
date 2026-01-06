@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
-import 'explore_screen.dart';
-import 'library_screen.dart';
-import 'profile_screen.dart';
+import 'home/home_screen.dart';
+import 'home/explore_screen.dart';
+import 'home/library_screen.dart';
+import 'profile/profile_screen.dart';
 import '../widgets/app_bottom_nav.dart';
 
 class MainScreen extends StatefulWidget {

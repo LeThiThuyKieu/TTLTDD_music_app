@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../../services/profile_service.dart';
+import '../../utils/toast.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -20,7 +21,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _obscureConfirm = true;
   bool _isLoading = false;
 
-  final _apiService = ApiService();
+  final ProfileService _profileService =
+      ProfileService(); //ghi khai báo kiểu nao cũng được nhưng kieu này rõ ràng hơn trên
 
   @override
   void dispose() {
@@ -36,34 +38,25 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await _apiService.post(
-        '/auth/change-password',
-        {
-          'old_password': _oldPasswordController.text,
-          'new_password': _newPasswordController.text,
-        },
+      await _profileService.changePassword(
+        oldPassword: _oldPasswordController.text.trim(),
+        newPassword: _newPasswordController.text.trim(),
       );
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đổi mật khẩu thành công'),
-          backgroundColor: Color(0xFF1ED760),
-        ),
+      showToast(
+        message: 'Đổi mật khẩu thành công',
+        isSuccess: true,
       );
 
       Navigator.of(context).pop(); // quay về profile
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            e.toString().replaceAll('Exception: ', ''),
-          ),
-          backgroundColor: Colors.red,
-        ),
+      showToast(
+        message: e.toString().replaceAll('Exception: ', ''),
+        isSuccess: false,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -125,16 +118,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ),
                   child: _isLoading
                       ? const CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  )
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        )
                       : const Text(
-                    'Cập nhật mật khẩu',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                          'Cập nhật mật khẩu',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -155,7 +148,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       controller: controller,
       obscureText: obscure,
       validator: validator ??
-              (value) {
+          (value) {
             if (value == null || value.isEmpty) {
               return 'Vui lòng nhập $label';
             }
