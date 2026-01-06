@@ -9,12 +9,18 @@ class GenreModel {
     this.createdAt,
   });
 
+  static int? _toInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    return int.tryParse(v.toString());
+  }
+
   factory GenreModel.fromJson(Map<String, dynamic> json) {
     return GenreModel(
-      genreId: json['genre_id'] as int?,
-      name: json['name'] as String,
+      genreId: _toInt(json['genre_id'] ?? json['genreId']),
+      name: (json['name'] ?? '').toString(),
       createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
     );
   }
@@ -27,16 +33,3 @@ class GenreModel {
     };
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

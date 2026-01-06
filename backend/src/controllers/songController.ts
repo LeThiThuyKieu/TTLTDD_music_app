@@ -3,7 +3,7 @@ import { AuthenticatedRequest } from "../models";
 import { SongService } from "../services/songService";
 
 export class SongController {
-  // Lấy danh sách bài hát
+  // GET /api/songs?limit=50&offset=0
   static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const limit = parseInt(req.query.limit as string) || 50;
@@ -24,77 +24,72 @@ export class SongController {
       console.error("Get all songs error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: error?.message || "Internal server error",
       });
     }
   }
 
-  // Lấy bài hát theo ID
-  static async getById(
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> {
+  // GET /api/songs/:id
+  static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const songId = parseInt(req.params.id);
       if (isNaN(songId)) {
-        res.status(400).json({ error: "Invalid song ID" });
+        res.status(400).json({ success: false, error: "Invalid song ID" });
         return;
       }
 
       const song = await SongService.getSongById(songId);
       if (!song) {
-        res.status(404).json({ error: "Song not found" });
+        res.status(404).json({ success: false, error: "Song not found" });
         return;
       }
 
-      res.json({
-        success: true,
-        data: song,
-      });
+      res.json({ success: true, data: song });
     } catch (error: any) {
-      console.error("Get song by ID error:", error);
+      console.error("Get song by id error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: error?.message || "Internal server error",
       });
     }
   }
 
-  // Tìm kiếm bài hát
+  // GET /api/songs/search?q=abc&limit=50
   static async search(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const query = req.query.q as string;
-      if (!query) {
-        res.status(400).json({ error: "Search query is required" });
+      const q = (req.query.q as string | undefined)?.trim();
+      if (!q) {
+        res.status(400).json({ success: false, error: "Missing query param: q" });
         return;
       }
 
       const limit = parseInt(req.query.limit as string) || 50;
-      const songs = await SongService.searchSongs(query, limit);
+      const songs = await SongService.searchSongs(q, limit);
 
       res.json({
         success: true,
         data: songs,
-        query,
+        pagination: {
+          limit,
+          offset: 0,
+          count: songs.length,
+        },
       });
     } catch (error: any) {
       console.error("Search songs error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: error?.message || "Internal server error",
       });
     }
   }
 
-  // Lấy bài hát theo genre
-  static async getByGenre(
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> {
+  // GET /api/songs/genre/:genreId?limit=50&offset=0
+  static async getByGenre(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const genreId = parseInt(req.params.genreId);
       if (isNaN(genreId)) {
-        res.status(400).json({ error: "Invalid genre ID" });
+        res.status(400).json({ success: false, error: "Invalid genre ID" });
         return;
       }
 
@@ -106,17 +101,22 @@ export class SongController {
       res.json({
         success: true,
         data: songs,
+        pagination: {
+          limit,
+          offset,
+          count: songs.length,
+        },
       });
     } catch (error: any) {
       console.error("Get songs by genre error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: error?.message || "Internal server error",
       });
     }
   }
 
-  // Tạo bài hát mới (Admin only - có thể thêm middleware sau)
+  // POST /api/songs  (admin only sau)
   static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const songData = req.body;
@@ -130,10 +130,12 @@ export class SongController {
       console.error("Create song error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: error?.message || "Internal server error",
       });
     }
   }
+
+
 
   // Lấy bài hát theo artist
   static async getByArtist(
