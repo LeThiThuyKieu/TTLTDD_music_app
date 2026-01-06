@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:music_app/screens/home/music_player_screen.dart';
 
 import '../../models/song_model.dart';
 import '../../models/artist_model.dart';
@@ -56,34 +57,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Đăng xuất'),
-        content: const Text('Bạn có chắc muốn đăng xuất không?'),
-        actions: [
-          TextButton(
-            onPressed: () => navigator.pop(),
-            child: const Text('Hủy'),
+      builder: (dialogContext) =>
+          AlertDialog(
+            title: const Text('Đăng xuất'),
+            content: const Text('Bạn có chắc muốn đăng xuất không?'),
+            actions: [
+              TextButton(
+                onPressed: () => navigator.pop(),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  navigator.pop(); // đóng dialog
+
+                  await _authService.logout();
+
+                  if (!mounted) return;
+
+                  navigator.pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                        (route) => false,
+                  );
+                },
+                child: const Text(
+                  'Đăng xuất',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              navigator.pop(); // đóng dialog
-
-              await _authService.logout();
-
-              if (!mounted) return;
-
-              navigator.pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
-              );
-            },
-            child: const Text(
-              'Đăng xuất',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -116,41 +118,41 @@ class _HomeScreenState extends State<HomeScreen> {
           SafeArea(
             child: isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
-                  )
+              child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+            )
                 : ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    children: [
-                      const SizedBox(height: 20),
-                      _buildHeader(),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              children: [
+                const SizedBox(height: 20),
+                _buildHeader(),
 
-                      const SizedBox(height: 30),
-                      _buildSectionHeader(
-                        title: 'Album hot',
-                        onSeeMore: () {},
-                      ),
-                      const SizedBox(height: 12),
-                      _buildAlbumList(),
+                const SizedBox(height: 30),
+                _buildSectionHeader(
+                  title: 'Album hot',
+                  onSeeMore: () {},
+                ),
+                const SizedBox(height: 12),
+                _buildAlbumList(),
 
-                      const SizedBox(height: 30),
-                      _buildSectionHeader(
-                        title: 'Nghệ sĩ nổi bật',
-                        onSeeMore: () {},
-                      ),
-                      const SizedBox(height: 12),
-                      _buildArtistList(),
+                const SizedBox(height: 30),
+                _buildSectionHeader(
+                  title: 'Nghệ sĩ nổi bật',
+                  onSeeMore: () {},
+                ),
+                const SizedBox(height: 12),
+                _buildArtistList(),
 
-                      const SizedBox(height: 30),
-                      _buildSectionHeader(
-                        title: 'Nhạc hot thịnh hành',
-                        onSeeMore: _openAllSongs,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildSongList(),
+                const SizedBox(height: 30),
+                _buildSectionHeader(
+                  title: 'Nhạc hot thịnh hành',
+                  onSeeMore: _openAllSongs,
+                ),
+                const SizedBox(height: 12),
+                _buildSongList(),
 
-                      const SizedBox(height: 100), // chừa chỗ cho mini player
-                    ],
-                  ),
+                const SizedBox(height: 100), // chừa chỗ cho mini player
+              ],
+            ),
           ),
 
           // MINI PLAYER NẰM DƯỚI (nghe nhạc mini)
@@ -177,10 +179,10 @@ class _HomeScreenState extends State<HomeScreen> {
               : null,
           child: (avatarUrl == null || !avatarUrl!.startsWith('http'))
               ? const Icon(
-                  Icons.person,
-                  color: Colors.white,
-                  size: 26,
-                )
+            Icons.person,
+            color: Colors.white,
+            size: 26,
+          )
               : null,
         ),
         const SizedBox(width: 12),
@@ -309,76 +311,88 @@ class _HomeScreenState extends State<HomeScreen> {
         itemBuilder: (context, index) {
           final song = trendingSongs[index];
           return Container(
-            width: 150,
-            margin: const EdgeInsets.only(right: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ẢNH + NÚT PLAY
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Stack(
-                    children: [
-                      // Ảnh bài hát
-                      Image.network(
-                        song.coverUrl ?? '',
-                        height: 150,
-                        width: 150,
-                        fit: BoxFit.cover,
-                      ),
+              width: 150,
+              margin: const EdgeInsets.only(right: 16),
+              child: GestureDetector(
+                onTap: () {
+                  // 1️⃣ Mở MusicPlayerScreen khi bấm vào item
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MusicPlayerScreen(),
+                    ),
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ẢNH + NÚT PLAY
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Stack(
+                        children: [
+                          // Ảnh bài hát
+                          Image.network(
+                            song.coverUrl ?? '',
+                            height: 150,
+                            width: 150,
+                            fit: BoxFit.cover,
+                          ),
 
-                      // Nút play
-                      Positioned(
-                        bottom: 5,
-                        right: 5,
-                        child: GestureDetector(
-                          onTap: () {
-                            // TODO: Gọi AudioPlayerService.playSong(song)
-                            // debugPrint('Play song: ${song.songId}');
-                            context.read<AudioPlayerService>().playSong(song);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF8D918D),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow,
-                              color: Colors.white,
-                              size: 18,
+                          // Nút play
+                          Positioned(
+                            bottom: 5,
+                            right: 5,
+                            child: GestureDetector(
+                              onTap: () {
+                                // TODO: Gọi AudioPlayerService.playSong(song)
+                                // debugPrint('Play song: ${song.songId}');
+                                context.read<AudioPlayerService>().playSong(
+                                    song);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF8D918D),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Tên bài hát
+                    Text(
+                      song.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    // Tên nghệ sĩ
+                    Text(
+                      song.artists != null && song.artists!.isNotEmpty
+                          ? song.artists!.first.name
+                          : 'Unknown Artist',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                // Tên bài hát
-                Text(
-                  song.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                // Tên nghệ sĩ
-                Text(
-                  song.artists != null && song.artists!.isNotEmpty
-                      ? song.artists!.first.name
-                      : 'Unknown Artist',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    // color: Colors.black54,
-                  ),
-                ),
-              ],
-            ),
+              ),
           );
         },
       ),

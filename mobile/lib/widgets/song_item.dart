@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/song_model.dart';
+import '../screens/home/music_player_screen.dart';
 
 class SongItem extends StatelessWidget {
   final SongModel song;
@@ -43,8 +44,7 @@ class SongItem extends StatelessWidget {
           width: 50,
           height: 50,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) =>
-          const Icon(Icons.music_note, size: 40),
+          errorBuilder: (_, __, ___) => const Icon(Icons.music_note, size: 40),
         ),
       ),
       title: Text(
@@ -67,10 +67,11 @@ class SongItem extends StatelessWidget {
               color: Colors.green,
               size: 28,
             ),
-            onPressed: onPlay ?? () {
-              print('Play ${song.title}');
-              // TODO: Dev khác gán logic phát nhạc
-            },
+            onPressed: onPlay ??
+                () {
+                  print('Play ${song.title}');
+                  // TODO: Dev khác gán logic phát nhạc
+                },
           ),
 
           // ==== Nút menu 3 chấm ====
@@ -88,10 +89,11 @@ class SongItem extends StatelessWidget {
                       title: const Text('Yêu thích'),
                       onTap: () {
                         Navigator.pop(context);
-                        (onYeuThich ?? () {
-                          print('Yêu thích ${song.title}');
-                          // TODO: Dev khác gán logic yêu thích
-                        })();
+                        (onYeuThich ??
+                            () {
+                              print('Yêu thích ${song.title}');
+                              // TODO: Dev khác gán logic yêu thích
+                            })();
                       },
                     ),
                     // Menu: Thêm vào playlist
@@ -100,10 +102,11 @@ class SongItem extends StatelessWidget {
                       title: const Text('Thêm vào playlist'),
                       onTap: () {
                         Navigator.pop(context);
-                        (onThemVaoPlaylist ?? () {
-                          print('Thêm ${song.title} vào playlist');
-                          // TODO: Dev khác gán logic thêm playlist
-                        })();
+                        (onThemVaoPlaylist ??
+                            () {
+                              print('Thêm ${song.title} vào playlist');
+                              // TODO: Dev khác gán logic thêm playlist
+                            })();
                       },
                     ),
                     // Menu: Xem ca sĩ
@@ -112,10 +115,11 @@ class SongItem extends StatelessWidget {
                       title: const Text('Xem ca sĩ'),
                       onTap: () {
                         Navigator.pop(context);
-                        (onXemCaSi ?? () {
-                          print('Xem ca sĩ ${song.title}');
-                          // TODO: Dev khác gán logic xem ca sĩ
-                        })();
+                        (onXemCaSi ??
+                            () {
+                              print('Xem ca sĩ ${song.title}');
+                              // TODO: Dev khác gán logic xem ca sĩ
+                            })();
                       },
                     ),
                     // Menu: Đi đến album
@@ -124,10 +128,11 @@ class SongItem extends StatelessWidget {
                       title: const Text('Đi đến album'),
                       onTap: () {
                         Navigator.pop(context);
-                        (onThamGiaAlbum ?? () {
-                          print('Đi đến album ${song.title}');
-                          // TODO: Dev khác gán logic đi đến album
-                        })();
+                        (onThamGiaAlbum ??
+                            () {
+                              print('Đi đến album ${song.title}');
+                              // TODO: Dev khác gán logic đi đến album
+                            })();
                       },
                     ),
                   ],
@@ -138,11 +143,16 @@ class SongItem extends StatelessWidget {
         ],
       ),
       // Khi bấm vào toàn bộ item
-      onTap: onTap ?? () {
-        print('Bấm vào item ${song.title}');
-        // TODO: Dev khác gán logic bấm vào item
-      },
+      onTap: onTap ??
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    const MusicPlayerScreen(), // màn hình trình phát đầy đủ
+              ),
+            );
+          },
     );
   }
 }
-

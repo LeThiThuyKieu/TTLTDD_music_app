@@ -40,23 +40,11 @@ class MusicPlayerScreen extends StatelessWidget {
                   children: [
                     InfoWidget(song: song),
                     DiscWidget(song: song, isPlaying: audioService.isPlaying),
-                    LyricsWidget(lyrics: song.lyrics ?? 'Null'),
+                    LyricsWidget(lyrics: song.lyrics),
                   ],
                 ),
               ),
               BottomControl(
-                isPlaying: audioService.isPlaying,
-                current: audioService.currentPosition,
-                total: audioService.totalDuration,
-
-                onPlayPause: () {
-                  audioService.isPlaying
-                      ? audioService.pause()
-                      : audioService.resume();
-                },
-
-                onSeek: audioService.seek,
-
                 onPrevious: () {
                   audioService.playPrevious();
                 },
