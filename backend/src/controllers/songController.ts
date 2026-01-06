@@ -134,4 +134,36 @@ export class SongController {
       });
     }
   }
+
+  // Lấy bài hát theo artist
+  static async getByArtist(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      const artistId = parseInt(req.params.artistId);
+      if (isNaN(artistId)) {
+        res.status(400).json({ error: "Invalid artist ID" });
+        return;
+      }
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const songs = await SongService.getSongsByArtist(artistId, limit, offset);
+      res.json({
+        success: true,
+        data: songs,
+        pagination: {
+          limit,
+          offset,
+          count: songs.length,
+        },
+      });
+    } catch (error: any) {
+      console.error("Get songs by artist error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Internal server error",
+      });
+    }
+  }
 }

@@ -21,6 +21,3 @@ router.get("/:id", optionalAuth, SongController.getById);
 router.post("/", optionalAuth, validate(validateSong), SongController.create);
 
 export default router;
-
-
-
