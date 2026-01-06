@@ -3,16 +3,16 @@ import 'package:music_app/models/song_model.dart';
 import '../../../models/artist_model.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
-import './widgets/song_card.dart';
 
-class SongScreen extends StatefulWidget {
-  const SongScreen({Key? key}) : super(key: key);
+
+class AdminSongScreen extends StatefulWidget {
+  const AdminSongScreen({Key? key}) : super(key: key);
 
   @override
-  State<SongScreen> createState() => _SongScreenState();
+  State<AdminSongScreen> createState() => _SongScreenState();
 }
 
-class _SongScreenState extends State<SongScreen> {
+class _SongScreenState extends State<AdminSongScreen> {
   List<SongModel> allSongs = [];
   String selectedStatus = 'Tất cả';
   String searchText = '';
@@ -98,13 +98,13 @@ class _SongScreenState extends State<SongScreen> {
             children: [
               const Text(
                 'Bài hát',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2C3930)),
               ),
               FloatingActionButton(
                 mini: true,
                 backgroundColor: const Color(0xFF8DB27C),
                 onPressed: () {},
-                child: const Icon(Icons.add),
+                child: const Icon(Icons.add, color: Colors.white),
               ),
             ],
           ),
@@ -124,9 +124,10 @@ class _SongScreenState extends State<SongScreen> {
               // TIÊU ĐỀ
               children: [
                 const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.library_music, size: 22),
-                    SizedBox(width: 8),
+                    Icon(Icons.library_music, size: 30),
+                    SizedBox(width: 15),
                     Text(
                       'Danh sách bài hát',
                       style:
@@ -267,6 +268,7 @@ class _SongItem extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
         title: const Text('Xoá bài hát'),
         content: Text('Bạn có chắc muốn xoá "${song.title}" không?'),
         actions: [
@@ -281,7 +283,7 @@ class _SongItem extends StatelessWidget {
               Navigator.pop(context);
               onDelete();
             },
-            child: const Text('Xoá'),
+            child: const Text('Xoá', style: TextStyle(color: Colors.white),),
           ),
         ],
       ),
