@@ -1,27 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:music_app/screens/admin/songs/song_screen.dart';
 import './admin_widgets/nav_bottom.dart';
 import './admin_widgets/admin_header.dart';
 import 'admin.dart';
+import 'package:music_app/screens/admin/songs/song_screen.dart';
+import 'package:music_app/screens/admin/artists/artist_screen.dart';
+import 'package:music_app/screens/admin/albums/album_screen.dart';
+import 'package:music_app/screens/admin/users/user_screen.dart';
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+
+class AdminScreen extends StatefulWidget {
+  const AdminScreen({Key? key}) : super(key: key);
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<AdminScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<AdminScreen> {
   int _currentIndex = 3;
 
   final List<Widget> _pages = [
-    const Center(child: Text('Dashboard')),
-    // const Center(child: Text('Bài hát')),
-    const SongScreen(),
-    const Center(child: Text('Nghệ sĩ')),
-    // const Center(child: Text('Album')),
+    // const Center(child: Text('Dashboard')),
     const AdminScreen(),
-    const Center(child: Text('Tài khoản')),
+    // const Center(child: Text('Bài hát')),
+    const AdminSongScreen(),
+    // const Center(child: Text('Nghệ sĩ')),
+    const AdminArtistScreen(),
+    // const Center(child: Text('Album')),
+    const AdminAlbumScreen(),
+    // const Center(child: Text('Tài khoản')),
+    const AdminUserScreen(),
   ];
 
   @override
