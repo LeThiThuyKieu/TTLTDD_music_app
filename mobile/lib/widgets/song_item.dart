@@ -79,28 +79,6 @@ class SongItem extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ❤️ Nút yêu thích
-              IconButton(
-                icon: Icon(
-                  isFav ? Icons.favorite : Icons.favorite_border,
-                  color: isFav ? Colors.red : null,
-                ),
-                onPressed: sid == null
-                    ? null
-                    : () async {
-                  try {
-                    await FavoriteApiService.instance
-                        .toggleFavorite(sid);
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Lỗi yêu thích: $e')),
-                      );
-                    }
-                  }
-                },
-              ),
-
               // ▶️ Nút play
               IconButton(
                 icon: const Icon(

@@ -1,5 +1,5 @@
 import { PlaylistRepository } from "../repositories/PlaylistRepository";
-import { Playlist, Song } from "../models";
+import { Playlist, SongWithArtists } from "../models";
 
 export class PlaylistService {
   // Tạo playlist mới
@@ -41,8 +41,10 @@ export class PlaylistService {
     return userId === playlist.user_id;
   }
 
-  // Lấy danh sách bài hát trong playlist
-  static async getPlaylistSongs(playlistId: number): Promise<Song[]> {
+  // ✅ Lấy danh sách bài hát trong playlist (CÓ artists)
+  static async getPlaylistSongs(
+    playlistId: number
+  ): Promise<SongWithArtists[]> {
     return await PlaylistRepository.getSongs(playlistId);
   }
 

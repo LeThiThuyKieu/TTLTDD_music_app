@@ -29,7 +29,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     });
 
     try {
-      // ✅ service có getGenres() (alias) hoặc bạn đổi thành getAllGenres() đều được
       final list = await GenreApiService.instance.getGenres();
       setState(() {
         _genres = list;
@@ -43,18 +42,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
   }
 
-  // ✅ lấy id an toàn (vì model có thể tên field là id hoặc genreId)
+  // ✅ Nếu GenreModel của bạn đã có genreId thì dùng thẳng: g.genreId
+  // Giữ hàm này để tránh crash nếu model chưa đồng nhất.
   int? _genreIdOf(GenreModel g) {
     try {
       final dynamic any = g;
-      final int? id = any.id as int?;
+      final int? id = any.genreId as int?;
       if (id != null) return id;
     } catch (_) {}
 
     try {
       final dynamic any = g;
-      final int? genreId = any.genreId as int?;
-      if (genreId != null) return genreId;
+      final int? id = any.id as int?;
+      if (id != null) return id;
     } catch (_) {}
 
     return null;
@@ -106,7 +106,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
           children: [
-            // Search box (UI giống hình)
             Container(
               height: 42,
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -133,7 +132,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
               style: TextStyle(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 10),
-
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
