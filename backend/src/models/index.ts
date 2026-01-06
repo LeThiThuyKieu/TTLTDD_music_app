@@ -16,4 +16,5 @@ export interface AuthenticatedRequest extends Request {
     user_id: number;
     email?: string;
   };
+   file?: Express.Multer.File;
 }

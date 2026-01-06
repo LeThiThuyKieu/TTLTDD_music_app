@@ -1,53 +1,62 @@
-// import { Router } from "express";
-// import { PlaylistController } from "../controllers/playlistController";
-// import { authenticate, optionalAuth } from "../middleware/auth";
-// import { validate, validatePlaylist } from "../utils/validation";
-
-// const router = Router();
-
-// // Tạo playlist mới (cần authentication)
-// router.post(
-//   "/",
-//   authenticate,
-//   validate(validatePlaylist),
-//   PlaylistController.create
-// );
-
-// // Lấy playlists của user (cần authentication)
-// router.get("/my", authenticate, PlaylistController.getMyPlaylists);
-
-// // Lấy playlist theo ID (public nếu is_public = 1)
-// router.get("/:id", optionalAuth, PlaylistController.getById);
-
-// // Thêm bài hát vào playlist (cần authentication)
-// router.post("/:id/songs", authenticate, PlaylistController.addSong);
-
-// // Xóa bài hát khỏi playlist (cần authentication)
-// router.delete(
-//   "/:id/songs/:songId",
-//   authenticate,
-//   PlaylistController.removeSong
-// );
-
-// // Xóa playlist (cần authentication)
-// router.delete("/:id", authenticate, PlaylistController.delete);
-
-// export default router;
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { PlaylistController } from "../controllers/playlistController";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
 
+/**
+ * 🔐 TẤT CẢ ROUTE DÙNG TOKEN
+ * FE phải gửi: Authorization: Bearer <token>
+ */
 router.use(authenticate);
 
+const parseIdParam = (value: string) => {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
+};
+
+const validatePlaylistId = (req: Request, res: Response, next: NextFunction): void => {
+  const id = parseIdParam(req.params.id);
+  if (!id) {
+    res.status(400).json({ success: false, error: "Invalid playlist id" });
+    return;
+  }
+  req.params.id = String(id);
+  return next();
+};
+
+const validatePlaylistIdAndSongId = (req: Request, res: Response, next: NextFunction): void => {
+  const id = parseIdParam(req.params.id);
+  const songId = parseIdParam(req.params.songId);
+
+  if (!id) {
+    res.status(400).json({ success: false, error: "Invalid playlist id" });
+    return;
+  }
+  if (!songId) {
+    res.status(400).json({ success: false, error: "Invalid songId" });
+    return;
+  }
+
+  req.params.id = String(id);
+  req.params.songId = String(songId);
+  return next();
+};
+
+// Lấy playlist của user hiện tại (từ token)
 router.get("/my", PlaylistController.getMyPlaylists);
+
+// Tạo playlist cho user hiện tại
 router.post("/", PlaylistController.create);
 
-// QUAN TRỌNG: dùng :id (đúng với controller đang parse req.params.id)
-router.get("/:id", PlaylistController.getById);
-router.post("/:id/songs", PlaylistController.addSong);
-router.delete("/:id/songs/:songId", PlaylistController.removeSong);
-router.delete("/:id", PlaylistController.delete);
+// Chi tiết playlist (check quyền bằng token)
+router.get("/:id", validatePlaylistId, PlaylistController.getById);
+
+// Thêm / xoá bài hát (chủ playlist)
+router.post("/:id/songs", validatePlaylistId, PlaylistController.addSong);
+router.delete("/:id/songs/:songId", validatePlaylistIdAndSongId, PlaylistController.removeSong);
+
+// Xoá playlist
+router.delete("/:id", validatePlaylistId, PlaylistController.delete);
 
 export default router;

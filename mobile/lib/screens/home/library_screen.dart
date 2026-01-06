@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
+import '../playlist_list_screen.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
+
+  static const _green = Color(0xFF22C55E);
+  static const _bg = Color(0xFFF6F7F8);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7F8),
+      backgroundColor: _bg,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        surfaceTintColor: Colors.white,
         titleSpacing: 16,
         title: Row(
           children: [
-            const Icon(Icons.music_note, color: Color(0xFF22C55E)),
+            const Icon(Icons.music_note, color: _green),
             const SizedBox(width: 8),
             Text(
               "My Library",
               style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
                 color: Colors.black87,
               ),
             ),
@@ -28,15 +33,11 @@ class LibraryScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () {
-              // TODO: mở search
-            },
+            onPressed: () {},
             icon: const Icon(Icons.search, color: Colors.black54),
           ),
           IconButton(
-            onPressed: () {
-              // TODO: mở settings
-            },
+            onPressed: () {},
             icon: const Icon(Icons.settings_outlined, color: Colors.black54),
           ),
           const SizedBox(width: 6),
@@ -52,24 +53,26 @@ class LibraryScreen extends StatelessWidget {
               Text(
                 "Your History",
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87,
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  // TODO: See All history
-                },
-                child: const Text(
-                  "See All",
-                  style: TextStyle(color: Color(0xFF22C55E)),
+                onPressed: () {},
+                style: TextButton.styleFrom(
+                  foregroundColor: _green,
+                  textStyle: const TextStyle(fontWeight: FontWeight.w700),
                 ),
+                child: const Text("See All"),
               ),
             ],
           ),
 
+          const SizedBox(height: 10),
+
           // ===== HISTORY LIST =====
           SizedBox(
-            height: 150,
+            height: 156,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: 3,
@@ -86,15 +89,12 @@ class LibraryScreen extends StatelessWidget {
                       : index == 1
                       ? "Apple Talk"
                       : "Ania S...",
-                  // demo màu thay ảnh
                   color: index == 0
                       ? const Color(0xFF60A5FA)
                       : index == 1
                       ? const Color(0xFFF472B6)
                       : const Color(0xFF34D399),
-                  onTap: () {
-                    // TODO: mở item history
-                  },
+                  onTap: () {},
                 );
               },
             ),
@@ -102,34 +102,31 @@ class LibraryScreen extends StatelessWidget {
 
           const SizedBox(height: 18),
 
-          // ===== MENU LIST (NO DOWNLOADS & PODCASTS) =====
+          // ===== MENU ===== (đã xóa Downloads + Podcasts)
           _MenuTile(
             icon: Icons.queue_music,
             title: "Playlists",
             onTap: () {
-              // TODO: Navigator.push -> PlaylistListScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PlaylistListScreen()),
+              );
             },
           ),
           _MenuTile(
             icon: Icons.album_outlined,
             title: "Albums",
-            onTap: () {
-              // TODO: Navigator.push -> AlbumScreen
-            },
+            onTap: () {},
           ),
           _MenuTile(
             icon: Icons.music_note_outlined,
             title: "Songs",
-            onTap: () {
-              // TODO: Navigator.push -> SongListScreen / All songs
-            },
+            onTap: () {},
           ),
           _MenuTile(
             icon: Icons.person_outline,
             title: "Artists",
-            onTap: () {
-              // TODO: Navigator.push -> ArtistScreen
-            },
+            onTap: () {},
           ),
         ],
       ),
@@ -153,29 +150,17 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         width: 120,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            )
-          ],
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ảnh (demo bằng màu)
+            // image
             Expanded(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
                 child: Container(color: color),
               ),
             ),
@@ -184,14 +169,18 @@ class _HistoryCard extends StatelessWidget {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.black54, fontSize: 12),
+              style: const TextStyle(
+                color: Colors.black54,
+                fontSize: 12,
+                height: 1.2,
+              ),
             ),
           ],
         ),
@@ -211,22 +200,33 @@ class _MenuTile extends StatelessWidget {
     required this.onTap,
   });
 
+  static const _green = Color(0xFF22C55E);
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         leading: CircleAvatar(
           radius: 18,
           backgroundColor: const Color(0xFFEFFDF5),
-          child: Icon(icon, color: const Color(0xFF22C55E)),
+          child: Icon(icon, color: _green),
         ),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.black38),
         onTap: onTap,

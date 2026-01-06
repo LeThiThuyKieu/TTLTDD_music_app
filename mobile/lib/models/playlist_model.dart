@@ -8,7 +8,7 @@ class PlaylistModel {
   final int isPublic;
   final DateTime? createdAt;
 
-  /// ⚠️ CHỈ CÓ khi gọi GET /playlists/:id
+  /// ✅ chỉ có khi GET /playlists/:id trả kèm songs
   final List<SongModel>? songs;
 
   PlaylistModel({
@@ -22,6 +22,7 @@ class PlaylistModel {
   });
 
   static int _toInt(dynamic v) {
+    if (v == null) return 0;
     if (v is int) return v;
     if (v is String) return int.tryParse(v) ?? 0;
     return 0;
@@ -29,16 +30,14 @@ class PlaylistModel {
 
   factory PlaylistModel.fromJson(Map<String, dynamic> json) {
     return PlaylistModel(
-      playlistId: _toInt(json['playlist_id'] ?? json['id']),
-      userId: _toInt(json['user_id']),
-      name: json['name']?.toString() ?? '',
+      playlistId: _toInt(json['playlist_id'] ?? json['id'] ?? json['playlistId']),
+      userId: _toInt(json['user_id'] ?? json['userId']),
+      name: (json['name'] ?? '').toString(),
       coverUrl: json['cover_url']?.toString(),
       isPublic: _toInt(json['is_public']),
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
-
-      // ✅ CHỈ parse khi backend có trả
       songs: json['songs'] is List
           ? (json['songs'] as List)
           .whereType<Map<String, dynamic>>()

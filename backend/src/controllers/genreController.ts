@@ -2,122 +2,101 @@ import { Request, Response } from "express";
 import { GenreService } from "../services/genreService";
 
 export class GenreController {
-  static async getAll(_req: Request, res: Response): Promise<void> {
+  // GET /api/genres
+  static async getAll(req: Request, res: Response) {
     try {
       const genres = await GenreService.getAllGenres();
-      res.json({
-        success: true,
-        data: genres,
-      });
-    } catch (error) {
-      console.error("Error fetching genres:", error);
-      res.status(500).json({
+      return res.json({ success: true, data: genres });
+    } catch (error: any) {
+      console.error("Get all genres error:", error);
+      return res.status(500).json({
         success: false,
-        error: "Failed to fetch genres",
+        error: error?.message || "Internal server error",
       });
     }
   }
 
-  static async getById(req: Request, res: Response): Promise<void> {
+  // GET /api/genres/:id
+  static async getById(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const genreId = Number(id);
-
-      if (Number.isNaN(genreId)) {
-        res.status(400).json({ success: false, error: "Invalid genre ID" });
-        return;
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id) || id <= 0) {
+        return res.status(400).json({ success: false, error: "Invalid genre id" });
       }
 
-      const genre = await GenreService.getGenreById(genreId);
-
+      const genre = await GenreService.getGenreById(id);
       if (!genre) {
-        res.status(404).json({ success: false, error: "Genre not found" });
-        return;
+        return res.status(404).json({ success: false, error: "Genre not found" });
       }
 
-      res.json({
-        success: true,
-        data: genre,
-      });
-    } catch (error) {
-      console.error("Error fetching genre:", error);
-      res.status(500).json({
+      return res.json({ success: true, data: genre });
+    } catch (error: any) {
+      console.error("Get genre by id error:", error);
+      return res.status(500).json({
         success: false,
-        error: "Failed to fetch genre",
+        error: error?.message || "Internal server error",
       });
     }
   }
 
-  static async create(req: Request, res: Response): Promise<void> {
+  // POST /api/genres (protected)
+  static async create(req: Request, res: Response) {
     try {
-      const genre = await GenreService.createGenre(req.body.name);
-      res.status(201).json({
-        success: true,
-        data: genre,
-      });
-    } catch (error) {
-      console.error("Error creating genre:", error);
-      res.status(500).json({
+      const name = (req.body?.name ?? "").toString().trim();
+      if (!name) return res.status(400).json({ success: false, error: "Name is required" });
+
+      const created = await GenreService.createGenre(name);
+      return res.status(201).json({ success: true, data: created });
+    } catch (error: any) {
+      console.error("Create genre error:", error);
+      return res.status(500).json({
         success: false,
-        error: "Failed to create genre",
+        error: error?.message || "Internal server error",
       });
     }
   }
 
-  static async update(req: Request, res: Response): Promise<void> {
+  // PUT /api/genres/:id (protected)
+  static async update(req: Request, res: Response) {
     try {
-      const genreId = Number(req.params.id);
-
-      if (Number.isNaN(genreId)) {
-        res.status(400).json({ success: false, error: "Invalid genre ID" });
-        return;
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id) || id <= 0) {
+        return res.status(400).json({ success: false, error: "Invalid genre id" });
       }
 
-      const updated = await GenreService.updateGenre(genreId, req.body.name);
+      const name = (req.body?.name ?? "").toString().trim();
+      if (!name) return res.status(400).json({ success: false, error: "Name is required" });
 
-      if (!updated) {
-        res.status(404).json({ success: false, error: "Genre not found" });
-        return;
-      }
+      const updated = await GenreService.updateGenre(id, name);
+      if (!updated) return res.status(404).json({ success: false, error: "Genre not found" });
 
-      res.json({
-        success: true,
-        data: updated,
-      });
-    } catch (error) {
-      console.error("Error updating genre:", error);
-      res.status(500).json({
+      return res.json({ success: true, data: updated });
+    } catch (error: any) {
+      console.error("Update genre error:", error);
+      return res.status(500).json({
         success: false,
-        error: "Failed to update genre",
+        error: error?.message || "Internal server error",
       });
     }
   }
 
-  static async delete(req: Request, res: Response): Promise<void> {
+  // DELETE /api/genres/:id (protected)
+  static async delete(req: Request, res: Response) {
     try {
-      const genreId = Number(req.params.id);
-
-      if (Number.isNaN(genreId)) {
-        res.status(400).json({ success: false, error: "Invalid genre ID" });
-        return;
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id) || id <= 0) {
+        return res.status(400).json({ success: false, error: "Invalid genre id" });
       }
 
-      const deleted = await GenreService.deleteGenre(genreId);
+      const ok = await GenreService.deleteGenre(id);
+      if (!ok) return res.status(404).json({ success: false, error: "Genre not found" });
 
-      if (!deleted) {
-        res.status(404).json({ success: false, error: "Genre not found" });
-        return;
-      }
-
-      res.json({
-        success: true,
-        message: "Genre deleted successfully",
-      });
-    } catch (error) {
-      console.error("Error deleting genre:", error);
-      res.status(500).json({
+      return res.json({ success: true, message: "Deleted" });
+    } catch (error: any) {
+      console.error("Delete genre error:", error);
+      return res.status(500).json({
         success: false,
-        error: "Failed to delete genre",
+        error: error?.message || "Internal server error",
       });
     }
   }
