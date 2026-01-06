@@ -248,4 +248,40 @@ export class PlaylistController {
       });
     }
   }
+
+  // Lấy playlist theo bài hát
+static async getBySong(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  try {
+    if (!req.user?.user_id) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const songId = parseInt(req.params.songId);
+    if (isNaN(songId)) {
+      res.status(400).json({ error: "Invalid song ID" });
+      return;
+    }
+
+    const playlists = await PlaylistService.getPlaylistsBySong(
+      songId,
+      req.user.user_id
+    );
+
+    res.json({
+      success: true,
+      data: playlists,
+    });
+  } catch (error: any) {
+    console.error("Get playlists by song error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Internal server error",
+    });
+  }
+}
+
 }

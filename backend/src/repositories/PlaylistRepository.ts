@@ -130,4 +130,27 @@ export class PlaylistRepository {
     );
     return (result as any).affectedRows > 0;
   }
+
+  /**
+   * Lấy playlist của user theo bài hát
+   */
+  static async findPlaylistsBySong(
+    songId: number,
+    userId: number
+  ): Promise<any[]> {
+    const [rows] = await pool.execute(
+      `
+      SELECT p.*
+      FROM playlists p
+      JOIN playlist_songs ps 
+        ON ps.playlist_id = p.playlist_id
+      WHERE ps.song_id = ?
+        AND p.user_id = ?
+      ORDER BY p.created_at DESC
+      `,
+      [songId, userId]
+    );
+
+    return rows as any[];
+  }
 }

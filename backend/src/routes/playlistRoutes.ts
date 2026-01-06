@@ -32,4 +32,10 @@ router.delete(
 // Xóa playlist (cần authentication)
 router.delete("/:id", authenticate, PlaylistController.delete);
 
+router.get(
+  "/songs/:songId/playlists",
+  authenticate,
+  PlaylistController.getBySong
+);
+
 export default router;
