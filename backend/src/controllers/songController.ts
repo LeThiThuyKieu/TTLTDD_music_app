@@ -135,25 +135,22 @@ export class SongController {
     }
   }
 
-  // (OPTIONAL) GET /api/songs/artist/:artistId?limit=50&offset=0
-  // Chỉ dùng nếu SongService có getSongsByArtist()
-  static async getByArtist(req: AuthenticatedRequest, res: Response): Promise<void> {
+
+
+  // Lấy bài hát theo artist
+  static async getByArtist(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
     try {
       const artistId = parseInt(req.params.artistId);
       if (isNaN(artistId)) {
-        res.status(400).json({ success: false, error: "Invalid artist ID" });
+        res.status(400).json({ error: "Invalid artist ID" });
         return;
       }
-
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
-
-      // ✅ Nếu bạn đã có hàm này thì mở comment:
-      // const songs = await SongService.getSongsByArtist(artistId, limit, offset);
-
-      // Tạm thời để không crash compile khi chưa có service:
-      const songs: any[] = [];
-
+      const songs = await SongService.getSongsByArtist(artistId, limit, offset);
       res.json({
         success: true,
         data: songs,
@@ -167,7 +164,7 @@ export class SongController {
       console.error("Get songs by artist error:", error);
       res.status(500).json({
         success: false,
-        error: error?.message || "Internal server error",
+        error: error.message || "Internal server error",
       });
     }
   }

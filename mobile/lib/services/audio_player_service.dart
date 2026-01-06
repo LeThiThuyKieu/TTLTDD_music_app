@@ -12,13 +12,50 @@ class AudioPlayerService extends ChangeNotifier {
   /// Trạng thái phát
   bool _isPlaying = false;
 
+  /// Playlist hiện tại (nếu phát từ playlist)
+  List<SongModel>? _currentPlaylist;
+
+  /// Index bài hát hiện tại trong playlist
+  int _currentIndex = 0;
+
+  List<SongModel>? get currentPlaylist => _currentPlaylist;
+  int get currentIndex => _currentIndex;
+
+  /// Thời gian hiện tại của bài hát
+  Duration _currentPosition = Duration.zero;
+
+  /// Tổng thời lượng bài hát
+  Duration _totalDuration = Duration.zero;
+
   SongModel? get currentSong => _currentSong;
   bool get isPlaying => _isPlaying;
+  Duration get currentPosition => _currentPosition;
+  Duration get totalDuration => _totalDuration;
 
   AudioPlayerService() {
     // Khi bài hát kết thúc
-    _player.onPlayerComplete.listen((_) {
-      _isPlaying = false;
+    _player.onPlayerComplete.listen((_) async {
+      // Nếu có playlist, phát bài tiếp theo
+      if (_currentPlaylist != null &&
+          _currentIndex < _currentPlaylist!.length - 1) {
+        _currentIndex++;
+        await playSong(_currentPlaylist![_currentIndex]);
+      } else {
+        // Không còn bài nào -> dừng nhạc
+        _isPlaying = false;
+        notifyListeners();
+      }
+    });
+
+    /// Theo dõi thời gian hiện tại
+    _player.onPositionChanged.listen((pos) {
+      _currentPosition = pos;
+      notifyListeners();
+    });
+
+    /// Theo dõi tổng thời lượng
+    _player.onDurationChanged.listen((duration) {
+      _totalDuration = duration;
       notifyListeners();
     });
 
@@ -59,6 +96,20 @@ class AudioPlayerService extends ChangeNotifier {
     }
   }
 
+  /// Phát nhạc từ playlist, bắt đầu tại index
+  Future<void> playSongFromPlaylist(
+      List<SongModel> playlist, int startIndex) async {
+
+    if (playlist.isEmpty) return;
+    if (startIndex < 0 || startIndex >= playlist.length) return;
+
+    _currentPlaylist = playlist;
+    _currentIndex = startIndex;
+
+    await playSong(playlist[startIndex]); // 👈 dùng lại hàm cũ
+  }
+
+
   /// Pause nhạc
   Future<void> pause() async {
     await _player.pause();
@@ -72,6 +123,41 @@ class AudioPlayerService extends ChangeNotifier {
     _isPlaying = true;
     notifyListeners();
   }
+
+  /// Stop bài hát
+  Future<void> stop() async {
+    await _player.stop();
+    _isPlaying = false;
+    _currentPosition = Duration.zero;
+    notifyListeners();
+  }
+
+  /// Seek đến vị trí bất kỳ
+  Future<void> seek(Duration position) async {
+    await _player.seek(position);
+    _currentPosition = position;
+    notifyListeners();
+  }
+
+  /// Phát bài tiếp theo trong playlist (nếu có)
+  Future<void> playNext() async {
+    if (_currentPlaylist != null &&
+        _currentIndex < _currentPlaylist!.length - 1) {
+      _currentIndex++;
+      await playSong(_currentPlaylist![_currentIndex]);
+    }
+  }
+
+  /// Phát bài trước trong playlist (nếu có)
+  Future<void> playPrevious() async {
+    if (_currentPlaylist != null && _currentIndex > 0) {
+      _currentIndex--;
+      await playSong(_currentPlaylist![_currentIndex]);
+    }
+  }
+  /// Có đang phát từ playlist không
+  bool get isPlayingFromPlaylist =>
+      _currentPlaylist != null && _currentPlaylist!.isNotEmpty;
 
   @override
   void dispose() {

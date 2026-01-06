@@ -1,19 +1,30 @@
 import 'package:flutter/material.dart';
 import '../models/song_model.dart';
 import '../services/favorite_api_service.dart';
-import '../widgets/song_action_sheet.dart';
 
 class SongItem extends StatelessWidget {
   final SongModel song;
 
-  /// callback khi bấm play
+  /// Callback khi bấm nút Play
   final VoidCallback? onPlay;
 
-  /// callback khi bấm vào item
+  /// Callback khi bấm vào toàn bộ item
   final VoidCallback? onTap;
 
   /// callback khi chọn "Thêm vào playlist"
   final VoidCallback? onAddToPlaylist;
+
+  /// Callback khi bấm "Yêu thích" trong menu 3 chấm
+  final VoidCallback? onYeuThich;
+
+  /// Callback khi bấm "Thêm vào playlist" trong menu 3 chấm
+  final VoidCallback? onThemVaoPlaylist;
+
+  /// Callback khi bấm "Xem ca sĩ" trong menu 3 chấm
+  final VoidCallback? onXemCaSi;
+
+  /// Callback khi bấm "Đi đến album" trong menu 3 chấm
+  final VoidCallback? onThamGiaAlbum;
 
   const SongItem({
     super.key,
@@ -21,11 +32,15 @@ class SongItem extends StatelessWidget {
     this.onPlay,
     this.onTap,
     this.onAddToPlaylist,
+    this.onYeuThich,
+    this.onThemVaoPlaylist,
+    this.onXemCaSi,
+    this.onThamGiaAlbum,
   });
 
   @override
   Widget build(BuildContext context) {
-    final int? sid = song.songId; // id bài hát của bạn là songId
+    final int? sid = song.songId;
 
     return ValueListenableBuilder<Set<int>>(
       valueListenable: FavoriteApiService.instance.favoriteSongIds,
@@ -74,9 +89,9 @@ class SongItem extends StatelessWidget {
                     ? null
                     : () async {
                   try {
-                    await FavoriteApiService.instance.toggleFavorite(sid);
+                    await FavoriteApiService.instance
+                        .toggleFavorite(sid);
                   } catch (e) {
-                    // báo lỗi gọn gàng
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Lỗi yêu thích: $e')),
@@ -96,37 +111,79 @@ class SongItem extends StatelessWidget {
                 onPressed: onPlay,
               ),
 
-              // ⋮ Nút more -> mở bottom sheet
+              // ⋮ Nút menu 3 chấm
               IconButton(
                 icon: const Icon(Icons.more_vert),
                 onPressed: () {
-                  showSongActionSheet(
-                    context,
-                    song: song,
-                    isFavorite: isFav,
-                    onToggleFavorite: sid == null
-                        ? null
-                        : () async {
-                      try {
-                        await FavoriteApiService.instance
-                            .toggleFavorite(sid);
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Lỗi: $e')),
-                          );
-                        }
-                      }
-                    },
-                    onAddToPlaylist: onAddToPlaylist,
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (_) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Menu: Yêu thích
+                        ListTile(
+                          leading: const Icon(Icons.favorite_border),
+                          title: const Text('Yêu thích'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            (onYeuThich ??
+                                    () {
+                                  debugPrint('Yêu thích ${song.title}');
+                                })();
+                          },
+                        ),
+
+                        // Menu: Thêm vào playlist
+                        ListTile(
+                          leading: const Icon(Icons.playlist_add),
+                          title: const Text('Thêm vào playlist'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            (onThemVaoPlaylist ??
+                                    () {
+                                  debugPrint('Thêm ${song.title} vào playlist');
+                                })();
+                          },
+                        ),
+
+                        // Menu: Xem ca sĩ
+                        ListTile(
+                          leading: const Icon(Icons.person),
+                          title: const Text('Xem ca sĩ'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            (onXemCaSi ??
+                                    () {
+                                  debugPrint('Xem ca sĩ của ${song.title}');
+                                })();
+                          },
+                        ),
+
+                        // Menu: Đi đến album
+                        ListTile(
+                          leading: const Icon(Icons.album),
+                          title: const Text('Đi đến album'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            (onThamGiaAlbum ??
+                                    () {
+                                  debugPrint('Đi đến album của ${song.title}');
+                                })();
+                          },
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),
             ],
           ),
 
-          // ===== TAP VÀO ITEM =====
-          onTap: onTap,
+          // Khi bấm vào toàn bộ item
+          onTap: onTap ??
+                  () {
+                debugPrint('Bấm vào item ${song.title}');
+              },
         );
       },
     );
