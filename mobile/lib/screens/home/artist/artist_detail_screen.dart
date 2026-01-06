@@ -73,7 +73,7 @@ class ArtistDetailScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                artist.description ?? 'No description',
+                artist.description ?? 'Chưa có mô tả',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -91,7 +91,7 @@ class ArtistDetailScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Popular Songs',
+                    'Bài hát',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -107,7 +107,7 @@ class ArtistDetailScreen extends StatelessWidget {
                       );
                     },
                     child: const Text(
-                      'See All',
+                      'Xem tất cả',
                       style: TextStyle(
                         color: Colors.green,
                         fontWeight: FontWeight.w600,

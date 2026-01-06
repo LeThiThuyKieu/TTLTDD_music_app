@@ -14,6 +14,8 @@ import 'artist/artist_list_screen.dart';
 import 'song_list_screen.dart';
 import 'package:provider/provider.dart';
 import '../../services/audio_player_service.dart';
+import 'album/album_detail_screen.dart';
+import 'album/album_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final HomeApiService _homeApiService = HomeApiService();
   final AuthService _authService = AuthService();
   final ArtistService _artistService = ArtistService();
+  // final AlbumService _albumService=AlbumService();
 
   // Data cho từng section
   List<AlbumModel> hotAlbums = [];
@@ -131,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 30),
                       _buildSectionHeader(
                         title: 'Album hot',
-                        onSeeMore: () {},
+                        onSeeMore: _openAllAlbums,
                       ),
                       const SizedBox(height: 12),
                       _buildAlbumList(),
@@ -249,11 +252,21 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    album.coverUrl ?? '',
-                    height: 150,
-                    width: 150,
-                    fit: BoxFit.cover,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AlbumDetailScreen(album: album),
+                        ),
+                      );
+                    },
+                    child: Image.network(
+                      album.coverUrl ?? '',
+                      height: 150,
+                      width: 150,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -429,4 +442,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  void _openAllAlbums() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AlbumListScreen(albums: hotAlbums),
+      ),
+    );
+  }
+
 }
