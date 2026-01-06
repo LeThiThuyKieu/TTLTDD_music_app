@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:music_app/screens/home/music_player_screen.dart';
 import 'package:provider/provider.dart';
 import '../services/audio_player_service.dart';
 
@@ -20,8 +21,16 @@ class _MiniPlayerState extends State<MiniPlayer> {
         if (player.currentSong == null) return const SizedBox();
 
         final song = player.currentSong!;
-
-        return Container(
+        return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MusicPlayerScreen(), // màn hình trình phát đầy đủ
+                ),
+              );
+            },
+        child: Container(
           height: 60,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
@@ -119,7 +128,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
               ),
             ],
           ),
-        );
+        ),);
       },
     );
   }
