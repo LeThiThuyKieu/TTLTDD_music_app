@@ -37,7 +37,7 @@ export class SongRepository {
     return songs[0] || null;
   }
 
-  // Tìm bài hát với artists
+  // Tìm 1 bài hát với artists
   static async findByIdWithArtists(
     songId: number
   ): Promise<SongWithArtists | null> {
@@ -132,6 +132,60 @@ export class SongRepository {
       [genreId, limit, offset]
     );
     return rows as Song[];
+  }
+
+  // Lấy danh sách bài hát theo artist
+  static async findByArtist(
+    artistId: number,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<SongWithArtists[]> {
+    const [rows] = await pool.execute(
+      `
+    SELECT 
+      s.*,
+      a.artist_id,
+      a.name AS artist_name,
+      a.avatar_url AS artist_avatar
+    FROM songs s
+    INNER JOIN song_artists sa ON s.song_id = sa.song_id
+    INNER JOIN artists a ON sa.artist_id = a.artist_id
+    WHERE sa.artist_id = ?
+      AND s.is_active = 1
+      AND a.is_active = 1
+    ORDER BY s.song_id DESC
+    LIMIT ? OFFSET ?
+    `,
+      [artistId, limit, offset]
+    );
+
+    const map = new Map<number, SongWithArtists>();
+
+    for (const row of rows as any[]) {
+      if (!map.has(row.song_id)) {
+        map.set(row.song_id, {
+          song_id: row.song_id,
+          title: row.title,
+          album_id: row.album_id,
+          genre_id: row.genre_id,
+          duration: row.duration,
+          lyrics: row.lyrics,
+          file_url: row.file_url,
+          cover_url: row.cover_url,
+          release_date: row.release_date,
+          is_active: row.is_active,
+          artists: [],
+        });
+      }
+
+      map.get(row.song_id)!.artists!.push({
+        artist_id: row.artist_id,
+        name: row.artist_name,
+        avatar_url: row.artist_avatar,
+      });
+    }
+
+    return Array.from(map.values());
   }
 
   // Lấy bài hát theo album

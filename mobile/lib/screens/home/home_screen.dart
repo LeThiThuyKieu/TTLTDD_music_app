@@ -3,15 +3,20 @@ import 'package:flutter/material.dart';
 import '../../models/song_model.dart';
 import '../../models/artist_model.dart';
 import '../../models/album_model.dart';
+import '../../services/artist_service.dart';
 import '../../services/home_api_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/toast.dart';
 import '../../widgets/mini_player.dart';
 import '../auth/login_screen.dart';
+import 'artist/artist_detail_screen.dart';
+import 'artist/artist_list_screen.dart';
 import 'song_list_screen.dart';
 import 'package:provider/provider.dart';
 import '../../services/audio_player_service.dart';
-// Huong
+import 'album/album_detail_screen.dart';
+import 'album/album_list_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -22,6 +27,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final HomeApiService _homeApiService = HomeApiService();
   final AuthService _authService = AuthService();
+  final ArtistService _artistService = ArtistService();
+  // final AlbumService _albumService=AlbumService();
 
   // Data cho từng section
   List<AlbumModel> hotAlbums = [];
@@ -127,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 30),
                       _buildSectionHeader(
                         title: 'Album hot',
-                        onSeeMore: () {},
+                        onSeeMore: _openAllAlbums,
                       ),
                       const SizedBox(height: 12),
                       _buildAlbumList(),
@@ -135,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 30),
                       _buildSectionHeader(
                         title: 'Nghệ sĩ nổi bật',
-                        onSeeMore: () {},
+                        onSeeMore: _openAllArtists,
                       ),
                       const SizedBox(height: 12),
                       _buildArtistList(),
@@ -245,11 +252,21 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    album.coverUrl ?? '',
-                    height: 150,
-                    width: 150,
-                    fit: BoxFit.cover,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AlbumDetailScreen(album: album),
+                        ),
+                      );
+                    },
+                    child: Image.network(
+                      album.coverUrl ?? '',
+                      height: 150,
+                      width: 150,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -275,22 +292,46 @@ class _HomeScreenState extends State<HomeScreen> {
         itemCount: popularArtists.length,
         itemBuilder: (context, index) {
           final artist = popularArtists[index];
-          return Container(
-            width: 90,
-            margin: const EdgeInsets.only(right: 16),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundImage: NetworkImage(artist.avatarUrl ?? ''),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  artist.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          return GestureDetector(
+            onTap: () async {
+              try {
+                // Gọi API lấy bài hát theo artist
+                final songs = await _artistService.getSongsByArtist(
+                  artist.artistId!,
+                  limit: 20,
+                  page: 1,
+                );
+                if (!context.mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ArtistDetailScreen(
+                      artist: artist,
+                      popularSongs: songs,
+                    ),
+                  ),
+                );
+              } catch (e) {
+                debugPrint('Load artist songs error: $e');
+              }
+            },
+            child: Container(
+              width: 80,
+              margin: const EdgeInsets.only(right: 16),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundImage: NetworkImage(artist.avatarUrl ?? ''),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    artist.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -333,8 +374,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         right: 5,
                         child: GestureDetector(
                           onTap: () {
-                            // TODO: Gọi AudioPlayerService.playSong(song)
-                            // debugPrint('Play song: ${song.songId}');
                             context.read<AudioPlayerService>().playSong(song);
                           },
                           child: Container(
@@ -394,4 +433,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  void _openAllArtists() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ArtistListScreen(artists: popularArtists),
+      ),
+    );
+  }
+
+  void _openAllAlbums() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AlbumListScreen(albums: hotAlbums),
+      ),
+    );
+  }
+
 }
