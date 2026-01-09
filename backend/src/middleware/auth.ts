@@ -2,88 +2,91 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AuthenticatedRequest } from "../models";
 
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
-/**
- * Middleware để xác thực JWT token
- */
-export const authenticate = async (
+type JwtPayloadAny = {
+  user_id?: number | string;
+  userId?: number | string;
+  id?: number | string;
+  sub?: number | string;
+  email?: string;
+  [key: string]: any;
+};
+
+const extractUid = (decoded: JwtPayloadAny) =>
+  decoded.user_id ?? decoded.userId ?? decoded.id ?? decoded.sub;
+
+const attachUser = (req: AuthenticatedRequest, decoded: JwtPayloadAny) => {
+  const uid = extractUid(decoded);
+
+  if (!uid) return false;
+
+  req.user = {
+    user_id: Number(uid),
+    email: decoded.email,
+  };
+
+  return true;
+};
+
+// ✅ Bắt buộc có token
+export const authenticate = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
-): Promise<void> => {
+): void => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      res.status(401).json({ error: "Unauthorized: No token provided" });
+    if (!authHeader?.startsWith("Bearer ")) {
+      res
+        .status(401)
+        .json({ success: false, error: "Unauthorized: No token provided" });
       return;
     }
 
-    const token = authHeader.split("Bearer ")[1];
+    const token = authHeader.substring("Bearer ".length).trim();
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayloadAny;
 
-    // Verify JWT token
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      user_id: number;
-      email: string;
-    };
-
-    // Attach user info to request
-    req.user = {
-      user_id: decoded.user_id,
-      email: decoded.email,
-    };
+    const ok = attachUser(req, decoded);
+    if (!ok) {
+      res.status(401).json({
+        success: false,
+        error: "Unauthorized: Invalid token payload",
+      });
+      return;
+    }
 
     next();
   } catch (error: any) {
-    console.error("Authentication error:", error);
-    if (error.name === "TokenExpiredError") {
-      res.status(401).json({
-        error: "Unauthorized: Token expired",
-      });
-      return;
-    }
-    if (error.name === "JsonWebTokenError") {
-      res.status(401).json({
-        error: "Unauthorized: Invalid token",
-      });
-      return;
-    }
     res.status(401).json({
-      error: "Unauthorized: Invalid token",
-      message: error.message,
+      success: false,
+      error:
+        error?.name === "TokenExpiredError"
+          ? "Unauthorized: Token expired"
+          : "Unauthorized: Invalid token",
+      message: error?.message,
     });
   }
 };
 
-/**
- * Optional authentication - không bắt buộc phải có token
- */
-export const optionalAuth = async (
+// ✅ Không bắt buộc token (dùng cho route public nhưng muốn biết user nếu có)
+export const optionalAuth = (
   req: AuthenticatedRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
-): Promise<void> => {
+): void => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split("Bearer ")[1];
-      const decoded = jwt.verify(token, JWT_SECRET) as {
-        user_id: number;
-        email: string;
-      };
-
-      req.user = {
-        user_id: decoded.user_id,
-        email: decoded.email,
-      };
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.substring("Bearer ".length).trim();
+      const decoded = jwt.verify(token, JWT_SECRET) as JwtPayloadAny;
+      attachUser(req, decoded); // fail thì thôi, vẫn next
     }
 
     next();
-  } catch (error) {
-    // Nếu token không hợp lệ, vẫn tiếp tục nhưng không có user
+  } catch {
     next();
   }
 };

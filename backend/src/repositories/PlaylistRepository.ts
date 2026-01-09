@@ -1,5 +1,5 @@
 import pool from "../config/database";
-import { Playlist, Song } from "../models";
+import { Playlist, SongWithArtists, Artist } from "../models";
 
 export class PlaylistRepository {
   // Tạo playlist mới
@@ -15,9 +15,7 @@ export class PlaylistRepository {
     );
     const insertId = (result as any).insertId;
     const created = await this.findById(insertId);
-    if (!created) {
-      throw new Error("Failed to create playlist");
-    }
+    if (!created) throw new Error("Failed to create playlist");
     return created;
   }
 
@@ -77,16 +75,58 @@ export class PlaylistRepository {
     return (result as any).affectedRows > 0;
   }
 
-  // Lấy danh sách bài hát trong playlist
-  static async getSongs(playlistId: number): Promise<Song[]> {
+  // ✅ Lấy danh sách bài hát trong playlist (CÓ artists)
+  static async getSongs(playlistId: number): Promise<SongWithArtists[]> {
     const [rows] = await pool.execute(
-      `SELECT s.* FROM songs s
-       INNER JOIN playlist_songs ps ON s.song_id = ps.song_id
-       WHERE ps.playlist_id = ? AND s.is_active = 1
-       ORDER BY ps.playlist_id`,
+      `
+      SELECT 
+        s.*,
+        a.artist_id,
+        a.name AS artist_name,
+        a.avatar_url AS artist_avatar,
+        a.description AS artist_description,
+        a.is_active AS artist_is_active
+      FROM playlist_songs ps
+      INNER JOIN songs s ON ps.song_id = s.song_id
+      LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.artist_id AND a.is_active = 1
+      WHERE ps.playlist_id = ? AND s.is_active = 1
+      ORDER BY ps.song_id DESC
+      `,
       [playlistId]
     );
-    return rows as Song[];
+
+    const map = new Map<number, SongWithArtists>();
+
+    for (const row of rows as any[]) {
+      if (!map.has(row.song_id)) {
+        map.set(row.song_id, {
+          song_id: row.song_id,
+          title: row.title,
+          album_id: row.album_id,
+          genre_id: row.genre_id,
+          duration: row.duration,
+          lyrics: row.lyrics,
+          file_url: row.file_url,
+          cover_url: row.cover_url,
+          release_date: row.release_date,
+          is_active: row.is_active,
+          artists: [],
+        });
+      }
+
+      if (row.artist_id) {
+        map.get(row.song_id)!.artists!.push({
+          artist_id: row.artist_id,
+          name: row.artist_name,
+          avatar_url: row.artist_avatar,
+          description: row.artist_description ?? null,
+          is_active: row.artist_is_active ?? 1,
+        } as Artist);
+      }
+    }
+
+    return Array.from(map.values());
   }
 
   // Cập nhật playlist
@@ -109,9 +149,7 @@ export class PlaylistRepository {
       }
     });
 
-    if (fields.length === 0) {
-      return this.findById(playlistId);
-    }
+    if (fields.length === 0) return this.findById(playlistId);
 
     values.push(playlistId);
     await pool.execute(
