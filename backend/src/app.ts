@@ -14,6 +14,7 @@ import favoriteRoutes from "./routes/favoriteRoutes";
 import historyRoutes from "./routes/historyRoutes";
 import genreRoutes from "./routes/genreRoutes";
 import searchRoutes from "./routes/searchRoutes"
+import adminSongRoutes from "./routes/admin/adminSongRoutes"
 
 // Import middleware
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
@@ -49,6 +50,7 @@ app.use("/api/favorites", favoriteRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/genres", genreRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/admin/songs', adminSongRoutes);
 
 // Error handling middleware (phải đặt cuối cùng)
 app.use(notFoundHandler);

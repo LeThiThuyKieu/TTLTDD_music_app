@@ -30,13 +30,19 @@ class SongModel {
   factory SongModel.fromJson(Map<String, dynamic> json) {
     return SongModel(
       songId: json['song_id'] as int?,
-      title: json['title'] as String,
+      title: json['title'] ?? '',
       albumId: json['album_id'] as int?,
       genreId: json['genre_id'] as int?,
       duration: json['duration'] as int?,
       lyrics: json['lyrics'] as String?,
-      fileUrl: json['file_url'] as String,
+      // fileUrl: json['file_url'] as String,
+      fileUrl: json['file_url'] != null
+          ? json['file_url'] as String
+          : '',
       coverUrl: json['cover_url'] as String?,
+      // coverUrl: json['cover_url'] != null
+      //     ? json['cover_url'] as String
+      //     : '',
       releaseDate: json['release_date'] != null
           ? DateTime.parse(json['release_date'] as String)
           : null,

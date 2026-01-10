@@ -3,7 +3,7 @@ import 'package:music_app/models/song_model.dart';
 import '../../../models/artist_model.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
-
+import '../../../services/admin/admin_song_service.dart';
 
 class AdminSongScreen extends StatefulWidget {
   const AdminSongScreen({Key? key}) : super(key: key);
@@ -13,62 +13,79 @@ class AdminSongScreen extends StatefulWidget {
 }
 
 class _SongScreenState extends State<AdminSongScreen> {
+  final SongService _songService = SongService();
   List<SongModel> allSongs = [];
   String selectedStatus = 'Tất cả';
   String searchText = '';
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadMockData(); // 👉 sau thay bằng API
+    _loadSongs();
+  }
+  Future<void> _loadSongs() async {
+    try {
+      setState(() => isLoading = true);
+
+      final songs = await _songService.getAllSongs(); //JSON được fetch ở đây
+
+      setState(() {
+        allSongs = songs;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      debugPrint('Load songs error: $e');
+    }
   }
 
-  void _loadMockData() {
-    allSongs = [
-      SongModel(
-        songId: 1,
-        title: 'Chúng Ta Của Hiện Tại',
-        fileUrl: '',
-        coverUrl:
-        'https://i.ytimg.com/vi/ryC6nsOk5l8/maxresdefault.jpg',
-        isActive: 1,
-        artists: [
-          ArtistModel(
-            artistId: 1,
-            name: 'Sơn Tùng M-TP',
-          ),
-        ],
-      ),
-      SongModel(
-        songId: 2,
-        title: 'Em Của Ngày Hôm Qua',
-        fileUrl: '',
-        coverUrl:
-        'https://tse4.mm.bing.net/th/id/OIP.IQmKPXq1c4gqBaNLZeCwUgHaHa',
-        isActive: 1,
-        artists: [
-          ArtistModel(
-            artistId: 1,
-            name: 'Sơn Tùng M-TP',
-          ),
-        ],
-      ),
-      SongModel(
-        songId: 3,
-        title: 'Nàng Thơ',
-        fileUrl: '',
-        coverUrl:
-        'https://giaitritivi.com/wp-content/uploads/2025/06/loi-bai-hat-nang-tho.webp',
-        isActive: 0,
-        artists: [
-          ArtistModel(
-            artistId: 2,
-            name: 'Hoàng Dũng',
-          ),
-        ],
-      ),
-    ];
-  }
+  // void _loadMockData() {
+  //   allSongs = [
+  //     SongModel(
+  //       songId: 1,
+  //       title: 'Chúng Ta Của Hiện Tại',
+  //       fileUrl: '',
+  //       coverUrl:
+  //       'https://i.ytimg.com/vi/ryC6nsOk5l8/maxresdefault.jpg',
+  //       isActive: 1,
+  //       artists: [
+  //         ArtistModel(
+  //           artistId: 1,
+  //           name: 'Sơn Tùng M-TP',
+  //         ),
+  //       ],
+  //     ),
+  //     SongModel(
+  //       songId: 2,
+  //       title: 'Em Của Ngày Hôm Qua',
+  //       fileUrl: '',
+  //       coverUrl:
+  //       'https://tse4.mm.bing.net/th/id/OIP.IQmKPXq1c4gqBaNLZeCwUgHaHa',
+  //       isActive: 1,
+  //       artists: [
+  //         ArtistModel(
+  //           artistId: 1,
+  //           name: 'Sơn Tùng M-TP',
+  //         ),
+  //       ],
+  //     ),
+  //     SongModel(
+  //       songId: 3,
+  //       title: 'Nàng Thơ',
+  //       fileUrl: '',
+  //       coverUrl:
+  //       'https://giaitritivi.com/wp-content/uploads/2025/06/loi-bai-hat-nang-tho.webp',
+  //       isActive: 0,
+  //       artists: [
+  //         ArtistModel(
+  //           artistId: 2,
+  //           name: 'Hoàng Dũng',
+  //         ),
+  //       ],
+  //     ),
+  //   ];
+  // }
   //  search +filter
   List<SongModel> get filteredSongs {
     return allSongs.where((song) {

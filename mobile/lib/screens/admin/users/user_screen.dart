@@ -52,8 +52,8 @@ class UserScreenState extends State<AdminUserScreen> {
 
       final matchStatus =
           selectedStatus == 'Tất cả' ||
-              (selectedStatus == 'Admin' && user.role == 'admin') ||
-              (selectedStatus == 'User' && user.role == 'user');
+              (selectedStatus == 'Active' && user.isActive == 1) ||
+              (selectedStatus == 'Unactive' && user.isActive == 0);
 
       return matchSearch && matchStatus;
     }).toList();
@@ -73,12 +73,6 @@ class UserScreenState extends State<AdminUserScreen> {
               const Text(
                 'Tài khoản người dùng',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2C3930)),
-              ),
-              FloatingActionButton(
-                mini: true,
-                backgroundColor: const Color(0xFF8DB27C),
-                onPressed: () {},
-                child: const Icon(Icons.add, color: Colors.white),
               ),
             ],
           ),
