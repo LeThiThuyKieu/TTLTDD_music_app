@@ -1,4 +1,4 @@
-// In-memory storage for OTP (có thể nâng cấp lên Redis sau)
+// In-memory storage for OTP
 interface OTPData {
   otp: string;
   email: string;
