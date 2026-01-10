@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:music_app/models/artist_model.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
+import '../../../services/admin/admin_artist_service.dart';
 
 class AdminArtistScreen extends StatefulWidget {
   const AdminArtistScreen({Key? key}) : super(key: key);
@@ -14,35 +15,51 @@ class ArtistScreenState extends State<AdminArtistScreen> {
   List<ArtistModel> allArtists = [];
   String selectedStatus = 'Tất cả';
   String searchText = '';
+  bool isLoading = false;
+  final _artistService = ArtistService();
 
   @override
   void initState() {
     super.initState();
-    loadMockData();
+    _loadArtists();
   }
+  Future<void> _loadArtists() async {
+    try {
+      setState(() => isLoading = true);
 
-  void loadMockData() {
-    allArtists = [
-      ArtistModel(
-        artistId: 1,
-        name: 'Sơn Tùng M-TP',
-        avatarUrl: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcS0X52aE766v34_fcodYeawXEtTqtWDo8a_J89nPGplo9SoJj-c',
-        description: 'Ca sĩ, nhạc sĩ nổi tiếng Việt Nam',
-        isActive: 1),
-      ArtistModel(
-          artistId: 2,
-          name: 'Mỹ Tâm',
-          avatarUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjWEdQsrGaw9U3pYzBiJ7FZaWzvqpJdGJeS54HZ5YxIjG3S9syTLxgln5hSBR8faHrl2ouBFr-7tSZoCuA9U67mxeH-_qREnc_0Wq7wItwBw&s=10',
-          description: 'Nữ ca sĩ hàng đầu V-pop',
-          isActive: 1),
-      ArtistModel(
-          artistId: 3,
-          name: 'Wanbi',
-          avatarUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSf076tYM2G5m6kkNdE5KdANKTeILUzmNOif1VrWGUgnkmNz6nDpVFbjzMyOXgzZi8aOC9q9wafjDVgEx2y2NPGvZznZRdPo2ipIfcjn8wg-Q&s=10',
-          description: 'ca sĩ tuổi thơ hàng triệu khán giả',
-          isActive: 0)
-    ];
+      final artists = await _artistService.getAllArtists(); //JSON được fetch ở đây
+
+      setState(() {
+        allArtists = artists;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      debugPrint('Load artists error: $e');
+    }
   }
+  // void loadMockData() {
+  //   allArtists = [
+  //     ArtistModel(
+  //       artistId: 1,
+  //       name: 'Sơn Tùng M-TP',
+  //       avatarUrl: 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcS0X52aE766v34_fcodYeawXEtTqtWDo8a_J89nPGplo9SoJj-c',
+  //       description: 'Ca sĩ, nhạc sĩ nổi tiếng Việt Nam',
+  //       isActive: 1),
+  //     ArtistModel(
+  //         artistId: 2,
+  //         name: 'Mỹ Tâm',
+  //         avatarUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRjWEdQsrGaw9U3pYzBiJ7FZaWzvqpJdGJeS54HZ5YxIjG3S9syTLxgln5hSBR8faHrl2ouBFr-7tSZoCuA9U67mxeH-_qREnc_0Wq7wItwBw&s=10',
+  //         description: 'Nữ ca sĩ hàng đầu V-pop',
+  //         isActive: 1),
+  //     ArtistModel(
+  //         artistId: 3,
+  //         name: 'Wanbi',
+  //         avatarUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSf076tYM2G5m6kkNdE5KdANKTeILUzmNOif1VrWGUgnkmNz6nDpVFbjzMyOXgzZi8aOC9q9wafjDVgEx2y2NPGvZznZRdPo2ipIfcjn8wg-Q&s=10',
+  //         description: 'ca sĩ tuổi thơ hàng triệu khán giả',
+  //         isActive: 0)
+  //   ];
+  // }
   //search +filter
   List<ArtistModel> get filteredArtists {
     return allArtists.where((artist) {

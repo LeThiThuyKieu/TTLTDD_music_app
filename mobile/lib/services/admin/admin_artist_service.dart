@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../models/song_model.dart';
+import '../../models/artist_model.dart';
 import '../api_service.dart';
 
-class SongService {
+class ArtistService {
   final ApiService _api = ApiService();
 
-  Future<List<SongModel>> getAllSongs({int limit = 20, int offset = 0}) async {
-    final response = await _api.get('/admin/songs', queryParams: {
+  Future<List<ArtistModel>> getAllArtists({int limit = 20, int offset = 0}) async {
+    final response = await _api.get('/admin/artists', queryParams: {
       'limit': limit.toString(),
       'offset': offset.toString(),
     });
@@ -19,11 +19,11 @@ class SongService {
     }
 
     return (response['data'] as List)
-        .map((e) => SongModel.fromJson(e))
+        .map((e) => ArtistModel.fromJson(e))
         .toList();
   }
 
-  Future<void> deleteSong(int songId) async {
-    await _api.delete('/admin/songs/$songId');
+  Future<void> deleteArtist(int artistId) async {
+    await _api.delete('/admin/artists/$artistId');
   }
 }

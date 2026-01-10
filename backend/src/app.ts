@@ -18,6 +18,7 @@ import adminSongRoutes from "./routes/admin/adminSongRoutes"
 
 // Import middleware
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import adminArtistRoutes from "./routes/admin/adminArtistRoutes";
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +52,7 @@ app.use("/api/history", historyRoutes);
 app.use("/api/genres", genreRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/admin/songs', adminSongRoutes);
+app.use('/api/admin/artists', adminArtistRoutes);
 
 // Error handling middleware (phải đặt cuối cùng)
 app.use(notFoundHandler);
