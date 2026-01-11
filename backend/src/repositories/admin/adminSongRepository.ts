@@ -4,6 +4,7 @@ import { SongWithArtists } from "../../models/Song";
 import { Artist } from "../../models/Artist";
 
 export class AdminSongRepository {
+  // LẤY DANH SÁCH BÀI HÁT
   static async findAllSong(
     limit: number,
     offset: number
@@ -55,7 +56,7 @@ export class AdminSongRepository {
     return Array.from(map.values());
   }
 
-  
+  // LLẤY CHI TIẾT BÀI HÁT THEO ID
   static async findSongById(song_id: number, includeDetails = false): Promise<SongWithArtists | null> {
   const fields = includeDetails
     ? "s.*, a.artist_id, a.name AS artist_name, a.avatar_url"
@@ -95,6 +96,29 @@ export class AdminSongRepository {
   }
 
   return Array.from(map.values())[0];
+}
+// XOÁ BÀI HÁT THEO ID
+static async deleteSongById(song_id: number): Promise<boolean> {
+  const connection = await pool.getConnection(); // lấy connection để chạy transaction
+  try {
+    await connection.beginTransaction();
+
+    // 1️ Xoá các liên kết trong song_artists
+    await connection.query('DELETE FROM song_artists WHERE song_id = ?', [song_id]);
+
+    // 2️ Xoá bài hát trong songs
+    const [result]: any = await connection.query('DELETE FROM songs WHERE song_id = ?', [song_id]);
+
+    await connection.commit(); // commit transaction
+
+    return result.affectedRows > 0; // trả về true nếu xoá thành công
+  } catch (error) {
+    await connection.rollback(); // rollback nếu có lỗi
+    console.error('Delete song error:', error);
+    return false;
+  } finally {
+    connection.release();
+  }
 }
 
 }

@@ -3,33 +3,16 @@ import {AdminSongRepository} from "../../repositories/admin/adminSongRepository"
 
 
 export class AdminSongService {
+  // LẤY DANH SÁCH BÀI HÁT
   static async getAllSongs(limit: number, offset: number): Promise<SongWithArtists []> {
-    const rows = await AdminSongRepository.findAllSong(limit, offset);
-
-    const map = new Map<number, SongWithArtists >();
-
-    rows.forEach((row: any) => {
-      if (!map.has(row.song_id)) {
-        map.set(row.song_id, {
-          song_id: row.song_id,
-          title: row.title,
-          file_url: row.file_url ?? "",
-          cover_url: row.cover_url ?? "",
-          is_active: row.is_active ?? 0,
-          artists: []
-        });
-      }
-
-      const song = map.get(row.song_id);
-     if (song && row.artist_id) {
-      if (!song.artists) song.artists = []; 
-       song.artists.push({
-          artist_id: row.artist_id,
-          name: row.artist_name
-        });
-      }
-    });
-
-    return Array.from(map.values());
+    return AdminSongRepository.findAllSong(limit, offset);
+  }
+  // LẤY CHI TIẾT BÀI HÁT THEO ID
+  static async getSongById(song_id: number, includeDetails = false): Promise<SongWithArtists | null> {
+    return AdminSongRepository.findSongById(song_id, includeDetails);
+  }
+  // XOÁ BÀI HÁT THEO ID
+  static async deleteSongById(song_id: number): Promise<boolean> {
+    return AdminSongRepository.deleteSongById(song_id);
   }
 }

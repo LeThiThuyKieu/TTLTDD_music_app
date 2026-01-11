@@ -14,7 +14,7 @@ router.get("/", authenticate, AdminSongController.getAllSongs);
 // // Cập nhập bài hát ( PUT /api/admin/songs )
 // router.put("/:id", authenticate, requireAdmin, AdminSongController.getAllSongs);
 // // Xoá bài hát ( DELETE /api/admin/songs )
-// router.delete("/:id", authenticate, requireAdmin, AdminSongController.getAllSongs);
+router.delete("/:id", authenticate, AdminSongController.deleteSongById);
 
 export default router;
 

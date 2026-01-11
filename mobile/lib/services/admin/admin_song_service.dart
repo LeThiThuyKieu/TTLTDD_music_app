@@ -24,6 +24,9 @@ class SongService {
   }
 
   Future<void> deleteSong(int songId) async {
-    await _api.delete('/admin/songs/$songId');
+    final response = await _api.delete('/admin/songs/$songId');
+    if (response['success'] != true) {
+      throw Exception('Xóa thất bại từ server');
+    }
   }
 }

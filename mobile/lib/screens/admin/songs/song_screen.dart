@@ -24,6 +24,7 @@ class _SongScreenState extends State<AdminSongScreen> {
     super.initState();
     _loadSongs();
   }
+  // Load danh sách
   Future<void> _loadSongs() async {
     try {
       setState(() => isLoading = true);
@@ -86,6 +87,24 @@ class _SongScreenState extends State<AdminSongScreen> {
   //     ),
   //   ];
   // }
+  // Xoá bài hát
+  Future<void> _deleteSong(SongModel song) async {
+    try {
+      await _songService.deleteSong(song.songId!); // gọi API
+      setState(() {
+        allSongs.remove(song); // xoá khỏi local
+      });
+      // _loadSongs();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Xoá bài hát thành công')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Xoá thất bại: $e')),
+      );
+    }
+  }
+
   //  search +filter
   List<SongModel> get filteredSongs {
     return allSongs.where((song) {
@@ -184,11 +203,7 @@ class _SongScreenState extends State<AdminSongScreen> {
                 ...filteredSongs.map(
                       (song) => _SongItem(
                     song: song,
-                    onDelete: () {
-                      setState(() {
-                        allSongs.remove(song);
-                      });
-                    },
+                    onDelete: () async => _deleteSong(song),
                   ),
                 ),
               ],
@@ -203,7 +218,7 @@ class _SongScreenState extends State<AdminSongScreen> {
 /// ================= SONG ITEM =================
 class _SongItem extends StatelessWidget {
   final SongModel song;
-  final VoidCallback onDelete;
+  final Future<void> Function() onDelete;
 
   const _SongItem({
     required this.song,
@@ -274,14 +289,14 @@ class _SongItem extends StatelessWidget {
           // ICON XOÁ
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Color(0xFF8DB27C)),
-            onPressed: () => _showDeleteDialog(context),
+            onPressed: () => _showDeleteDialog(context, song),
           ),
         ],
       ),
     );
   }
 
-  void _showDeleteDialog(BuildContext context) {
+  void _showDeleteDialog(BuildContext context, SongModel song) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -294,13 +309,12 @@ class _SongItem extends StatelessWidget {
             child: const Text('Huỷ'),
           ),
           ElevatedButton(
-            style:
-            ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete();
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+            Navigator.pop(context); // đóng dialog
+            await onDelete(); // chỉ gọi api khi xác nhận
             },
-            child: const Text('Xoá', style: TextStyle(color: Colors.white),),
+            child: const Text('Xoá', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
