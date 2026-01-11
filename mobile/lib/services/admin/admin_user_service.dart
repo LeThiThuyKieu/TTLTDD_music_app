@@ -23,7 +23,15 @@ class UserService {
         .toList();
   }
 
-  Future<void> deleteUser(int userId) async {
-    await _api.delete('/admin/users/$userId');
+  // Khoá tài khoản (PATCH /admin/users/:id/status)
+  Future<void> updateUserStatus(int userId, int isActive) async {
+    final response = await _api.patch(
+      '/admin/users/$userId/status',
+      body: {'is_active': isActive,},
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['message'] ?? 'Cập nhật thất bại');
+    }
   }
 }

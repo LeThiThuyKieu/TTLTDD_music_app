@@ -25,4 +25,23 @@ export class AdminUserRepository {
         }));
         return users;
     }
+    // TÌM USER THEO ID
+    static async findById(userId: number): Promise<any | null> {
+  const [rows]: any = await pool.query(
+    `SELECT user_id, role, is_active FROM users WHERE user_id = ?`,
+    [userId]
+  );
+  return rows.length ? rows[0] : null;
+}
+
+    // KHOÁ TÀI KHOẢN THEO ID
+    static async updateStatus(userId: number, isActive: number): Promise<boolean> {
+  const [result]: any = await pool.query(
+    `UPDATE users SET is_active = ? WHERE user_id = ?`,
+    [isActive, userId]
+  );
+  return result.affectedRows > 0;
+}
+
+
 }

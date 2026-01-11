@@ -60,6 +60,51 @@ class UserScreenState extends State<AdminUserScreen> {
   //     ),
   //   ];
   // }
+
+  // KHOÁ TÀI KHOẢN
+  Future<void> _toggleUserStatus(UserModel user) async {
+    final newStatus = user.isActive == 1 ? 0 : 1;
+
+    try {
+      //clear snackbar cũ
+      ScaffoldMessenger.of(context).clearSnackBars();
+      // loading nhẹ
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newStatus == 0 ? 'Đang khoá tài khoản...' : 'Đang mở khoá tài khoản...',
+          ),
+        ),
+      );
+
+      //  Call API
+      await _userService.updateUserStatus(user.userId!, newStatus);
+
+      //  Update local sau khi BE OK
+      setState(() {
+        final index = allUsers.indexWhere((u) => u.userId == user.userId);
+        if (index != -1) {
+        allUsers[index] = user.copyWith(isActive: newStatus);
+        }
+      });
+
+      //  Success
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newStatus == 0 ? 'Khoá tài khoản thành công' : 'Mở khoá tài khoản thành công',
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Thao tác thất bại: $e')),
+      );
+    }
+  }
+
   //  search +filter
   List<UserModel> get filteredUsers {
     return allUsers.where((user) {
@@ -152,12 +197,7 @@ class UserScreenState extends State<AdminUserScreen> {
                 ...filteredUsers.map(
                       (user) => UserItem(
                       user: user,
-                      onToggleActive: () {
-                      setState(() {
-                        final index = allUsers.indexOf(user);
-                        allUsers[index] = user.copyWith(isActive: user.isActive == 1 ? 0 : 1);
-                      });
-                    },
+                      onToggleActive: () => _toggleUserStatus(user),
                   ),
                 ),
               ],
@@ -222,13 +262,6 @@ class UserItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 1),
-                // Text(
-                //   song.artistNames,
-                //   style: const TextStyle(
-                //     fontSize: 12,
-                //     color: Colors.black54,
-                //   ),
-                // ),
               ],
             ),
           ),
@@ -245,9 +278,9 @@ class UserItem extends StatelessWidget {
           IconButton(
             icon: Icon(
               isActive ? Icons.lock_open_outlined : Icons.lock_outline,
-              color: Color(0xFF8DB27C),
+              color: isAdmin ? Colors.grey : const Color(0xFF8DB27C),
             ),
-            onPressed: () => _showLockDialog(context),
+            onPressed: isAdmin ? null : () => _showLockDialog(context),
           ),
         ],
       ),
@@ -274,7 +307,7 @@ class UserItem extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: isActive ? Colors.red : Colors.white,
+              backgroundColor: isActive ? Colors.red : Colors.green,
             ),
             onPressed: () {
               Navigator.pop(context);

@@ -153,6 +153,28 @@ class ApiService {
       rethrow;
     }
   }
+  // PATCH request
+  Future<Map<String, dynamic>> patch(
+      String endpoint, {
+        Map<String, dynamic>? body,
+        bool includeAuth = true,
+      }) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('${ApiConfig.baseUrl}$endpoint'),
+        headers: await _getHeaders(includeAuth: includeAuth),
+        body: json.encode(body ?? {}),
+      );
+
+      return await _handleResponse(response);
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(AppConstants.errorNetwork);
+      }
+      rethrow;
+    }
+  }
 
   // UPLOAD FILE (multipart/form-data)
   Future<Map<String, dynamic>> uploadFile(
