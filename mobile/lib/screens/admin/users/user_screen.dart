@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/user_model.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
-
+import '../../../services/admin/admin_user_service.dart';
 
 class AdminUserScreen extends StatefulWidget {
   const AdminUserScreen({Key? key}) : super(key: key);
@@ -15,34 +15,51 @@ class UserScreenState extends State<AdminUserScreen> {
   List<UserModel> allUsers = [];
   String selectedStatus = 'Tất cả';
   String searchText = '';
+  bool isLoading = false;
+  final _userService = UserService();
 
   @override
   void initState() {
     super.initState();
-    _loadMockData(); // 👉 sau thay bằng API
+    _loadUsers();
+  }
+  Future<void> _loadUsers() async {
+    try {
+      setState(() => isLoading = true);
+
+      final users = await _userService.getAllUsers(); //JSON được fetch ở đây
+
+      setState(() {
+        allUsers = users;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      debugPrint('Load users error: $e');
+    }
   }
 
-  void _loadMockData() {
-    allUsers = [
-      UserModel(
-        userId: 1,
-        name: 'Nhng',
-        email: 'nhngdangtest@gmail.com',
-        role: 'admin',
-        avatarUrl: 'https://i.ytimg.com/vi/ryC6nsOk5l8/maxresdefault.jpg',
-        isActive: 1,
-      ),
-      UserModel(
-        userId: 2,
-        name: 'Test',
-        email: 'nhanvientest@gmail.com',
-        role: 'user',
-        avatarUrl:
-        'https://i.ytimg.com/vi/ryC6nsOk5l8/maxresdefault.jpg',
-        isActive: 1,
-      ),
-    ];
-  }
+  // void _loadMockData() {
+  //   allUsers = [
+  //     UserModel(
+  //       userId: 1,
+  //       name: 'Nhng',
+  //       email: 'nhngdangtest@gmail.com',
+  //       role: 'admin',
+  //       avatarUrl: 'https://i.ytimg.com/vi/ryC6nsOk5l8/maxresdefault.jpg',
+  //       isActive: 1,
+  //     ),
+  //     UserModel(
+  //       userId: 2,
+  //       name: 'Test',
+  //       email: 'nhanvientest@gmail.com',
+  //       role: 'user',
+  //       avatarUrl:
+  //       'https://i.ytimg.com/vi/ryC6nsOk5l8/maxresdefault.jpg',
+  //       isActive: 1,
+  //     ),
+  //   ];
+  // }
   //  search +filter
   List<UserModel> get filteredUsers {
     return allUsers.where((user) {
