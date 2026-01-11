@@ -1,5 +1,5 @@
 import { Artist } from "../../models/Artist";
-import { AdminArtistRepository } from "../../repositories/admin/adminArtistRepoository";
+import { AdminArtistRepository } from "../../repositories/admin/adminArtistRepository";
 export class AdminArtistService {
     static async getAllArtists(limit: number, offset: number
         // , search?: string, isActive?: number

@@ -15,10 +15,12 @@ import historyRoutes from "./routes/historyRoutes";
 import genreRoutes from "./routes/genreRoutes";
 import searchRoutes from "./routes/searchRoutes"
 import adminSongRoutes from "./routes/admin/adminSongRoutes"
+import adminArtistRoutes from "./routes/admin/adminArtistRoutes";
+import adminAlbumRoutes from "./routes/admin/adminAlbumRoutes";
+import adminUserRoutes from "./routes/admin/adminUserRoutes";
 
 // Import middleware
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
-import adminArtistRoutes from "./routes/admin/adminArtistRoutes";
 
 // Load environment variables
 dotenv.config();
@@ -53,7 +55,8 @@ app.use("/api/genres", genreRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/admin/songs', adminSongRoutes);
 app.use('/api/admin/artists', adminArtistRoutes);
-
+app.use('/api/admin/albums', adminAlbumRoutes);
+app.use('/api/admin/users', adminUserRoutes);
 // Error handling middleware (phải đặt cuối cùng)
 app.use(notFoundHandler);
 app.use(errorHandler);
