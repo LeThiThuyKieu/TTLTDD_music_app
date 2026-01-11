@@ -23,4 +23,36 @@ export class AdminArtistController {
         });
         }
         }
+        //ADMIN: Xoá nghệ sĩ theo ID ( DELETE /api/admin/artists/:id )
+        static async deleteArtistById(req: AuthenticatedRequest, res: Response) {
+          try {
+            const artist_id = Number(req.params.id);    
+            if (isNaN(artist_id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid artist ID"
+                });
+            }
+            const deleted = await AdminArtistService.deleteArtistById(artist_id);
+            if (!deleted) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Artist not found",
+                    artist_id: artist_id
+                });
+            }
+            return res.status(200).json({
+                success: true,
+                message: "Artist deleted successfully", 
+                artist_id: artist_id
+            });
+          }
+            catch (error) {
+                console.error("Admin delete artist error:", error);
+                return res.status(500).json({
+                    success: false,
+                    message: "Failed to delete artist"
+                });
+            }
+        }
     }

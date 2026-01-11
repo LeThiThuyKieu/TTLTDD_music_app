@@ -26,4 +26,11 @@ const sql = `
 
     return artists;
   }
+
+  // XOÁ NGHỆ SĨ THEO ID
+  static async deleteArtistById(artist_id: number): Promise<boolean> {
+    const sql = `DELETE FROM artists WHERE artist_id = ?`;
+    const [result]: any = await pool.query(sql, [artist_id]);
+    return result.affectedRows > 0;
+  }
 }

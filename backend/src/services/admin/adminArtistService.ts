@@ -20,4 +20,9 @@ export class AdminArtistService {
         return artists;
     }
 
+    // XOÁ NGHỆ SĨ THEO ID
+    static async deleteArtistById(artist_id: number): Promise<boolean> {
+        return AdminArtistRepository.deleteArtistById(artist_id);
+    }
+
 }

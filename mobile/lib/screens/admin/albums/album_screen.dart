@@ -66,7 +66,6 @@ class AlbumScreenState extends State<AdminAlbumScreen> {
   //     ),
   //   ];
   // }
-
   // XOÁ ALBUM
   Future<void> _deleteAlbum(AlbumModel album) async {
     try {

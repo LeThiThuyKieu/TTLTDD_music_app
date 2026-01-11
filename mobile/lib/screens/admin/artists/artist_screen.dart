@@ -60,6 +60,25 @@ class ArtistScreenState extends State<AdminArtistScreen> {
   //         isActive: 0)
   //   ];
   // }
+
+  // Xoá nghệ sĩ
+  Future<void> _deleteArtist(ArtistModel artist) async {
+    try {
+      await _artistService.deleteArtist(artist.artistId!); // gọi API
+      setState(() {
+        allArtists.remove(artist); // xoá khỏi local
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Xoá nghệ sĩ khỏi danh sách thành công')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Xoá thất bại: $e')),
+      );
+    }
+  }
+
   //search +filter
   List<ArtistModel> get filteredArtists {
     return allArtists.where((artist) {
@@ -156,11 +175,7 @@ class ArtistScreenState extends State<AdminArtistScreen> {
                 ...filteredArtists.map(
                       (artist) => ArtistItem(
                     artist: artist,
-                    onDelete: () {
-                      setState(() {
-                        allArtists.remove(artist);
-                      });
-                    },
+                    onDelete: () async => _deleteArtist(artist),
                   ),
                 ),
               ],
@@ -175,7 +190,7 @@ class ArtistScreenState extends State<AdminArtistScreen> {
 /// ================= SONG ITEM =================
 class ArtistItem extends StatelessWidget {
   final ArtistModel artist;
-  final VoidCallback onDelete;
+  final Future<void> Function() onDelete;
 
   const ArtistItem({
     required this.artist,
@@ -239,14 +254,14 @@ class ArtistItem extends StatelessWidget {
           // ICON XOÁ
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Color(0xFF8DB27C)),
-            onPressed: () => _showDeleteDialog(context),
+            onPressed: () => _showDeleteDialog(context, artist),
           ),
         ],
       ),
     );
   }
 
-  void _showDeleteDialog(BuildContext context) {
+  void _showDeleteDialog(BuildContext context, ArtistModel artist) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -261,9 +276,9 @@ class ArtistItem extends StatelessWidget {
           ElevatedButton(
             style:
             ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete();
+            onPressed: () async {
+              Navigator.pop(context); // đóng dialog
+              await onDelete();  // chỉ gọi api khi xacs nhận xoá
             },
             child: const Text('Xoá', style: TextStyle(color: Colors.white)),
           ),
