@@ -1,3 +1,5 @@
+import { Artist } from "./Artist";
+
 // Album Model
 export interface Album {
   album_id?: number;
@@ -6,4 +8,8 @@ export interface Album {
   cover_url?: string;
   release_date?: Date;
   is_active?: number;
+}
+
+export interface AlbumWithArtist extends Album {
+  artist?: Artist; 
 }

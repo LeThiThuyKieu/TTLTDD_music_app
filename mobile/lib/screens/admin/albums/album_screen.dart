@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../models/album_model.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
+import '../../../services/admin/admin_album_service.dart';
 
 class AdminAlbumScreen extends StatefulWidget {
   const AdminAlbumScreen({Key? key}) : super(key: key);
@@ -15,37 +16,72 @@ class AlbumScreenState extends State<AdminAlbumScreen> {
   List<AlbumModel> allAlbums = [];
   String selectedStatus = 'Tất cả';
   String searchText = '';
+  bool isLoading = false;
+  final _albumService = AlbumService();
 
   @override
   void initState() {
     super.initState();
-    _loadMockData(); // 👉 sau thay bằng API
+    _loadAlbums();
+  }
+  // LOAD DANH SÁCH ALBUM
+  Future<void> _loadAlbums() async {
+    try {
+      setState(() => isLoading = true);
+
+      final albums = await _albumService.getAllAlbums(); //JSON được fetch ở đây
+
+      setState(() {
+        allAlbums = albums;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      debugPrint('Load albums error: $e');
+    }
   }
 
-  void _loadMockData() {
-    allAlbums = [
-      AlbumModel(
-        albumId: 1,
-        title: 'Chúng Ta',
-        coverUrl:
-        'https://is1-ssl.mzstatic.com/image/thumb/Video211/v4/f0/66/61/f066611b-7c43-9828-389a-eb6eb5e12baa/Job84b233bc-78a8-4f70-b490-364be97d41ab-167536029-PreviewImage_Preview_Image_Intermediate_nonvideo_sdr_325854773_1760978097-Time1715042749638.png/316x316bb.webp',
-        isActive: 1,
-      ),
-      AlbumModel(
-        albumId: 2,
-        title: 'Tâm 9',
-        coverUrl:
-        'https://i.scdn.co/image/ab67616d0000b2734454611710af2f8df7f2fbfe',
-        isActive: 1,
-      ),
-      AlbumModel(
-        albumId: 3,
-        title: 'Veston',
-        coverUrl:
-        'https://i1.sndcdn.com/artworks-000457791939-wrwc65-t500x500.jpg',
-        isActive: 0,
-      ),
-    ];
+  // void _loadMockData() {
+  //   allAlbums = [
+  //     AlbumModel(
+  //       albumId: 1,
+  //       title: 'Chúng Ta',
+  //       coverUrl:
+  //       'https://is1-ssl.mzstatic.com/image/thumb/Video211/v4/f0/66/61/f066611b-7c43-9828-389a-eb6eb5e12baa/Job84b233bc-78a8-4f70-b490-364be97d41ab-167536029-PreviewImage_Preview_Image_Intermediate_nonvideo_sdr_325854773_1760978097-Time1715042749638.png/316x316bb.webp',
+  //       isActive: 1,
+  //     ),
+  //     AlbumModel(
+  //       albumId: 2,
+  //       title: 'Tâm 9',
+  //       coverUrl:
+  //       'https://i.scdn.co/image/ab67616d0000b2734454611710af2f8df7f2fbfe',
+  //       isActive: 1,
+  //     ),
+  //     AlbumModel(
+  //       albumId: 3,
+  //       title: 'Veston',
+  //       coverUrl:
+  //       'https://i1.sndcdn.com/artworks-000457791939-wrwc65-t500x500.jpg',
+  //       isActive: 0,
+  //     ),
+  //   ];
+  // }
+
+  // XOÁ ALBUM
+  Future<void> _deleteAlbum(AlbumModel album) async {
+    try {
+      await _albumService.deleteAlbum(album.albumId!); // gọi API
+      setState(() {
+        allAlbums.remove(album); // xoá khỏi local
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Xoá Album thành công')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Xoá thất bại: $e')),
+      );
+    }
   }
   //  search +filter
   List<AlbumModel> get filteredAlbums {
@@ -145,11 +181,7 @@ class AlbumScreenState extends State<AdminAlbumScreen> {
                 ...filteredAlbums.map(
                       (album) => AlbumItem(
                     album: album,
-                    onDelete: () {
-                      setState(() {
-                        allAlbums.remove(album);
-                      });
-                    },
+                    onDelete: () async => _deleteAlbum(album),
                   ),
                 ),
               ],
@@ -164,7 +196,7 @@ class AlbumScreenState extends State<AdminAlbumScreen> {
 /// ================= ALBUM ITEM =================
 class AlbumItem extends StatelessWidget {
   final AlbumModel album;
-  final VoidCallback onDelete;
+  final Future<void> Function() onDelete;
 
   const AlbumItem({
     required this.album,
@@ -212,14 +244,14 @@ class AlbumItem extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 1),
-                // Text(
-                //   album.artistNames,
-                //   style: const TextStyle(
-                //     fontSize: 12,
-                //     color: Colors.black54,
-                //   ),
-                // ),
+                const SizedBox(height: 2),
+                Text(
+                  album.artist?.name ?? 'Chưa có nghệ sĩ',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                ),
               ],
             ),
           ),
@@ -235,14 +267,14 @@ class AlbumItem extends StatelessWidget {
           // ICON XOÁ
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Color(0xFF8DB27C)),
-            onPressed: () => _showDeleteDialog(context),
+            onPressed: () => _showDeleteDialog(context, album),
           ),
         ],
       ),
     );
   }
 
-  void _showDeleteDialog(BuildContext context) {
+  void _showDeleteDialog(BuildContext context, AlbumModel album) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -255,11 +287,10 @@ class AlbumItem extends StatelessWidget {
             child: const Text('Huỷ'),
           ),
           ElevatedButton(
-            style:
-            ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete();
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(context); // đóng dialog
+              await onDelete(); // chỉ gọi api khi xác nhận
             },
             child: const Text('Xoá', style: TextStyle(color: Colors.white)),
           ),
