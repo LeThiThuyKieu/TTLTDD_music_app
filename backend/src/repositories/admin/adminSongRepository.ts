@@ -120,5 +120,63 @@ static async deleteSongById(song_id: number): Promise<boolean> {
     connection.release();
   }
 }
+// TẠO MỚI BÀI HÁT
+static async createSong(data: {
+  title: string;
+  genre_id: number;
+  duration: number;
+  lyrics?: string;
+  artistIds: number[];
+  file_url: string;
+  cover_url?: string | null;
+}) {
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // Insert song
+    const [result]: any = await connection.query(
+      `
+      INSERT INTO songs (title, genre_id, duration, lyrics, file_url, cover_url, release_date)
+      VALUES (?, ?, ?, ?, ?, ?, NOW())
+      `,
+      [
+        data.title,
+        data.genre_id,
+        data.duration,
+        data.lyrics ?? null,
+        data.file_url,
+        data.cover_url ?? null,
+      ]
+    );
+
+    const songId = result.insertId;
+
+    // Insert song_artists
+    for (const artistId of data.artistIds) {
+      await connection.query(
+        `INSERT INTO song_artists (song_id, artist_id) VALUES (?, ?)`,
+        [songId, artistId]
+      );
+    }
+
+    await connection.commit();
+
+    return {
+      song_id: songId,
+      title: data.title,
+      file_url: data.file_url,
+      cover_url: data.cover_url,
+    };
+  } catch (error) {
+    await connection.rollback();
+    console.error("Create song repository error:", error);
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
 
 }

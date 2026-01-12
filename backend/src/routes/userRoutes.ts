@@ -20,7 +20,8 @@ router.put("/name-profile", UserController.updateNameProfile);
 // Upload avatar
 router.post(
   "/upload-avatar",
-  uploadAvatar.single("avatar"),
+  // uploadAvatar.single("avatar"),
+  uploadAvatar,
   UserController.uploadAvatar
 );
 

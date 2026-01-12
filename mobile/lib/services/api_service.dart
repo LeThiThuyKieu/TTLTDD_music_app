@@ -210,4 +210,49 @@ class ApiService {
       rethrow;
     }
   }
+
+  // ================= MULTIPART POST (UPLOAD FILE + DATA) =================
+  Future<Map<String, dynamic>> multipartPost(
+      String endpoint, {
+        required Map<String, String> fields,
+        required Map<String, File> files,
+        bool includeAuth = true,
+      }) async {
+    try {
+      final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
+      final request = http.MultipartRequest('POST', uri);
+
+      // ===== HEADERS =====
+      final headers = await _getHeaders(includeAuth: includeAuth);
+      headers.remove('Content-Type'); // multipart KHÔNG dùng json
+      request.headers.addAll(headers);
+
+      // ===== TEXT FIELDS =====
+      request.fields.addAll(fields);
+
+      // ===== FILE FIELDS =====
+      for (final entry in files.entries) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            entry.key,     // key backend: music / cover
+            entry.value.path,
+          ),
+        );
+      }
+
+      // ===== SEND REQUEST =====
+      final streamedResponse = await request.send();
+      final response =
+      await http.Response.fromStream(streamedResponse);
+
+      return await _handleResponse(response);
+    } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception(AppConstants.errorNetwork);
+      }
+      rethrow;
+    }
+  }
+
 }

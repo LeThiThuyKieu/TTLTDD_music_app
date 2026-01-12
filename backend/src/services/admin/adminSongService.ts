@@ -15,4 +15,17 @@ export class AdminSongService {
   static async deleteSongById(song_id: number): Promise<boolean> {
     return AdminSongRepository.deleteSongById(song_id);
   }
+  // THÊM BÀI HÁT MỚI
+  static async createSong(data: {
+  title: string;
+  genre_id: number;
+  duration: number;
+  lyrics?: string;
+  artistIds: number[];
+  file_url: string;
+  cover_url?: string | null;
+}) {
+  return AdminSongRepository.createSong(data);
+}
+
 }

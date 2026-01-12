@@ -55,5 +55,57 @@ export class AdminSongController {
       });
     }
   }
+  //ADMIN: Thêm bài hát ( POST /api/admin/songs )
+ static async createSong(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { title, genre_id, duration, lyrics, artist_ids } = req.body;
+
+    if (!title || !genre_id || Number(duration) <= 0 || !artist_ids) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    // ÉP KIỂU req.files
+    const files = req.files as {
+      [fieldname: string]: Express.Multer.File[];
+    };
+
+    const musicFile = files?.music?.[0];
+    if (!musicFile) {
+      return res.status(400).json({
+        success: false,
+        message: "Music file is required",
+      });
+    }
+
+    const coverFile = files?.cover?.[0];
+
+    const song = await AdminSongService.createSong({
+      title,
+      genre_id: Number(genre_id),
+      duration: Number(duration),
+      lyrics,
+      artistIds: artist_ids.split(",").map(Number),
+      file_url: `/api/uploads/audio/${musicFile.filename}`,
+      cover_url: coverFile
+        ? `/api/uploads/cover/${coverFile.filename}`
+        : null,
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: song,
+    });
+  } catch (error) {
+    console.error("Create song error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create song",
+    });
+  }
+}
+
 
 }
