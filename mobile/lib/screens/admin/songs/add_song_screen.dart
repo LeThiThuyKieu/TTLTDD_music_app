@@ -358,7 +358,7 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
-        fillColor: enabled ? Colors.white : Colors.grey.shade200,
+        fillColor: enabled ? Colors.white : Color(0xFFFAFAFA),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,

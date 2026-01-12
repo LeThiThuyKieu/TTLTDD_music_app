@@ -1,6 +1,7 @@
 import { AuthenticatedRequest } from "../../models";
 import { Response } from "express";
 import { AdminSongService } from "../../services/admin/adminSongService";
+import { uploadToCloudinary } from "../../config/cloudinary";
 
 export class AdminSongController {
   //ADMIN: Lấy danh sách bài hát (GET /api/admin/songs)
@@ -81,17 +82,21 @@ export class AdminSongController {
     }
 
     const coverFile = files?.cover?.[0];
-
+    console.log("Received cover file:", coverFile);
+    // Upload lên Cloudinary
+      const musicUrl = await uploadToCloudinary(musicFile, "songs/audio");
+      console.log("Music URL để lưu vào DB:", musicUrl);
+      const coverUrl = coverFile ? await uploadToCloudinary(coverFile, "songs/cover") : null;
+      console.log("Cover URL để lưu vào DB:", coverUrl);
+      
     const song = await AdminSongService.createSong({
       title,
       genre_id: Number(genre_id),
       duration: Number(duration),
       lyrics,
       artistIds: artist_ids.split(",").map(Number),
-      file_url: `/api/uploads/audio/${musicFile.filename}`,
-      cover_url: coverFile
-        ? `/api/uploads/cover/${coverFile.filename}`
-        : null,
+      file_url: musicUrl,
+      cover_url: coverUrl,
     });
 
     return res.status(201).json({

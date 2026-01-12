@@ -4,7 +4,7 @@ import '../../../models/artist_model.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
 import '../../../services/admin/admin_song_service.dart';
-
+import './add_song_screen.dart';
 class AdminSongScreen extends StatefulWidget {
   const AdminSongScreen({Key? key}) : super(key: key);
 
@@ -139,7 +139,17 @@ class _SongScreenState extends State<AdminSongScreen> {
               FloatingActionButton(
                 mini: true,
                 backgroundColor: const Color(0xFF8DB27C),
-                onPressed: () {},
+                onPressed: () async{
+                  // Mở screen thêm bài hát
+                  final added = await Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                        AdminAddSongScreen()
+                  ),
+                  );
+                  // Nếu có bài hát mới thêm thành công → fetch lại list
+                  if (added == true) {
+                    _loadSongs();
+                  }
+                },
                 child: const Icon(Icons.add, color: Colors.white),
               ),
             ],
