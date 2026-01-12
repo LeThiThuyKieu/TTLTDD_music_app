@@ -23,6 +23,7 @@ class ApiConfig {
   static const String songsSearch = '/songs/search';
   static const String songsByGenre = '/songs/genre';
   static const String songPlaylists = '/songs'; // /songs/:id/playlists
+  static const String songDetail = '/songs'; // API mới: lấy chi tiết bài hát (song + artists + album + genre)
 
   static const String playlists = '/playlists';
   static const String playlistsMy = '/playlists/my';

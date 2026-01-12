@@ -93,9 +93,16 @@ export class PlaylistService {
    * Lấy playlist của user theo bài hát
    */
   static async getPlaylistsBySong(
-    songId: number,
-    userId: number
-  ) {
-    return PlaylistRepository.findPlaylistsBySong(songId, userId);
-  }
+  songId: number,
+  userId: number
+) { 
+  const playlistIds =
+    await PlaylistRepository.findPlaylistIdsBySong(songId, userId);
+
+  const songs =
+    await PlaylistRepository.findSongsByPlaylistIds(playlistIds);
+
+  return songs;
+}
+
 }
