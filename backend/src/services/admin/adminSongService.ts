@@ -27,5 +27,21 @@ export class AdminSongService {
 }) {
   return AdminSongRepository.createSong(data);
 }
+  // CẬP NHẬP BÀI HÁT THEO ID
 
+static async updateSong(
+  song_id: number,
+  data: {
+    title: string;
+    genre_id: number;
+    duration: number;
+    lyrics?: string;
+    is_active: boolean;
+    artistIds: number[];
+    file_url?: string;
+    cover_url?: string;
+  }
+) {
+  return AdminSongRepository.updateSong(song_id, data);
+}
 }

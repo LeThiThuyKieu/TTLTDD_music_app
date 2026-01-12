@@ -68,4 +68,52 @@ class SongService {
 
     return SongModel.fromJson(response['data']);
   }
+
+  // DETAIL BÀI HÁT
+  Future<SongModel> getSongDetail(int songId) async {
+    final res = await _api.get('/admin/songs/$songId');
+    if (res['data'] == null) {
+      throw Exception('Song detail not found');
+    }
+    return SongModel.fromJson(res['data']);
+  }
+
+
+  // UPDATE BÀI HÁT
+  Future<SongModel> updateSong({
+    required int songId,
+    required String title,
+    required int genreId,
+    int? albumId,
+    required List<int> artistIds,
+    required int duration,
+    String? lyrics,
+    required bool isActive,
+    File? musicFile,
+    File? coverImage,
+  }) async {
+    debugPrint('Updating song ID: $songId');
+
+    final response = await _api.multipartPut('/admin/songs/$songId',
+      fields: {
+        'title': title,
+        'genre_id': genreId.toString(),
+        'duration': duration.toString(),
+        'artist_ids': artistIds.join(','),
+        'is_active': isActive ? '1' : '0',
+        if (albumId != null) 'album_id': albumId.toString(),
+        if (lyrics != null) 'lyrics': lyrics,
+      },
+      files: {
+        if (musicFile != null) 'music': musicFile,
+        if (coverImage != null) 'cover': coverImage,
+      },
+    );
+
+    if (response['data'] == null) {
+      throw Exception('Update song failed');
+    }
+
+    return SongModel.fromJson(response['data']);
+  }
 }

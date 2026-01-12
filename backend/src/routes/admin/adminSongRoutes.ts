@@ -8,12 +8,16 @@ const router = Router();
 
 // Lấy danh sách bài hát ( GET /api/admin/songs )
 router.get("/", authenticate, AdminSongController.getAllSongs);
+
 // Lấy bài hát theo id ( GET /api/admin/songs/:id )
-// router.get("/:id", authenticate, requireAdmin, AdminSongController.getAllSongs);
+router.get("/:id", authenticate,  AdminSongController.getSongById);
+
 // // Thêm bài hát ( POST /api/admin/songs )
 router.post("/", authenticate, uploadFiles, AdminSongController.createSong);
+
 // // Cập nhập bài hát ( PUT /api/admin/songs )
-// router.put("/:id", authenticate, requireAdmin, AdminSongController.getAllSongs);
+router.put("/:id", authenticate, uploadFiles, AdminSongController.updateSong);
+
 // // Xoá bài hát ( DELETE /api/admin/songs )
 router.delete("/:id", authenticate, AdminSongController.deleteSongById);
 

@@ -58,12 +58,8 @@ export class AdminSongRepository {
 
   // LLẤY CHI TIẾT BÀI HÁT THEO ID
   static async findSongById(song_id: number, includeDetails = false): Promise<SongWithArtists | null> {
-  const fields = includeDetails
-    ? "s.*, a.artist_id, a.name AS artist_name, a.avatar_url"
-    : "s.song_id, s.title, s.file_url, s.cover_url, s.is_active, a.artist_id, a.name AS artist_name";
-
   const sql = `
-    SELECT ${fields}
+    SELECT s.song_id, s.title, s.genre_id, s.duration, s.lyrics, s.file_url, s.cover_url, s.is_active, a.artist_id, a.name AS artist_name
     FROM songs s
     LEFT JOIN song_artists sa ON sa.song_id = s.song_id
     LEFT JOIN artists a ON a.artist_id = sa.artist_id
@@ -74,29 +70,37 @@ export class AdminSongRepository {
 
   if (!rows.length) return null;
 
-  const map = new Map<number, SongWithArtists>();
+  let song: SongWithArtists | null = null;
+
   for (const row of rows) {
-    if (!map.has(row.song_id)) {
-      map.set(row.song_id, {
+    // Khởi tạo song 1 lần
+    if (!song) {
+      song = {
         song_id: row.song_id,
         title: row.title,
+        genre_id: row.genre_id,
+        duration: row.duration,
+        lyrics: row.lyrics,
         file_url: row.file_url,
         cover_url: row.cover_url,
         is_active: row.is_active,
-        artists: []
-      });
+        artists: [],
+      };
     }
-    const song = map.get(row.song_id);
-    if (song && row.artist_id) {
+
+    // Push artist nếu tồn tại
+    if (row.artist_id) {
       song.artists!.push({
         artist_id: row.artist_id,
-        name: row.artist_name
+        name: row.artist_name,
+        avatar_url: row.avatar_url,
       });
     }
   }
 
-  return Array.from(map.values())[0];
+  return song;
 }
+
 // XOÁ BÀI HÁT THEO ID
 static async deleteSongById(song_id: number): Promise<boolean> {
   const connection = await pool.getConnection(); // lấy connection để chạy transaction
@@ -178,5 +182,76 @@ static async createSong(data: {
   }
 }
 
+// CẬP NHẬP BÀI HÁT THEO ID
+static async updateSong(
+  song_id: number,
+  data: {
+    title: string;
+    genre_id: number;
+    duration: number;
+    lyrics?: string;
+    is_active: boolean;
+    artistIds: number[];
+    file_url?: string;
+    cover_url?: string;
+  }
+) {
+  const connection = await pool.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    // Update bảng songs
+    await connection.query(
+      `
+      UPDATE songs
+      SET
+        title = ?,
+        genre_id = ?,
+        duration = ?,
+        lyrics = ?,
+        is_active = ?,
+        file_url = COALESCE(?, file_url),
+        cover_url = COALESCE(?, cover_url)
+      WHERE song_id = ?
+      `,
+      [
+        data.title,
+        data.genre_id,
+        data.duration,
+        data.lyrics ?? null,
+        data.is_active ? 1 : 0,
+        data.file_url ?? null,
+        data.cover_url ?? null,
+        song_id,
+      ]
+    );
+
+    // Xoá artist cũ trong song_artists
+    await connection.query(
+      `DELETE FROM song_artists WHERE song_id = ?`,
+      [song_id]
+    );
+
+    // Thêm artist mới vào song_artists
+    for (const artistId of data.artistIds) {
+      await connection.query(
+        `INSERT INTO song_artists (song_id, artist_id) VALUES (?, ?)`,
+        [song_id, artistId]
+      );
+    }
+
+    await connection.commit();
+
+    // Trả lại detail song
+    return AdminSongRepository.findSongById(song_id);
+  } catch (error) {
+    await connection.rollback();
+    console.error("Update song repository error:", error);
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
 
 }

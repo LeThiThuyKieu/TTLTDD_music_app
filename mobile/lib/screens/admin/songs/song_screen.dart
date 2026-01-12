@@ -5,6 +5,7 @@ import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
 import '../../../services/admin/admin_song_service.dart';
 import './add_song_screen.dart';
+import './update_song_screen.dart';
 class AdminSongScreen extends StatefulWidget {
   const AdminSongScreen({Key? key}) : super(key: key);
 
@@ -214,6 +215,7 @@ class _SongScreenState extends State<AdminSongScreen> {
                       (song) => _SongItem(
                     song: song,
                     onDelete: () async => _deleteSong(song),
+                        onUpdated: _loadSongs,
                   ),
                 ),
               ],
@@ -229,10 +231,12 @@ class _SongScreenState extends State<AdminSongScreen> {
 class _SongItem extends StatelessWidget {
   final SongModel song;
   final Future<void> Function() onDelete;
+  final VoidCallback onUpdated;
 
   const _SongItem({
     required this.song,
     required this.onDelete,
+    required this.onUpdated,
   });
 
   @override
@@ -291,16 +295,43 @@ class _SongItem extends StatelessWidget {
           Text(
             active ? 'Active' : 'Unactive',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 10,
               color: active ? Colors.green : Colors.red,
               fontWeight: FontWeight.w600,
             ),
           ),
-          // ICON XOÁ
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Color(0xFF8DB27C)),
-            onPressed: () => _showDeleteDialog(context, song),
+          // ACTION BUTTONS
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // EDIT
+              IconButton(
+              iconSize: 18,
+                icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                onPressed: () async {
+                  final updated = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminUpdateSongScreen(songId: song.songId!,),
+                    ),
+                  );
+
+                  // nếu update thành công → reload list
+                  if (updated == true && context.mounted) {
+                    onUpdated();
+                  }
+                },
+              ),
+
+              // DELETE
+              IconButton(
+                icon:
+                const Icon(Icons.delete_outline, color: Color(0xFF8DB27C)),
+                onPressed: () => _showDeleteDialog(context, song),
+              ),
+            ],
           ),
+
         ],
       ),
     );
