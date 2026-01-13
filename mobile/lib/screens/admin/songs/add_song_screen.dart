@@ -8,6 +8,7 @@ import '../../../models/genre_model.dart';
 import '../../../services/admin/admin_song_service.dart';
 import '../../../services/admin/admin_genre_service.dart';
 import '../../../services/admin/admin_artist_service.dart';
+import 'widgets/audio_preview_player.dart';
 
 class AdminAddSongScreen extends StatefulWidget {
   const AdminAddSongScreen({Key? key}) : super(key: key);
@@ -45,7 +46,7 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
     super.initState();
     _loadMetaData();
   }
-// Load artist avf genre
+// Load artist và genre
   Future<void> _loadMetaData() async {
     try {
       final g = await _genreService.getAllGenres();
@@ -167,6 +168,13 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
             _lyricsSection(), //Lyrics
             const SizedBox(height: 20),
             _uploadMusicSection(), // upload file mp3
+            // player
+            if (musicFile != null) ...[
+              const SizedBox(height: 12),
+              AudioPreviewPlayer(
+                localFile: musicFile,
+              ),
+            ],
             const SizedBox(height: 20),
             _uploadImageSection(), // upload ảnh nền
             const SizedBox(height: 28),
@@ -316,7 +324,7 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
     );
   }
 
-  // ================= Widget dùng chung các viền bên ngoài=================
+  // ================= Widget card dùng chung các viền bên ngoài=================
   Widget _card({
     required String title,
     String? subtitle,
@@ -389,6 +397,7 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
   //     ),
   //   );
   // }
+
   Widget _genreDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -412,6 +421,7 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
       ),
     );
   }
+
   Widget _artistDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -435,7 +445,6 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
       ),
     );
   }
-
 
   Widget _uploadArea({
     required IconData icon,
@@ -467,11 +476,4 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
       ),
     );
   }
-
-  // void _submit() {
-  //   debugPrint('Add song submit');
-  //   debugPrint('Title: ${_titleCtrl.text}');
-  //   debugPrint('Music file: ${musicFile?.path}');
-  //   debugPrint('Cover image: ${coverImage?.path}');
-  // }
 }

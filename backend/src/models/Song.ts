@@ -9,7 +9,9 @@ export interface Song {
   duration?: number;
   lyrics?: string;
   file_url: string;
+  file_public_id?: string;
   cover_url?: string;
+  cover_public_id?: string;
   release_date?: Date;
   is_active?: number;
 }

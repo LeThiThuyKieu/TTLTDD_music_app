@@ -84,9 +84,10 @@ export class AdminSongController {
     const coverFile = files?.cover?.[0];
     console.log("Received cover file:", coverFile);
     // Upload lên Cloudinary
-      const musicUrl = await uploadToCloudinary(musicFile, "songs/audio");
+    const publicIdBase = `song_${Date.now()}`;
+      const musicUrl = await uploadToCloudinary(musicFile, "songs/audio", publicIdBase);
       console.log("Music URL để lưu vào DB:", musicUrl);
-      const coverUrl = coverFile ? await uploadToCloudinary(coverFile, "songs/cover") : null;
+      const coverUrl = coverFile ? await uploadToCloudinary(coverFile, "songs/cover", `${publicIdBase}_cover`) : null;
       console.log("Cover URL để lưu vào DB:", coverUrl);
       
     const song = await AdminSongService.createSong({
@@ -94,9 +95,11 @@ export class AdminSongController {
       genre_id: Number(genre_id),
       duration: Number(duration),
       lyrics,
-      artistIds: artist_ids.split(",").map(Number),
-      file_url: musicUrl,
-      cover_url: coverUrl,
+      artistIds: artist_ids.split(",").map(Number).filter((id: number) => !isNaN(id)),
+      file_url: musicUrl.url,
+      file_public_id: musicUrl.public_id,
+      cover_url: coverUrl?.url ?? null,
+      cover_public_id: coverUrl?.public_id ?? null,
     });
 
     return res.status(201).json({
@@ -171,7 +174,19 @@ static async updateSong(req: AuthenticatedRequest, res: Response) {
       });
     }
 
-    // files
+    // Parse artistIds 
+    const artistIds = artist_ids
+      .split(",")
+      .map(Number)
+      .filter((id: number) => !isNaN(id));
+    if (!artistIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Artist list is invalid",
+      });
+    }
+
+    // files (req.files) ép kiểu
     const files = req.files as {
       [fieldname: string]: Express.Multer.File[];
     };
@@ -180,26 +195,44 @@ static async updateSong(req: AuthenticatedRequest, res: Response) {
     const coverFile = files?.cover?.[0];
 
     // upload nếu có file mới
-    let musicUrl: string | undefined;
-    let coverUrl: string | undefined;
+     const publicIdBase = `song_${song_id}`;
+   let musicUpload:
+      | { url: string; public_id: string }
+      | undefined;
+    let coverUpload:
+      | { url: string; public_id: string }
+      | undefined;
+
 
     if (musicFile) {
-      musicUrl = await uploadToCloudinary(musicFile, "songs/audio");
+      musicUpload = await uploadToCloudinary(
+        musicFile,
+        "songs/audio",
+        publicIdBase // overwrite file cũ
+      );
     }
 
     if (coverFile) {
-      coverUrl = await uploadToCloudinary(coverFile, "songs/cover");
+      coverUpload = await uploadToCloudinary(
+        coverFile,
+        "songs/cover",
+        `${publicIdBase}_cover` // overwrite cover cũ
+      );
     }
-
+    // update db
     const updatedSong = await AdminSongService.updateSong(song_id, {
       title,
       genre_id: Number(genre_id),
       duration: Number(duration),
       lyrics,
       is_active: Number(is_active) === 1,
-      artistIds: artist_ids.split(",").map(Number),
-      file_url: musicUrl,
-      cover_url: coverUrl,
+      artistIds: artistIds,
+      
+      file_url: musicUpload?.url,
+      file_public_id: musicUpload?.public_id,
+
+      cover_url: coverUpload?.url,
+      cover_public_id: coverUpload?.public_id,
     });
 
     return res.status(200).json({

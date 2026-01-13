@@ -23,7 +23,9 @@ export class AdminSongService {
   lyrics?: string;
   artistIds: number[];
   file_url: string;
+  file_public_id: string;
   cover_url?: string | null;
+  cover_public_id?: string | null;
 }) {
   return AdminSongRepository.createSong(data);
 }
@@ -39,7 +41,9 @@ static async updateSong(
     is_active: boolean;
     artistIds: number[];
     file_url?: string;
+    file_public_id?: string;
     cover_url?: string;
+    cover_public_id?: string;
   }
 ) {
   return AdminSongRepository.updateSong(song_id, data);

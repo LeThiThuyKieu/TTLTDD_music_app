@@ -9,28 +9,50 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true, //trả về URL https thay vì http.
 });
+
 cloudinary.api.ping()
   .then(() => console.log("Cloudinary kết nối thành công!"))
   .catch((err) => console.error("Cloudinary kết nối thất bại:", err));
 
+  export interface CloudinaryUploadResult {
+  url: string;
+  public_id: string;
+}
+
   //upload file lên Cloudinary.
 export const uploadToCloudinary = async (
   file: Express.Multer.File, //file được Multer parse từ form-data.
-  folder: string //tên folder trên Cloudinary để lưu file
-): Promise<string> => { //trả về URL của file đã upload
+  folder: string, //tên folder trên Cloudinary để lưu file
+  publicId: string
+): Promise<CloudinaryUploadResult> => {
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload_stream( //phương thức upload file từ buffer (không cần lưu tạm vào ổ cứng).
-        {
-          resource_type: "auto", //tự động nhận diện loại file (image, video, raw...)
-          folder,
-        },
-        (error, result) => {
-          if (error || !result) reject(error || "Upload failed");
-          else resolve(result.secure_url); //secure_url là URL https của file đã upload.
+    cloudinary.uploader.upload_stream(
+      {
+        resource_type: "auto",
+        folder,
+        public_id: publicId,
+        overwrite: true,
+      },
+      (error, result) => {
+        if (error || !result) {
+          return reject(error || new Error("Upload failed"));
         }
-      )
-      .end(file.buffer);
+
+        resolve({
+          url: result.secure_url,
+          public_id: result.public_id,
+        });
+      }
+    ).end(file.buffer);
   });
 };
 
-
+// helper xoá file Cloudinary
+export const deleteFromCloudinary = async (
+  publicId: string,
+  resourceType: "image" | "video" = "video"
+) => {
+  await cloudinary.uploader.destroy(publicId, {
+    resource_type: resourceType,
+  });
+};

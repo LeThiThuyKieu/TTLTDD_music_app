@@ -131,6 +131,7 @@ class _AdminUpdateSongScreenState extends State<AdminUpdateSongScreen> {
 
       setState(() {
         musicFile = file;
+        oldMusicUrl = null;
         duration = d?.inSeconds ?? 0;
         _durationCtrl.text = duration.toString();
       });

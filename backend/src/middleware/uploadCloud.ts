@@ -4,4 +4,6 @@ import multer from "multer";
 export const uploadFiles = multer().fields([
   { name: "music", maxCount: 1 },
   { name: "cover", maxCount: 1 },
+  { name: "avatar", maxCount: 1 },
+  { name: "album_cover", maxCount: 1 },
 ]);

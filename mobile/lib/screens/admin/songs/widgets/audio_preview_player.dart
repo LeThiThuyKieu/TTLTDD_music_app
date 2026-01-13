@@ -29,77 +29,78 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
   void initState() {
     super.initState();
 
-    // Lắng nghe tổng thời lượng
     _player.durationStream.listen((d) {
-      if (d != null) {
-        setState(() => _duration = d);
-      }
+      if (d != null) setState(() => _duration = d);
     });
 
-    // Lắng nghe vị trí đang phát
     _player.positionStream.listen((p) {
       setState(() => _position = p);
     });
 
-    // Khi phát xong → reset icon
+    /// 🔥 FIX QUAN TRỌNG NHẤT
     _player.playerStateStream.listen((state) {
+      setState(() {
+        isPlaying = state.playing;
+        isLoading = state.processingState == ProcessingState.loading ||
+            state.processingState == ProcessingState.buffering;
+      });
+
       if (state.processingState == ProcessingState.completed) {
         _player.seek(Duration.zero);
         _player.pause();
-        setState(() => isPlaying = false);
       }
     });
   }
 
   @override
-  void dispose() {
-    _player.pause();
-    _player.dispose();
-    super.dispose();
+  void didUpdateWidget(covariant AudioPreviewPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final fileChanged =
+        widget.localFile?.path != oldWidget.localFile?.path;
+    final urlChanged =
+        widget.networkUrl != oldWidget.networkUrl;
+
+    if (fileChanged || urlChanged) {
+      _resetPlayer();
+    }
+  }
+
+  Future<void> _resetPlayer() async {
+    await _player.stop();
+    await _player.seek(Duration.zero);
+    setState(() {
+      _duration = Duration.zero;
+      _position = Duration.zero;
+    });
   }
 
   Future<void> _togglePlay() async {
-    try {
-      if (_player.playing) {
-        await _player.pause();
-        setState(() => isPlaying = false);
-        return;
-      }
+    if (_player.playing) {
+      await _player.pause();
+      return;
+    }
 
-      setState(() => isLoading = true);
-
+    if (_player.audioSource == null) {
       if (widget.localFile != null) {
         await _player.setFilePath(widget.localFile!.path);
       } else if (widget.networkUrl != null) {
         await _player.setUrl(widget.networkUrl!);
-      } else {
-        return;
       }
+    }
 
-      await _player.play();
-      setState(() => isPlaying = true);
-    } catch (e) {
-      debugPrint('Audio play error: $e');
-    } finally {
-      setState(() => isLoading = false);
-    }
-  }
-
-  String _fileName() {
-    if (widget.localFile != null) {
-      return widget.localFile!.path.split('/').last;
-    }
-    if (widget.networkUrl != null) {
-      return widget.networkUrl!.split('/').last;
-    }
-    return 'Chưa có file audio';
+    await _player.play();
   }
 
   String _format(Duration d) {
     String two(int n) => n.toString().padLeft(2, '0');
-    final m = two(d.inMinutes.remainder(60));
-    final s = two(d.inSeconds.remainder(60));
-    return '$m:$s';
+    return '${two(d.inMinutes)}:${two(d.inSeconds.remainder(60))}';
+  }
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
   }
 
   @override
@@ -109,21 +110,17 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
     }
 
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFF8DB27C)),
       ),
       child: Column(
         children: [
-          // ===== PLAY ROW =====
           Row(
             children: [
               InkWell(
                 onTap: isLoading ? null : _togglePlay,
-                borderRadius: BorderRadius.circular(50),
                 child: Container(
                   width: 46,
                   height: 46,
@@ -146,58 +143,29 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Nghe thử audio',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _fileName(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(width: 12),
+              const Text(
+                'Nghe audio',
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ],
           ),
-
-          const SizedBox(height: 12),
-
-          // ===== PROGRESS BAR =====
           Slider(
             min: 0,
             max: _duration.inMilliseconds.toDouble(),
             value: _position.inMilliseconds
                 .clamp(0, _duration.inMilliseconds)
                 .toDouble(),
-            activeColor: const Color(0xFF8DB27C),
             onChanged: (v) {
               _player.seek(Duration(milliseconds: v.toInt()));
             },
+            activeColor: const Color(0xFF8DB27C),
           ),
-
-          // ===== TIME =====
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                _format(_position),
-                style: const TextStyle(fontSize: 12),
-              ),
-              Text(
-                _format(_duration),
-                style: const TextStyle(fontSize: 12),
-              ),
+              Text(_format(_position)),
+              Text(_format(_duration)),
             ],
           ),
         ],

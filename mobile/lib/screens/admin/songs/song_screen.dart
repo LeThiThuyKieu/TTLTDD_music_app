@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:music_app/models/song_model.dart';
-import '../../../models/artist_model.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
 import '../../../services/admin/admin_song_service.dart';

@@ -2,6 +2,7 @@ import pool from "../../config/database";
 // import { AdminSong } from "../../models/admin/adminSong.model";
 import { SongWithArtists } from "../../models/Song";
 import { Artist } from "../../models/Artist";
+import { deleteFromCloudinary } from "../../config/cloudinary";
 
 export class AdminSongRepository {
   // LẤY DANH SÁCH BÀI HÁT
@@ -15,7 +16,9 @@ export class AdminSongRepository {
         s.song_id,
         s.title,
         s.file_url,
+        s.file_public_id,
         s.cover_url,
+        s.cover_public_id,
         s.is_active,
         a.artist_id,
         a.name AS artist_name
@@ -37,7 +40,9 @@ export class AdminSongRepository {
           song_id: row.song_id,
           title: row.title,
           file_url: row.file_url,
+          file_public_id: row.file_public_id,
           cover_url: row.cover_url,
+          cover_public_id: row.cover_public_id,
           is_active: row.is_active,
           artists: []
         });
@@ -59,7 +64,7 @@ export class AdminSongRepository {
   // LLẤY CHI TIẾT BÀI HÁT THEO ID
   static async findSongById(song_id: number, includeDetails = false): Promise<SongWithArtists | null> {
   const sql = `
-    SELECT s.song_id, s.title, s.genre_id, s.duration, s.lyrics, s.file_url, s.cover_url, s.is_active, a.artist_id, a.name AS artist_name
+    SELECT s.song_id, s.title, s.genre_id, s.duration, s.lyrics, s.file_url, s.file_public_id, s.cover_url, s.cover_public_id, s.is_active, a.artist_id, a.name AS artist_name
     FROM songs s
     LEFT JOIN song_artists sa ON sa.song_id = s.song_id
     LEFT JOIN artists a ON a.artist_id = sa.artist_id
@@ -82,6 +87,8 @@ export class AdminSongRepository {
         duration: row.duration,
         lyrics: row.lyrics,
         file_url: row.file_url,
+        file_public_id: row.file_public_id,
+        cover_public_id: row.cover_public_id,
         cover_url: row.cover_url,
         is_active: row.is_active,
         artists: [],
@@ -107,13 +114,31 @@ static async deleteSongById(song_id: number): Promise<boolean> {
   try {
     await connection.beginTransaction();
 
-    // 1️ Xoá các liên kết trong song_artists
+    // Lấy public_id trước
+    const [rows]: any = await connection.query(
+      `SELECT file_public_id, cover_public_id FROM songs WHERE song_id = ?`,
+      [song_id]
+    );
+     if (!rows.length) return false;
+
+    const { file_public_id, cover_public_id } = rows[0];
+
+    //  Xoá các liên kết trong song_artists
     await connection.query('DELETE FROM song_artists WHERE song_id = ?', [song_id]);
 
-    // 2️ Xoá bài hát trong songs
+    //  Xoá bài hát trong songs
     const [result]: any = await connection.query('DELETE FROM songs WHERE song_id = ?', [song_id]);
 
     await connection.commit(); // commit transaction
+
+    // Xoá Cloudinary (sau commit)
+    if (file_public_id) {
+      await deleteFromCloudinary(file_public_id, "video");
+    }
+
+    if (cover_public_id) {
+      await deleteFromCloudinary(cover_public_id, "image");
+    }
 
     return result.affectedRows > 0; // trả về true nếu xoá thành công
   } catch (error) {
@@ -132,7 +157,9 @@ static async createSong(data: {
   lyrics?: string;
   artistIds: number[];
   file_url: string;
+  file_public_id: string;
   cover_url?: string | null;
+  cover_public_id?: string | null;
 }) {
   const connection = await pool.getConnection();
 
@@ -142,8 +169,8 @@ static async createSong(data: {
     // Insert song
     const [result]: any = await connection.query(
       `
-      INSERT INTO songs (title, genre_id, duration, lyrics, file_url, cover_url, release_date)
-      VALUES (?, ?, ?, ?, ?, ?, NOW())
+      INSERT INTO songs (title, genre_id, duration, lyrics, file_url, file_public_id, cover_url, cover_public_id, release_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
       `,
       [
         data.title,
@@ -151,7 +178,9 @@ static async createSong(data: {
         data.duration,
         data.lyrics ?? null,
         data.file_url,
+        data.file_public_id,
         data.cover_url ?? null,
+        data.cover_public_id ?? null,
       ]
     );
 
@@ -171,7 +200,9 @@ static async createSong(data: {
       song_id: songId,
       title: data.title,
       file_url: data.file_url,
+      file_public_id: data.file_public_id,
       cover_url: data.cover_url,
+      cover_public_id: data.cover_public_id,
     };
   } catch (error) {
     await connection.rollback();
@@ -193,7 +224,9 @@ static async updateSong(
     is_active: boolean;
     artistIds: number[];
     file_url?: string;
+    file_public_id?: string;
     cover_url?: string;
+    cover_public_id?: string;
   }
 ) {
   const connection = await pool.getConnection();
@@ -212,7 +245,9 @@ static async updateSong(
         lyrics = ?,
         is_active = ?,
         file_url = COALESCE(?, file_url),
-        cover_url = COALESCE(?, cover_url)
+        file_public_id = COALESCE(?, file_public_id),
+        cover_url = COALESCE(?, cover_url),
+        cover_public_id = COALESCE(?, cover_public_id)
       WHERE song_id = ?
       `,
       [
@@ -222,7 +257,9 @@ static async updateSong(
         data.lyrics ?? null,
         data.is_active ? 1 : 0,
         data.file_url ?? null,
+        data.file_public_id ?? null,
         data.cover_url ?? null,
+        data.cover_public_id ?? null,
         song_id,
       ]
     );

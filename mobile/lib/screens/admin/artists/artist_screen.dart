@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:music_app/models/artist_model.dart';
+import 'package:music_app/screens/admin/artists/update_artist_screen.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
 import '../../../services/admin/admin_artist_service.dart';
+import 'add_artist_screen.dart';
 
 class AdminArtistScreen extends StatefulWidget {
   const AdminArtistScreen({Key? key}) : super(key: key);
@@ -110,13 +112,26 @@ class ArtistScreenState extends State<AdminArtistScreen> {
                 'Nghệ sĩ',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2C3930)),
               ),
-                FloatingActionButton(
-                  mini: true,
-                  backgroundColor: const Color(0xFF8DB27C),
-                  onPressed: () {},
-                  child: const Icon(Icons.add, color: Colors.white),
-                ),
-             ],
+              FloatingActionButton(
+                mini: true,
+                backgroundColor: const Color(0xFF8DB27C),
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AdminAddArtistScreen(),
+                    ),
+                  );
+
+                  // Nếu thêm thành công → reload list
+                  if (result == true) {
+                    _loadArtists();
+                  }
+                },
+                child: const Icon(Icons.add, color: Colors.white),
+              ),
+
+            ],
           ),
               const SizedBox(height: 16),
           /// CARD
@@ -176,6 +191,7 @@ class ArtistScreenState extends State<AdminArtistScreen> {
                       (artist) => ArtistItem(
                     artist: artist,
                     onDelete: () async => _deleteArtist(artist),
+                        onUpdated: _loadArtists,
                   ),
                 ),
               ],
@@ -191,10 +207,12 @@ class ArtistScreenState extends State<AdminArtistScreen> {
 class ArtistItem extends StatelessWidget {
   final ArtistModel artist;
   final Future<void> Function() onDelete;
+  final VoidCallback onUpdated;
 
   const ArtistItem({
     required this.artist,
     required this.onDelete,
+    required this.onUpdated,
   });
 
   @override
@@ -251,10 +269,35 @@ class ArtistItem extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          // ICON XOÁ
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Color(0xFF8DB27C)),
-            onPressed: () => _showDeleteDialog(context, artist),
+          /// ACTION BUTTONS
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // EDIT
+              IconButton(
+                iconSize: 18,
+                icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                onPressed: () async {
+                  final updated = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          AdminUpdateArtistScreen(artistId: artist.artistId!),
+                    ),
+                  );
+                  if (updated == true && context.mounted) {
+                    onUpdated();
+                  }
+                },
+              ),
+
+              // DELETE
+              IconButton(
+                icon: const Icon(Icons.delete_outline,
+                    color: Color(0xFF8DB27C)),
+                onPressed: () => _showDeleteDialog(context, artist),
+              ),
+            ],
           ),
         ],
       ),
