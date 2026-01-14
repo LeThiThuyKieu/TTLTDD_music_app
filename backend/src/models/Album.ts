@@ -6,6 +6,7 @@ export interface Album {
   title: string;
   artist_id?: number;
   cover_url?: string;
+  album_public_id?: string;
   release_date?: Date;
   is_active?: number;
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:music_app/screens/admin/albums/update_album_screen.dart';
 
 import '../../../models/album_model.dart';
 import '../admin_widgets/input_box.dart';
 import '../admin_widgets/status_filter.dart';
 import '../../../services/admin/admin_album_service.dart';
+import 'add_album_screen.dart';
 
 class AdminAlbumScreen extends StatefulWidget {
   const AdminAlbumScreen({Key? key}) : super(key: key);
@@ -116,7 +118,17 @@ class AlbumScreenState extends State<AdminAlbumScreen> {
               FloatingActionButton(
                 mini: true,
                 backgroundColor: const Color(0xFF8DB27C),
-                onPressed: () {},
+                onPressed: () async{
+                  // Mở screen thêm album
+                  final added = await Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                      AdminAddAlbumScreen()
+                  ),
+                  );
+                  // Nếu có bài hát mới thêm thành công → fetch lại list
+                  if (added == true) {
+                    _loadAlbums();
+                  }
+                },
                 child: const Icon(Icons.add, color: Colors.white,),
               ),
             ],
@@ -181,6 +193,7 @@ class AlbumScreenState extends State<AdminAlbumScreen> {
                       (album) => AlbumItem(
                     album: album,
                     onDelete: () async => _deleteAlbum(album),
+                        onUpdated: _loadAlbums,
                   ),
                 ),
               ],
@@ -196,10 +209,12 @@ class AlbumScreenState extends State<AdminAlbumScreen> {
 class AlbumItem extends StatelessWidget {
   final AlbumModel album;
   final Future<void> Function() onDelete;
+  final VoidCallback onUpdated;
 
   const AlbumItem({
     required this.album,
     required this.onDelete,
+    required this.onUpdated,
   });
 
   @override
@@ -263,11 +278,34 @@ class AlbumItem extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          /// ACTION BUTTONS
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // EDIT
+              IconButton(
+                iconSize: 18,
+                icon: const Icon(Icons.edit, color: Colors.blueGrey),
+                onPressed: () async {
+                  final updated = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          AdminUpdateAlbumScreen(albumId: album.albumId!),
+                    ),
+                  );
+                  if (updated == true && context.mounted) {
+                    onUpdated();
+                  }
+                },
+              ),
           // ICON XOÁ
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Color(0xFF8DB27C)),
             onPressed: () => _showDeleteDialog(context, album),
           ),
+          ],
+      ),
         ],
       ),
     );

@@ -15,6 +15,8 @@ export class AdminSongRepository {
       SELECT 
         s.song_id,
         s.title,
+        s.album_id,
+        s.genre_id,
         s.file_url,
         s.file_public_id,
         s.cover_url,
@@ -22,11 +24,10 @@ export class AdminSongRepository {
         s.is_active,
         a.artist_id,
         a.name AS artist_name
-      FROM songs s
+      FROM ( SELECT * FROM songs s ORDER BY s.song_id DESC LIMIT ? OFFSET ? ) AS s
       LEFT JOIN song_artists sa ON sa.song_id = s.song_id
       LEFT JOIN artists a ON a.artist_id = sa.artist_id
-      ORDER BY s.song_id DESC
-      LIMIT ? OFFSET ?
+      ORDER BY s.song_id DESC;
     `;
 // Thực hiện query
     const [rows] = await pool.query<any[]>(sql, [limit, offset]);
@@ -39,6 +40,8 @@ export class AdminSongRepository {
         map.set(row.song_id, {
           song_id: row.song_id,
           title: row.title,
+          album_id: row.album_id,
+          genre_id: row.genre_id,
           file_url: row.file_url,
           file_public_id: row.file_public_id,
           cover_url: row.cover_url,
