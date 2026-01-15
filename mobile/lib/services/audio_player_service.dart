@@ -158,7 +158,16 @@ class AudioPlayerService extends ChangeNotifier {
   /// Có đang phát từ playlist không
   bool get isPlayingFromPlaylist =>
       _currentPlaylist != null && _currentPlaylist!.isNotEmpty;
+  /// Cập nhật bài hát hiện tại bằng bản đầy đủ (artists, album, genre...)
+  void updateCurrentSongDetail(SongModel fullSong) {
+    if (_currentSong == null) return;
 
+    // Chỉ update khi đúng bài đang phát
+    if (_currentSong!.songId == fullSong.songId) {
+      _currentSong = fullSong;
+      notifyListeners(); // để UI (InfoWidget, PlayerScreen) rebuild
+    }
+  }
   @override
   void dispose() {
     _player.dispose();

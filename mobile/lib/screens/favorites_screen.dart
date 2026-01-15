@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/song_model.dart';
 import '../services/api_service.dart';
+import '../services/audio_player_service.dart';
 import '../services/favorite_api_service.dart';
 import '../widgets/song_item.dart';
 import '../widgets/add_to_playlist_sheet.dart';
+import 'home/music_player_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -78,8 +81,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             final song = _songs[index];
             return SongItem(
               song: song,
-              onPlay: () => debugPrint('Play: ${song.title}'),
-              onTap: () => debugPrint('Open player: ${song.title}'),
+              onPlay: () =>
+                  context.read<AudioPlayerService>().playSong(song),
+              onTap: () {
+                context.read<AudioPlayerService>().playSong(song);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const MusicPlayerScreen(),
+                  ),
+                );
+              },
               onAddToPlaylist: () =>
                   showAddToPlaylistSheet(context, song),
             );

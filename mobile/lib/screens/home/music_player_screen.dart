@@ -25,13 +25,29 @@ class MusicPlayerScreen extends StatelessWidget {
 
         if (song == null) {
           return Scaffold(
-            appBar: AppBar(title: Text("Music Player")),
+            appBar: AppBar(
+                title: Text("Music Player"),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+
             body: Center(child: Text("Chọn một bài hát để phát")),
           );
         }
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.white, // xanh nhạt
+          appBar: AppBar(
+            backgroundColor: const Color(0xFFF0F9F1), // cùng màu với nền
+            elevation: 0,
+            toolbarHeight: 30, // làm AppBar nhỏ lại
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
           body: Column(
             children: [
               Expanded(
@@ -40,23 +56,11 @@ class MusicPlayerScreen extends StatelessWidget {
                   children: [
                     InfoWidget(song: song),
                     DiscWidget(song: song, isPlaying: audioService.isPlaying),
-                    LyricsWidget(lyrics: song.lyrics ?? 'Null'),
+                    LyricsWidget(lyrics: song.lyrics),
                   ],
                 ),
               ),
               BottomControl(
-                isPlaying: audioService.isPlaying,
-                current: audioService.currentPosition,
-                total: audioService.totalDuration,
-
-                onPlayPause: () {
-                  audioService.isPlaying
-                      ? audioService.pause()
-                      : audioService.resume();
-                },
-
-                onSeek: audioService.seek,
-
                 onPrevious: () {
                   audioService.playPrevious();
                 },

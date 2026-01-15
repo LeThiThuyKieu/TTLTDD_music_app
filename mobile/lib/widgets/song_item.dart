@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/song_model.dart';
 import '../services/favorite_api_service.dart';
+import '../services/audio_player_service.dart';
+import '../screens/home/music_player_screen.dart';
 
 class SongItem extends StatelessWidget {
   final SongModel song;
@@ -160,8 +163,15 @@ class SongItem extends StatelessWidget {
           // Khi bấm vào toàn bộ item
           onTap: onTap ??
                   () {
-                debugPrint('Bấm vào item ${song.title}');
-              },
+                    // Bấm vào card (trừ nút play) -> phát bài rồi mở màn hình player
+                    context.read<AudioPlayerService>().playSong(song);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                        builder: (_) => const MusicPlayerScreen(),
+                        ),
+                    );
+                  },
         );
       },
     );
