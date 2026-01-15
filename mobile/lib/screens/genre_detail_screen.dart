@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/genre_model.dart';
 import '../models/song_model.dart';
+import '../services/audio_player_service.dart';
 import '../services/genre_api_service.dart';
 import '../widgets/song_item.dart';
+import 'home/music_player_screen.dart';
 
 class GenreDetailScreen extends StatefulWidget {
   final int genreId;
@@ -231,10 +234,22 @@ class _GenreDetailScreenState extends State<GenreDetailScreen> {
                     ),
                     child: SongItem(
                       song: s,
-                      onTap: () => _snack("Tap: ${s.title}"),
-                      onPlay: () => _snack("Play: ${s.title}"),
+                      onPlay: () => context
+                          .read<AudioPlayerService>()
+                          .playSong(s),
+                      onTap: () {
+                        context
+                            .read<AudioPlayerService>()
+                            .playSong(s);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MusicPlayerScreen(),
+                          ),
+                        );
+                      },
                     ),
-                  ),
+                      ),
                 )
                     .toList(),
               ),

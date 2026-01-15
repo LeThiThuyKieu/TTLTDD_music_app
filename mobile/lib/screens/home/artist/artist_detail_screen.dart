@@ -6,6 +6,7 @@ import '../../../models/song_model.dart';
 import '../../../services/audio_player_service.dart';
 import '../../../widgets/song_item.dart';
 import '../song_list_screen.dart';
+import '../music_player_screen.dart';
 
 class ArtistDetailScreen extends StatelessWidget {
   final ArtistModel artist;
@@ -134,7 +135,13 @@ class ArtistDetailScreen extends StatelessWidget {
                     context.read<AudioPlayerService>().playSong(song);
                   },
                   onTap: () {
-                    debugPrint('Open song: ${song.title}');
+                    context.read<AudioPlayerService>().playSong(song);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MusicPlayerScreen(),
+                      ),
+                    );
                   },
                 );
               },

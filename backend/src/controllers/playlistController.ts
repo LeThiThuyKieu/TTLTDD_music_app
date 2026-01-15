@@ -239,5 +239,38 @@ static async getBySong(
     });
   }
 }
+// GET /songs/:id/playlists/songs
+static async getSongsBySongInUserPlaylists(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  try {
+    const songId = PlaylistController.parseId(req.params.id);
+    if (!songId) {
+      res.status(400).json({ success: false, error: "Invalid song ID" });
+      return;
+    }
+
+    const userId = req.user?.user_id ? Number(req.user.user_id) : undefined;
+    if (!userId) {
+      res.status(401).json({ success: false, error: "Unauthorized" });
+      return;
+    }
+
+    const songs = await PlaylistService.getPlaylistsBySong(songId, userId);
+
+    res.json({
+      success: true,
+      data: songs
+    });
+  } catch (error: any) {
+    console.error("Get songs by song in user playlists error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      message: error?.message,
+    });
+  }
+}
 
 }

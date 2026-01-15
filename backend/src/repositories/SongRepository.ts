@@ -304,4 +304,37 @@ export class SongRepository {
     );
     return (result as any).affectedRows > 0;
   }
+
+  static async findByIdWithFullInfo(songId: number): Promise<any | null> {
+  const [rows] = await pool.execute(
+    `
+    SELECT 
+      s.*,
+
+      a.artist_id,
+      a.name AS artist_name,
+      a.avatar_url AS artist_avatar,
+
+      al.album_id,
+      al.name AS album_name,
+
+      g.genre_id,
+      g.name AS genre_name
+
+    FROM songs s
+    LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+    LEFT JOIN artists a ON sa.artist_id = a.artist_id AND a.is_active = 1
+
+    LEFT JOIN albums al ON s.album_id = al.album_id
+    LEFT JOIN genres g ON s.genre_id = g.genre_id
+
+    WHERE s.song_id = ? AND s.is_active = 1
+    `,
+    [songId]
+  );
+
+  const list = this.mapRowsToSongsWithArtists(rows as any[]);
+  return list[0] ?? null;
+}
+
 }

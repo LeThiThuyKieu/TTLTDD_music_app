@@ -73,7 +73,6 @@ class _DiscWidgetState extends State<DiscWidget>
       ),
       child: Column(
         children: [
-          const SizedBox(height: 60),
           Expanded(
             child: Center(
               child: RotationTransition(

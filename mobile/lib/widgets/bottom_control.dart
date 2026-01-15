@@ -16,14 +16,21 @@ class BottomControl extends StatelessWidget {
   Widget build(BuildContext context) {
     final audio = context.watch<AudioPlayerService>();
 
+    // Nếu player chưa trả về duration thật, dùng tạm duration từ SongModel (DB)
+    final fallbackDurationSeconds = audio.currentSong?.duration ?? 0;
+    final effectiveTotal = audio.totalDuration.inMilliseconds > 0
+        ? audio.totalDuration
+        : Duration(seconds: fallbackDurationSeconds);
+
     // Tránh max = 0
-    final maxMs = audio.totalDuration.inMilliseconds > 0
-        ? audio.totalDuration.inMilliseconds.toDouble()
+    final maxMs = effectiveTotal.inMilliseconds > 0
+        ? effectiveTotal.inMilliseconds.toDouble()
         : 1.0;
 
     final currentMs = audio.currentPosition.inMilliseconds
         .clamp(0, maxMs.toInt())
         .toDouble();
+
 
     const Color lightGreen = Color(0xFF81C784);
 
@@ -70,7 +77,7 @@ class BottomControl extends StatelessWidget {
               children: [
                 Text(format(audio.currentPosition),
                     style: const TextStyle(fontSize: 11, color: Colors.black38)),
-                Text(format(audio.totalDuration),
+                Text(format(effectiveTotal),
                     style: const TextStyle(fontSize: 11, color: Colors.black38)),
               ],
             ),
