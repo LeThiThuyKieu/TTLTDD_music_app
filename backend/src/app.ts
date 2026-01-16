@@ -20,6 +20,10 @@ import adminAlbumRoutes from "./routes/admin/adminAlbumRoutes";
 import adminUserRoutes from "./routes/admin/adminUserRoutes";
 import adminGenreRoutes from "./routes/admin/adminGenreRoutes";
 import adminDashboardRoutes from "./routes/admin/dashboardRoutes";
+import artistRoutes from "./routes/artistRoutes";
+import albumRoutes from "./routes/albumRoutes";
+
+
 // Import middleware
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
@@ -60,6 +64,9 @@ app.use('/api/admin/albums', adminAlbumRoutes);
 app.use('/api/admin/users', adminUserRoutes);
 app.use('/api/admin/genres', adminGenreRoutes);
 app.use("/api/admin/dashboard", adminDashboardRoutes);
+app.use("/api/artists", artistRoutes);
+app.use("/api/albums", albumRoutes);
+
 
 // Error handling middleware (phải đặt cuối cùng)
 app.use(notFoundHandler);

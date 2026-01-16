@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { UserRepository } from "../repositories/UserRepository";
 import { User } from "../models";
 import { OTPService } from "./otpService";
+import { EmailService } from "./mailService";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -118,9 +119,8 @@ export class AuthService {
     // Lưu OTP (10 phút)
     OTPService.saveOTP(email, otp, 10);
 
-    // TODO: Gửi email với OTP
-    // Ở đây chỉ log ra console, trong production cần tích hợp email service
-    console.log(`OTP for ${email}: ${otp}`);
+    //Gửi mail
+    await EmailService.sendForgotPasswordOTP(email, otp);
 
     return otp;
   }

@@ -130,4 +130,55 @@ export class PlaylistRepository {
     );
     return (result as any).affectedRows > 0;
   }
+
+  /**
+   * Lấy playlist của user theo bài hát
+   */
+  static async findPlaylistIdsBySong(
+  songId: number,
+  userId: number
+): Promise<number[]> {
+  const [rows] = await pool.execute(
+    `
+    SELECT DISTINCT p.playlist_id
+    FROM playlists p
+    JOIN playlist_songs ps 
+      ON p.playlist_id = ps.playlist_id
+    WHERE p.user_id = ?
+      AND p.is_public = 1
+      AND ps.song_id = ?
+    `,
+    [userId, songId]
+  );
+
+  return (rows as any[]).map(r => r.playlist_id);
+}
+
+//lấy toàn bộ bài hát theo danh sách playlist_id
+static async findSongsByPlaylistIds(
+  playlistIds: number[]
+): Promise<any[]> {
+  if (playlistIds.length === 0) return [];
+
+  const placeholders = playlistIds.map(() => '?').join(',');
+
+  const [songs] = await pool.execute(
+    `
+    SELECT DISTINCT 
+      s.song_id,
+      s.title,
+      s.file_url,
+      s.cover_url
+    FROM songs s
+    JOIN playlist_songs ps 
+      ON s.song_id = ps.song_id
+    WHERE ps.playlist_id IN (${placeholders})
+    ORDER BY s.title
+    `,
+    playlistIds
+  );
+
+  return songs as any[];
+}
+
 }

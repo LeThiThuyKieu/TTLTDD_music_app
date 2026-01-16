@@ -33,4 +33,18 @@ export class SongService {
   static async createSong(songData: Song): Promise<Song> {
     return await SongRepository.create(songData);
   }
+
+ // Lấy bài hát theo artist (đã có artists)
+  static async getSongsByArtist(
+    artistId: number,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<SongWithArtists[]> {
+    return await SongRepository.findByArtist(artistId, limit, offset);
+  } 
+  // Lấy chi tiết bài hát (đầy đủ thông tin)
+static async getSongDetail(id: number) {
+  return await SongRepository.findByIdWithFullInfo(id);
+}
+
 }

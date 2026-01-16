@@ -37,7 +37,7 @@ export class ArtistRepository {
     offset: number = 0
   ): Promise<Artist[]> {
     const [rows] = await pool.execute(
-      "SELECT * FROM artists WHERE is_active = 1 ORDER BY name LIMIT ? OFFSET ?",
+      "SELECT * FROM artists WHERE is_active = 1 ORDER BY artist_id DESC LIMIT ? OFFSET ?",
       [limit, offset]
     );
     return rows as Artist[];

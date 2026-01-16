@@ -44,6 +44,23 @@ export class AlbumRepository {
     return rows as Album[];
   }
 
+  // Lấy danh sách albums kèm artist (dùng cho API public)
+  static async findAllWithArtist(
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<any[]> {
+    const [rows] = await pool.execute(
+      `SELECT a.*, ar.artist_id, ar.name AS artist_name, ar.avatar_url AS artist_avatar
+       FROM albums a
+       LEFT JOIN artists ar ON a.artist_id = ar.artist_id AND ar.is_active = 1
+       WHERE a.is_active = 1
+       ORDER BY a.album_id DESC
+       LIMIT ? OFFSET ?`,
+      [limit, offset]
+    );
+    return rows as any[];
+  }
+
   // Lấy albums theo artist
   static async findByArtistId(artistId: number): Promise<Album[]> {
     const [rows] = await pool.execute(

@@ -17,10 +17,10 @@ router.get("/genre/:genreId", optionalAuth, SongController.getByGenre);
 // Lấy bài hát theo ID
 router.get("/:id", optionalAuth, SongController.getById);
 
-// Tạo bài hát mới (cần authentication - có thể thêm admin check sau)
+// Tạo bài hát mới (tạm để optionalAuth; sau này đổi authenticate + check admin)
 router.post("/", optionalAuth, validate(validateSong), SongController.create);
 
+// Lấy bài hát theo ID (đầy đủ: song + artists + album + genre)
+router.get("/:id/detail", optionalAuth, SongController.getDetail);
+
 export default router;
-
-
-

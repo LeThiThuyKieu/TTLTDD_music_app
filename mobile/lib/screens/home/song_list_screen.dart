@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../../models/song_model.dart';
 import '../../widgets/song_item.dart';
+import '../../widgets/add_to_playlist_sheet.dart';
+import '../../services/audio_player_service.dart';
+import 'music_player_screen.dart';
+import '../../services/favorite_api_service.dart';
 
-class SongListScreen extends StatelessWidget {
+class SongListScreen extends StatefulWidget {
   final List<SongModel> songs;
 
   const SongListScreen({
@@ -11,15 +17,25 @@ class SongListScreen extends StatelessWidget {
   });
 
   @override
+  State<SongListScreen> createState() => _SongListScreenState();
+}
+
+class _SongListScreenState extends State<SongListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    FavoriteApiService.instance.loadFavorites().catchError((_) {});
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final songs = widget.songs;
+
     return Scaffold(
-      // ===== APP BAR =====
       appBar: AppBar(
         title: const Text('Bài hát'),
         centerTitle: false,
       ),
-
-      // ===== DANH SÁCH BÀI HÁT =====
       body: ListView.builder(
         itemCount: songs.length,
         itemBuilder: (context, index) {
@@ -27,17 +43,21 @@ class SongListScreen extends StatelessWidget {
 
           return SongItem(
             song: song,
-
-            // bấm play
             onPlay: () {
-              // TODO: gọi AudioPlayerService.play(song)
-              debugPrint('Play: ${song.title}');
+              context.read<AudioPlayerService>().playSong(song);
             },
-
-            // bấm vào item
             onTap: () {
-              // TODO: mở mini / full player
-              debugPrint('Open player: ${song.title}');
+              // Phát bài và mở màn hình player đầy đủ
+              context.read<AudioPlayerService>().playSong(song);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MusicPlayerScreen(),
+                ),
+              );
+            },
+            onAddToPlaylist: () {
+              showAddToPlaylistSheet(context, song);
             },
           );
         },

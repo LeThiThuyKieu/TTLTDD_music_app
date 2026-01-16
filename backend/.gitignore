@@ -60,3 +60,10 @@ firebase-adminsdk-*.json
 *.bak
 *.backup
 
+# Phần uploads
+uploads/audio/*
+uploads/avatar/*
+
+# Giữ lại các thư mục trống bằng cách thêm các tệp .gitkeep
+!uploads/audio/.gitkeep
+!uploads/avatar/.gitkeep

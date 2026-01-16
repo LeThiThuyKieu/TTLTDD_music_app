@@ -3,249 +3,274 @@ import { AuthenticatedRequest } from "../models";
 import { PlaylistService } from "../services/playlistService";
 
 export class PlaylistController {
-  // Tạo playlist mới
+  /** helper: lấy userId từ token (req.user set ở middleware) */
+  private static requireUserId(req: AuthenticatedRequest, res: Response): number | null {
+    const uid = req.user?.user_id;
+
+    if (uid === undefined || uid === null) {
+      res.status(401).json({ success: false, error: "Unauthorized" });
+      return null;
+    }
+
+    const userId = Number(uid);
+    if (!Number.isFinite(userId) || userId <= 0) {
+      res.status(401).json({
+        success: false,
+        error: "Unauthorized: Invalid user_id",
+        debug: { user: req.user },
+      });
+      return null;
+    }
+
+    return userId;
+  }
+
+  private static parseId(value: any): number | null {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return Math.floor(n);
+  }
+
+  // POST /playlists
   static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({ error: "Unauthorized" });
+      const userId = PlaylistController.requireUserId(req, res);
+      if (!userId) return;
+
+      const name = (req.body?.name ?? "").toString().trim();
+      const cover_url = req.body?.cover_url;
+      const is_public = req.body?.is_public;
+
+      if (!name) {
+        res.status(400).json({ success: false, error: "Playlist name is required" });
         return;
       }
 
-      if (!req.user || !req.user.user_id) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
+      const playlist = await PlaylistService.createPlaylist(userId, name, cover_url, is_public);
 
-      const { name, cover_url, is_public } = req.body;
-      const playlist = await PlaylistService.createPlaylist(
-        req.user.user_id,
-        name,
-        cover_url,
-        is_public
-      );
-
-      res.status(201).json({
-        success: true,
-        data: playlist,
-      });
+      res.status(201).json({ success: true, data: playlist });
     } catch (error: any) {
       console.error("Create playlist error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: "Internal server error",
+        message: error?.message,
       });
     }
   }
 
-  // Lấy playlists của user
-  static async getMyPlaylists(
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> {
+  // GET /playlists/my
+  static async getMyPlaylists(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
+      const userId = PlaylistController.requireUserId(req, res);
+      if (!userId) return;
 
-      if (!req.user || !req.user.user_id) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
+      console.log("[GET /playlists/my] req.user =", req.user);
 
-      const playlists = await PlaylistService.getMyPlaylists(req.user.user_id);
-
-      res.json({
-        success: true,
-        data: playlists,
-      });
+      const playlists = await PlaylistService.getMyPlaylists(userId);
+      res.json({ success: true, data: playlists });
     } catch (error: any) {
       console.error("Get my playlists error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: "Internal server error",
+        message: error?.message,
       });
     }
   }
 
-  // Lấy playlist theo ID
-  static async getById(
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> {
+  // GET /playlists/:id
+  static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const playlistId = parseInt(req.params.id);
-      if (isNaN(playlistId)) {
-        res.status(400).json({ error: "Invalid playlist ID" });
+      const playlistId = PlaylistController.parseId(req.params.id);
+      if (!playlistId) {
+        res.status(400).json({ success: false, error: "Invalid playlist ID" });
         return;
       }
 
       const playlist = await PlaylistService.getPlaylistById(playlistId);
       if (!playlist) {
-        res.status(404).json({ error: "Playlist not found" });
+        res.status(404).json({ success: false, error: "Playlist not found" });
         return;
       }
 
-      // Kiểm tra quyền truy cập
-      const hasAccess = await PlaylistService.checkPlaylistAccess(
-        playlist,
-        req.user?.user_id
-      );
+      const userId = req.user?.user_id ? Number(req.user.user_id) : undefined;
+
+      const hasAccess = await PlaylistService.checkPlaylistAccess(playlist, userId);
       if (!hasAccess) {
-        res.status(403).json({ error: "Forbidden" });
+        res.status(403).json({ success: false, error: "Forbidden" });
         return;
       }
 
       const songs = await PlaylistService.getPlaylistSongs(playlistId);
-
-      res.json({
-        success: true,
-        data: {
-          ...playlist,
-          songs,
-        },
-      });
+      res.json({ success: true, data: { ...playlist, songs } });
     } catch (error: any) {
       console.error("Get playlist by ID error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+       error: "Internal server error",
+        message: error?.message,
       });
     }
   }
 
-  // Thêm bài hát vào playlist
-  static async addSong(
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> {
+  // POST /playlists/:id/songs
+  static async addSong(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({ error: "Unauthorized" });
+      const userId = PlaylistController.requireUserId(req, res);
+      if (!userId) return;
+
+      const playlistId = PlaylistController.parseId(req.params.id);
+      const songId = PlaylistController.parseId(req.body?.song_id);
+
+      if (!playlistId || !songId) {
+        res.status(400).json({ success: false, error: "Invalid playlist ID or song ID" });
         return;
       }
 
-      const playlistId = parseInt(req.params.id);
-      const songId = parseInt(req.body.song_id);
-
-      if (isNaN(playlistId) || isNaN(songId)) {
-        res.status(400).json({ error: "Invalid playlist ID or song ID" });
+      const ok = await PlaylistService.addSongToPlaylist(playlistId, songId, userId);
+      if (!ok) {
+        res.status(400).json({ success: false, error: "Failed to add song to playlist" });
         return;
       }
 
-      if (!req.user || !req.user.user_id) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
-
-      const success = await PlaylistService.addSongToPlaylist(
-        playlistId,
-        songId,
-        req.user.user_id
-      );
-      if (!success) {
-        res.status(400).json({ error: "Failed to add song to playlist" });
-        return;
-      }
-
-      res.json({
-        success: true,
-        message: "Song added to playlist",
-      });
+      res.json({ success: true, message: "Song added to playlist" });
     } catch (error: any) {
       console.error("Add song to playlist error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: "Internal server error",
+        message: error?.message,
       });
     }
   }
 
-  // Xóa bài hát khỏi playlist
-  static async removeSong(
-    req: AuthenticatedRequest,
-    res: Response
-  ): Promise<void> {
+  // DELETE /playlists/:id/songs/:songId
+  static async removeSong(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({ error: "Unauthorized" });
+      const userId = PlaylistController.requireUserId(req, res);
+      if (!userId) return;
+
+      const playlistId = PlaylistController.parseId(req.params.id);
+      const songId = PlaylistController.parseId(req.params.songId);
+
+      if (!playlistId || !songId) {
+        res.status(400).json({ success: false, error: "Invalid playlist ID or song ID" });
         return;
       }
 
-      const playlistId = parseInt(req.params.id);
-      const songId = parseInt(req.params.songId);
-
-      if (isNaN(playlistId) || isNaN(songId)) {
-        res.status(400).json({ error: "Invalid playlist ID or song ID" });
+      const ok = await PlaylistService.removeSongFromPlaylist(playlistId, songId, userId);
+      if (!ok) {
+        res.status(400).json({ success: false, error: "Failed to remove song from playlist" });
         return;
       }
 
-      if (!req.user || !req.user.user_id) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
-
-      const success = await PlaylistService.removeSongFromPlaylist(
-        playlistId,
-        songId,
-        req.user.user_id
-      );
-      if (!success) {
-        res.status(400).json({ error: "Failed to remove song from playlist" });
-        return;
-      }
-
-      res.json({
-        success: true,
-        message: "Song removed from playlist",
-      });
+      res.json({ success: true, message: "Song removed from playlist" });
     } catch (error: any) {
       console.error("Remove song from playlist error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: "Internal server error",
+        message: error?.message,
       });
     }
   }
 
-  // Xóa playlist
+  // DELETE /playlists/:id
   static async delete(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({ error: "Unauthorized" });
+      const userId = PlaylistController.requireUserId(req, res);
+      if (!userId) return;
+
+      const playlistId = PlaylistController.parseId(req.params.id);
+      if (!playlistId) {
+        res.status(400).json({ success: false, error: "Invalid playlist ID" });
         return;
       }
 
-      const playlistId = parseInt(req.params.id);
-      if (isNaN(playlistId)) {
-        res.status(400).json({ error: "Invalid playlist ID" });
+      const ok = await PlaylistService.deletePlaylist(playlistId, userId);
+      if (!ok) {
+        res.status(400).json({ success: false, error: "Failed to delete playlist" });
         return;
       }
 
-      if (!req.user || !req.user.user_id) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
-
-      const success = await PlaylistService.deletePlaylist(
-        playlistId,
-        req.user.user_id
-      );
-      if (!success) {
-        res.status(400).json({ error: "Failed to delete playlist" });
-        return;
-      }
-
-      res.json({
-        success: true,
-        message: "Playlist deleted",
-      });
+      res.json({ success: true, message: "Playlist deleted" });
     } catch (error: any) {
       console.error("Delete playlist error:", error);
       res.status(500).json({
         success: false,
-        error: error.message || "Internal server error",
+        error: "Internal server error",
+        message: error?.message,
       });
     }
   }
+
+  // Lấy playlist theo bài hát
+static async getBySong(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  try {
+    if (!req.user?.user_id) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const songId = parseInt(req.params.songId);
+    if (isNaN(songId)) {
+      res.status(400).json({ error: "Invalid song ID" });
+      return;
+    }
+
+    const playlists = await PlaylistService.getPlaylistsBySong(
+      songId,
+      req.user.user_id
+    );
+
+    res.json({
+      success: true,
+      data: playlists,
+    });
+  } catch (error: any) {
+    console.error("Get playlists by song error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Internal server error",
+    });
+  }
+}
+// GET /songs/:id/playlists/songs
+static async getSongsBySongInUserPlaylists(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  try {
+    const songId = PlaylistController.parseId(req.params.id);
+    if (!songId) {
+      res.status(400).json({ success: false, error: "Invalid song ID" });
+      return;
+    }
+
+    const userId = req.user?.user_id ? Number(req.user.user_id) : undefined;
+    if (!userId) {
+      res.status(401).json({ success: false, error: "Unauthorized" });
+      return;
+    }
+
+    const songs = await PlaylistService.getPlaylistsBySong(songId, userId);
+
+    res.json({
+      success: true,
+      data: songs
+    });
+  } catch (error: any) {
+    console.error("Get songs by song in user playlists error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      message: error?.message,
+    });
+  }
+}
+
 }

@@ -1,0 +1,78 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../models/song_model.dart';
+import '../../services/audio_player_service.dart';
+import '../../widgets/info_widget.dart';
+import '../../widgets/disc_widget.dart';
+import '../../widgets/lyrics_widget.dart';
+import '../../widgets/bottom_control.dart';
+//Huong
+class MusicPlayerScreen extends StatelessWidget {
+  const MusicPlayerScreen({super.key});
+
+  String formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return "${twoDigits(d.inMinutes.remainder(60))}:${twoDigits(d.inSeconds.remainder(60))}";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+      final PageController _pageController =
+      PageController(initialPage: 1);
+    return Consumer<AudioPlayerService>(
+      builder: (context, audioService, child) {
+        final song = audioService.currentSong;
+
+        if (song == null) {
+          return Scaffold(
+            appBar: AppBar(
+                title: Text("Music Player"),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+
+            body: Center(child: Text("Chọn một bài hát để phát")),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: Colors.white, // xanh nhạt
+          appBar: AppBar(
+            backgroundColor: const Color(0xFFF0F9F1), // cùng màu với nền
+            elevation: 0,
+            toolbarHeight: 30, // làm AppBar nhỏ lại
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          body: Column(
+            children: [
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  children: [
+                    InfoWidget(song: song),
+                    DiscWidget(song: song, isPlaying: audioService.isPlaying),
+                    LyricsWidget(lyrics: song.lyrics),
+                  ],
+                ),
+              ),
+              BottomControl(
+                onPrevious: () {
+                  audioService.playPrevious();
+                },
+
+                onNext: () {
+                  audioService.playNext();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
