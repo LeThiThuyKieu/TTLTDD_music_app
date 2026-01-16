@@ -7,6 +7,8 @@ import 'package:music_app/screens/admin/artists/artist_screen.dart';
 import 'package:music_app/screens/admin/albums/album_screen.dart';
 import 'package:music_app/screens/admin/users/user_screen.dart';
 
+import 'dashboard/dashboard_screen.dart';
+
 
 class AdminScreen extends StatefulWidget {
   const AdminScreen({Key? key}) : super(key: key);
@@ -16,11 +18,11 @@ class AdminScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<AdminScreen> {
-  int _currentIndex = 3;
+  int _currentIndex = 0;
 
   final List<Widget> _pages = [
     // const Center(child: Text('Dashboard')),
-    const AdminScreen(),
+    MusicDashboardPage(),
     // const Center(child: Text('Bài hát')),
     const AdminSongScreen(),
     // const Center(child: Text('Nghệ sĩ')),

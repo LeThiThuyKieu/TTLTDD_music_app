@@ -12,7 +12,7 @@ router.get("/", authenticate, AdminSongController.getAllSongs);
 // Lấy bài hát theo id ( GET /api/admin/songs/:id )
 router.get("/:id", authenticate,  AdminSongController.getSongById);
 
-// // Thêm bài hát ( POST /api/admin/songs )
+// Thêm bài hát ( POST /api/admin/songs )
 router.post("/", authenticate, uploadFiles, AdminSongController.createSong);
 
 // // Cập nhập bài hát ( PUT /api/admin/songs )

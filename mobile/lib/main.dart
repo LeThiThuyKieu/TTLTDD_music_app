@@ -41,6 +41,7 @@ import 'package:music_app/utils/theme_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'screens/main_screen.dart';
+// import 'screens/admin/admin_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/auth/login_screen.dart';
