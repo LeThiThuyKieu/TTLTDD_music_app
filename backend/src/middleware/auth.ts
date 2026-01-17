@@ -10,6 +10,7 @@ type JwtPayloadAny = {
   id?: number | string;
   sub?: number | string;
   email?: string;
+  role?: "user" | "admin";
   [key: string]: any;
 };
 
@@ -24,6 +25,7 @@ const attachUser = (req: AuthenticatedRequest, decoded: JwtPayloadAny) => {
   req.user = {
     user_id: Number(uid),
     email: decoded.email,
+    role: decoded.role,
   };
 
   return true;
