@@ -1,31 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/song_model.dart';
+
 import '../../services/audio_player_service.dart';
 import '../../widgets/info_widget.dart';
 import '../../widgets/disc_widget.dart';
 import '../../widgets/lyrics_widget.dart';
 import '../../widgets/bottom_control.dart';
-//Huong
+
 class MusicPlayerScreen extends StatelessWidget {
   const MusicPlayerScreen({super.key});
 
-  String formatDuration(Duration d) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    return "${twoDigits(d.inMinutes.remainder(60))}:${twoDigits(d.inSeconds.remainder(60))}";
-  }
-
   @override
   Widget build(BuildContext context) {
-      final PageController _pageController =
-      PageController(initialPage: 1);
+    final PageController pageController =
+    PageController(initialPage: 1);
+
     return Consumer<AudioPlayerService>(
       builder: (context, audioService, child) {
         final song = audioService.currentSong;
 
         if (song == null) {
-          return Scaffold(
-            appBar: AppBar(title: Text("Music Player")),
+          return const Scaffold(
             body: Center(child: Text("Chọn một bài hát để phát")),
           );
         }
@@ -34,18 +29,27 @@ class MusicPlayerScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           body: Column(
             children: [
+              /// ===== TOP CONTENT =====
               Expanded(
                 child: PageView(
-                  controller: _pageController,
+                  controller: pageController,
                   children: [
                     InfoWidget(song: song),
-                    DiscWidget(song: song, isPlaying: audioService.isPlaying),
-                    LyricsWidget(lyrics: song.lyrics ?? 'Null'),
+                    DiscWidget(
+                      song: song,
+                      isPlaying: audioService.isPlaying,
+                    ),
+                    LyricsWidget(
+                      lyrics: song.lyrics ?? 'Chưa có lời bài hát',
+                    ),
                   ],
                 ),
               ),
+
+              /// ===== BOTTOM CONTROL =====
               BottomControl(
                 isPlaying: audioService.isPlaying,
+                isShuffle: audioService.isShuffle,
                 current: audioService.currentPosition,
                 total: audioService.totalDuration,
 
@@ -55,15 +59,11 @@ class MusicPlayerScreen extends StatelessWidget {
                       : audioService.resume();
                 },
 
+                onPrevious: audioService.playPrevious,
+                onNext: audioService.playNext,
+
+                onShuffle: audioService.toggleShuffle,
                 onSeek: audioService.seek,
-
-                onPrevious: () {
-                  audioService.playPrevious();
-                },
-
-                onNext: () {
-                  audioService.playNext();
-                },
               ),
             ],
           ),

@@ -32,8 +32,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     });
 
     try {
-      // ✅ endpoint trả list SongModel
-      final res = await _api.get('/favorites/songs');
+      // Load danh sách bài hát yêu thích
+      final res = await _api.get('/favorites');
       final data = (res['data'] ?? res) as dynamic;
 
       final list = <SongModel>[];
@@ -45,7 +45,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         }
       }
 
-      // ✅ sync icon tim trên UI
+      //  Load danh sách favorite ids (để sync toàn app)
       await FavoriteApiService.instance.loadFavorites();
 
       setState(() {
@@ -68,23 +68,43 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? Center(child: Text('Lỗi: $_error'))
-          : _songs.isEmpty
-          ? const Center(child: Text('Chưa có bài hát yêu thích'))
-          : RefreshIndicator(
-        onRefresh: _load,
-        child: ListView.builder(
-          itemCount: _songs.length,
-          itemBuilder: (context, index) {
-            final song = _songs[index];
-            return SongItem(
-              song: song,
-              onPlay: () => debugPrint('Play: ${song.title}'),
-              onTap: () => debugPrint('Open player: ${song.title}'),
-              onAddToPlaylist: () =>
-                  showAddToPlaylistSheet(context, song),
+          : ValueListenableBuilder<Set<int>>(
+        valueListenable:
+        FavoriteApiService.instance.favoriteSongIds,
+        builder: (context, favIds, _) {
+          //  lọc lại list theo favorite hiện tại
+          final filteredSongs = _songs
+              .where((s) =>
+          s.songId != null &&
+              favIds.contains(s.songId))
+              .toList();
+
+          if (filteredSongs.isEmpty) {
+            return const Center(
+              child: Text('Chưa có bài hát yêu thích'),
             );
-          },
-        ),
+          }
+
+          return RefreshIndicator(
+            onRefresh: _load,
+            child: ListView.builder(
+              itemCount: filteredSongs.length,
+              itemBuilder: (context, index) {
+                final song = filteredSongs[index];
+
+                return SongItem(
+                  song: song,
+                  onPlay: () =>
+                      debugPrint('Play: ${song.title}'),
+                  onTap: () =>
+                      debugPrint('Open player: ${song.title}'),
+                  onAddToPlaylist: () =>
+                      showAddToPlaylistSheet(context, song),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }

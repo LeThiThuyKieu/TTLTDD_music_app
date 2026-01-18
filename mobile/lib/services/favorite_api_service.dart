@@ -7,31 +7,33 @@ class FavoriteApiService {
 
   final ApiService _api = ApiService();
 
-  /// Cache songIds đã tim
-  final ValueNotifier<Set<int>> favoriteSongIds = ValueNotifier<Set<int>>({});
+  /// Cache danh sách songId đã yêu thích
+  final ValueNotifier<Set<int>> favoriteSongIds =
+  ValueNotifier<Set<int>>(<int>{});
 
-  /// Load favorites từ server
+  /// ===============================
+  /// LOAD FAVORITES TỪ SERVER
+  /// ===============================
   Future<void> loadFavorites() async {
     final res = await _api.get('/favorites');
 
-    // Tùy backend, có thể data nằm ở res['data']
-    final data = (res['data'] ?? res) as dynamic;
-
-    final ids = <int>{};
-
     // Backend có thể trả:
-    // - [1,2,3]
-    // - [{song_id:1}, ...]
-    // - [{songId:1}, ...]
-    // - [{id:1}, ...]
-    if (data is List) {
-      for (final item in data) {
+    // { data: [...] } hoặc [...]
+    final rawData = res['data'] ?? res;
+
+    final Set<int> ids = <int>{};
+
+    if (rawData is List) {
+      for (final item in rawData) {
         if (item is int) {
           ids.add(item);
         } else if (item is Map) {
-          final raw = item['song_id'] ?? item['songId'] ?? item['id'];
-          final sid = int.tryParse(raw?.toString() ?? '');
-          if (sid != null) ids.add(sid);
+          final rawId =
+              item['song_id'] ?? item['songId'] ?? item['id'];
+          final songId = int.tryParse(rawId?.toString() ?? '');
+          if (songId != null) {
+            ids.add(songId);
+          }
         }
       }
     }
@@ -39,38 +41,42 @@ class FavoriteApiService {
     favoriteSongIds.value = ids;
   }
 
-  bool isFavorite(int songId) => favoriteSongIds.value.contains(songId);
+  /// ===============================
+  /// CHECK FAVORITE
+  /// ===============================
+  bool isFavorite(int songId) {
+    return favoriteSongIds.value.contains(songId);
+  }
 
-  /// Toggle favorite (optimistic UI)
+  /// ===============================
+  /// TOGGLE FAVORITE (OPTIMISTIC UI)
+  /// ===============================
   Future<void> toggleFavorite(int songId) async {
-    final current = {...favoriteSongIds.value};
-    final wasFav = current.contains(songId);
+    final previous = favoriteSongIds.value;
+    final updated = {...previous};
 
-    // Optimistic update
-    if (wasFav) {
-      current.remove(songId);
+    final bool wasFavorite = previous.contains(songId);
+
+    // 1️⃣ Optimistic update (UI đổi ngay)
+    if (wasFavorite) {
+      updated.remove(songId);
     } else {
-      current.add(songId);
+      updated.add(songId);
     }
-    favoriteSongIds.value = current;
+    favoriteSongIds.value = updated;
 
     try {
-      if (wasFav) {
-        // ✅ BE: DELETE /api/favorites/:songId
+      // 2️⃣ Gọi API
+      if (wasFavorite) {
+        // DELETE /favorites/:songId
         await _api.delete('/favorites/$songId');
       } else {
-        // ✅ CÁCH B: BE của bạn cần POST /api/favorites/:songId
+        // POST /favorites/:songId
         await _api.post('/favorites/$songId', {});
       }
     } catch (e) {
-      // Rollback nếu fail
-      final rollback = {...favoriteSongIds.value};
-      if (wasFav) {
-        rollback.add(songId);
-      } else {
-        rollback.remove(songId);
-      }
-      favoriteSongIds.value = rollback;
+      // 3️⃣ Rollback nếu lỗi
+      favoriteSongIds.value = previous;
       rethrow;
     }
   }

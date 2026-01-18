@@ -2,23 +2,28 @@ import 'package:flutter/material.dart';
 
 class BottomControl extends StatelessWidget {
   final bool isPlaying;
+  final bool isShuffle;
+
   final Duration current;
   final Duration total;
 
   final VoidCallback onPlayPause;
   final VoidCallback onNext;
   final VoidCallback onPrevious;
-  final Function(Duration) onSeek;
+  final VoidCallback onShuffle;
+  final ValueChanged<Duration> onSeek;
 
   const BottomControl({
     super.key,
     required this.isPlaying,
+    required this.isShuffle,
     required this.current,
     required this.total,
     required this.onPlayPause,
-    required this.onSeek,
     required this.onNext,
     required this.onPrevious,
+    required this.onShuffle,
+    required this.onSeek,
   });
 
   String format(Duration d) =>
@@ -26,13 +31,11 @@ class BottomControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxSeconds =
+    total.inSeconds > 0 ? total.inSeconds.toDouble() : 1.0;
 
-    final maxMs = total.inMilliseconds > 0
-        ? total.inMilliseconds.toDouble()
-        : 1.0;
-    final currentMs = current.inMilliseconds
-        .clamp(0, maxMs.toInt())
-        .toDouble();
+    final currentSeconds =
+    current.inSeconds.clamp(0, maxSeconds.toInt()).toDouble();
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
@@ -51,25 +54,14 @@ class BottomControl extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           /// ===== Slider =====
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 3,
-              thumbShape:
-              const RoundSliderThumbShape(enabledThumbRadius: 6),
-              overlayShape:
-              const RoundSliderOverlayShape(overlayRadius: 12),
-              activeTrackColor: Colors.green,
-              inactiveTrackColor: Colors.black12,
-              thumbColor: Colors.green,
-            ),
-            child: Slider(
-              min: 0,
-              max: maxMs,
-              value: currentMs,
-              onChanged: (value) {
-                onSeek(Duration(milliseconds: value.toInt()));
-              },
-            ),
+          Slider(
+            min: 0,
+            max: maxSeconds,
+            value: currentSeconds,
+            onChanged: (value) =>
+                onSeek(Duration(seconds: value.toInt())),
+            activeColor: Colors.green,
+            inactiveColor: Colors.black12,
           ),
 
           /// ===== Time =====
@@ -79,21 +71,30 @@ class BottomControl extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(format(current),
-                    style:
-                    const TextStyle(fontSize: 12, color: Colors.black54)),
+                    style: const TextStyle(
+                        fontSize: 12, color: Colors.black54)),
                 Text(format(total),
-                    style:
-                    const TextStyle(fontSize: 12, color: Colors.black54)),
+                    style: const TextStyle(
+                        fontSize: 12, color: Colors.black54)),
               ],
             ),
           ),
 
           const SizedBox(height: 12),
 
-          /// ===== Control buttons =====
+          /// ===== Controls =====
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              /// Shuffle
+              IconButton(
+                icon: Icon(
+                  Icons.shuffle,
+                  color: isShuffle ? Colors.green : Colors.black54,
+                ),
+                onPressed: onShuffle,
+              ),
+
               /// Previous
               IconButton(
                 iconSize: 34,
