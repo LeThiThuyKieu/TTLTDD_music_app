@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/song_model.dart';
 import '../services/api_service.dart';
 import '../services/audio_player_service.dart';
@@ -35,8 +36,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     });
 
     try {
-      // ✅ endpoint trả list SongModel
-      final res = await _api.get('/favorites/songs');
+      final res = await _api.get('/favorites');
       final data = (res['data'] ?? res) as dynamic;
 
       final list = <SongModel>[];
@@ -48,7 +48,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         }
       }
 
-      // ✅ sync icon tim trên UI
+      // sync favorite ids toàn app
       await FavoriteApiService.instance.loadFavorites();
 
       setState(() {
@@ -70,34 +70,63 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(child: Text('Lỗi: $_error'))
-          : _songs.isEmpty
-          ? const Center(child: Text('Chưa có bài hát yêu thích'))
-          : RefreshIndicator(
-        onRefresh: _load,
-        child: ListView.builder(
-          itemCount: _songs.length,
-          itemBuilder: (context, index) {
-            final song = _songs[index];
-            return SongItem(
-              song: song,
-              onPlay: () =>
-                  context.read<AudioPlayerService>().playSong(song),
-              onTap: () {
-                context.read<AudioPlayerService>().playSong(song);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const MusicPlayerScreen(),
-                  ),
-                );
-              },
-              onAddToPlaylist: () =>
-                  showAddToPlaylistSheet(context, song),
-            );
-          },
-        ),
-      ),
+              ? Center(child: Text('Lỗi: $_error'))
+              : ValueListenableBuilder<Set<int>>(
+                  valueListenable:
+                      FavoriteApiService.instance.favoriteSongIds,
+                  builder: (context, favIds, _) {
+                    final filteredSongs = _songs
+                        .where((s) =>
+                            s.songId != null &&
+                            favIds.contains(s.songId))
+                        .toList();
+
+                    if (filteredSongs.isEmpty) {
+                      return const Center(
+                        child: Text('Chưa có bài hát yêu thích'),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.builder(
+                        itemCount: filteredSongs.length,
+                        itemBuilder: (context, index) {
+                          final song = filteredSongs[index];
+
+                          return SongItem(
+                            song: song,
+
+                            /// ▶ nút play nhỏ
+                            onPlay: () {
+                              context
+                                  .read<AudioPlayerService>()
+                                  .playSong(song);
+                            },
+
+                            /// 👉 BẤM VÀO BÀI HÁT → MỞ PLAYER
+                            onTap: () {
+                              context
+                                  .read<AudioPlayerService>()
+                                  .playSong(song);
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const MusicPlayerScreen(),
+                                ),
+                              );
+                            },
+
+                            onAddToPlaylist: () =>
+                                showAddToPlaylistSheet(context, song),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

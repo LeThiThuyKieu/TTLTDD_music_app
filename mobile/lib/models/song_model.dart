@@ -13,6 +13,9 @@ class SongModel {
   final int? isActive;
   final List<ArtistModel> artists;
 
+  /// ⭐ FAVORITE (client-side)
+  bool isFavorite;
+
   SongModel({
     this.songId,
     required this.title,
@@ -25,6 +28,7 @@ class SongModel {
     this.releaseDate,
     this.isActive,
     this.artists = const [],
+    this.isFavorite = false,
   });
 
   factory SongModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +48,10 @@ class SongModel {
       artists: (json['artists'] as List? ?? [])
           .map((e) => ArtistModel.fromJson(e))
           .toList(),
+
+      /// Backend CÓ hoặc KHÔNG trả field này đều OK
+      isFavorite: json['is_favorite'] == true ||
+          json['is_favorite'] == 1,
     );
   }
 
@@ -59,10 +67,16 @@ class SongModel {
       'cover_url': coverUrl,
       'release_date': releaseDate?.toIso8601String(),
       'is_active': isActive,
-      'artists': artists?.map((artist) => artist.toJson()).toList(),
+      'artists': artists.map((artist) => artist.toJson()).toList(),
+
+      /// ❗ không bắt buộc gửi lên BE, nhưng để sẵn
+      'is_favorite': isFavorite ? 1 : 0,
     };
   }
 
+  /// ===============================
+  /// FORMAT DURATION
+  /// ===============================
   String get durationFormatted {
     if (duration == null) return '0:00';
     final minutes = duration! ~/ 60;
