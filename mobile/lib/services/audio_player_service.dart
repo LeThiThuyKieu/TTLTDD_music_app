@@ -36,7 +36,7 @@ class AudioPlayerService extends ChangeNotifier {
   Duration get totalDuration => _totalDuration;
 
   AudioPlayerService() {
-    _player.onPlayerComplete.listen((_) async {
+    _player.onPlayerComplete.listen((_) {
       playNext();
     });
 
@@ -71,7 +71,9 @@ class AudioPlayerService extends ChangeNotifier {
 
   // ===== PLAY FROM PLAYLIST =====
   Future<void> playSongFromPlaylist(
-      List<SongModel> playlist, int startIndex) async {
+    List<SongModel> playlist,
+    int startIndex,
+  ) async {
     if (playlist.isEmpty) return;
 
     _originalPlaylist = List.from(playlist);
@@ -99,20 +101,19 @@ class AudioPlayerService extends ChangeNotifier {
 
     if (_isShuffle) {
       _playQueue = List.from(_originalPlaylist!)..shuffle(Random());
-      _currentIndex =
-          _playQueue!.indexWhere((s) => s.songId == _currentSong!.songId);
     } else {
       _playQueue = List.from(_originalPlaylist!);
-      _currentIndex =
-          _playQueue!.indexWhere((s) => s.songId == _currentSong!.songId);
     }
+
+    _currentIndex = _playQueue!
+        .indexWhere((s) => s.songId == _currentSong!.songId);
 
     notifyListeners();
   }
 
   // ===== CONTROLS =====
   Future<void> playNext() async {
-    if (_playQueue == null) return;
+    if (_playQueue == null || _playQueue!.isEmpty) return;
 
     if (_currentIndex < _playQueue!.length - 1) {
       _currentIndex++;
@@ -121,7 +122,7 @@ class AudioPlayerService extends ChangeNotifier {
   }
 
   Future<void> playPrevious() async {
-    if (_playQueue == null) return;
+    if (_playQueue == null || _playQueue!.isEmpty) return;
 
     if (_currentIndex > 0) {
       _currentIndex--;
@@ -145,6 +146,20 @@ class AudioPlayerService extends ChangeNotifier {
     await _player.seek(position);
     _currentPosition = position;
     notifyListeners();
+  }
+
+  /// Có đang phát từ playlist không
+  bool get isPlayingFromPlaylist =>
+      _playQueue != null && _playQueue!.isNotEmpty;
+
+  /// Cập nhật bài hát hiện tại bằng bản đầy đủ (artists, album, genre...)
+  void updateCurrentSongDetail(SongModel fullSong) {
+    if (_currentSong == null) return;
+
+    if (_currentSong!.songId == fullSong.songId) {
+      _currentSong = fullSong;
+      notifyListeners();
+    }
   }
 
   @override

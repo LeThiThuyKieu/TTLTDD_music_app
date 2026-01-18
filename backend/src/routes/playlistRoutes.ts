@@ -59,4 +59,10 @@ router.delete("/:id/songs/:songId", validatePlaylistIdAndSongId, PlaylistControl
 // Xoá playlist
 router.delete("/:id", validatePlaylistId, PlaylistController.delete);
 
+router.get(
+  "/songs/:songId/playlists",
+  authenticate,
+  PlaylistController.getBySong
+);
+
 export default router;

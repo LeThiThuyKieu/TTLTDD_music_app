@@ -1,52 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/audio_player_service.dart';
 
 class BottomControl extends StatelessWidget {
-  final bool isPlaying;
-  final bool isShuffle;
-
-  final Duration current;
-  final Duration total;
-
-  final VoidCallback onPlayPause;
-  final VoidCallback onNext;
-  final VoidCallback onPrevious;
-  final VoidCallback onShuffle;
-  final ValueChanged<Duration> onSeek;
+  final VoidCallback? onNext;
+  final VoidCallback? onPrevious;
 
   const BottomControl({
     super.key,
-    required this.isPlaying,
-    required this.isShuffle,
-    required this.current,
-    required this.total,
-    required this.onPlayPause,
-    required this.onNext,
-    required this.onPrevious,
-    required this.onShuffle,
-    required this.onSeek,
+    this.onNext,
+    this.onPrevious,
   });
 
+  // Format Duration thành mm:ss
   String format(Duration d) =>
-      "${d.inMinutes.toString().padLeft(2, '0')}:${(d.inSeconds % 60).toString().padLeft(2, '0')}";
+      "${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}";
 
   @override
   Widget build(BuildContext context) {
-    final maxSeconds =
-    total.inSeconds > 0 ? total.inSeconds.toDouble() : 1.0;
+    final audio = context.watch<AudioPlayerService>();
 
-    final currentSeconds =
-    current.inSeconds.clamp(0, maxSeconds.toInt()).toDouble();
+    /// Nếu audio chưa load xong duration → fallback sang duration từ DB
+    final fallbackDurationSeconds = audio.currentSong?.duration ?? 0;
+    final effectiveTotal = audio.totalDuration.inMilliseconds > 0
+        ? audio.totalDuration
+        : Duration(seconds: fallbackDurationSeconds);
+
+    final maxMs = effectiveTotal.inMilliseconds > 0
+        ? effectiveTotal.inMilliseconds.toDouble()
+        : 1.0;
+
+    final currentMs = audio.currentPosition.inMilliseconds
+        .clamp(0, maxMs.toInt())
+        .toDouble();
+
+    const Color lightGreen = Color(0xFF81C784);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 12,
-            offset: Offset(0, -2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
           )
         ],
       ),
@@ -54,35 +53,47 @@ class BottomControl extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           /// ===== Slider =====
-          Slider(
-            min: 0,
-            max: maxSeconds,
-            value: currentSeconds,
-            onChanged: (value) =>
-                onSeek(Duration(seconds: value.toInt())),
-            activeColor: Colors.green,
-            inactiveColor: Colors.black12,
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 3,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+              activeTrackColor: lightGreen,
+              inactiveTrackColor: lightGreen.withOpacity(0.25),
+              thumbColor: lightGreen,
+            ),
+            child: Slider(
+              min: 0,
+              max: maxMs,
+              value: currentMs,
+              onChanged: (value) =>
+                  audio.seek(Duration(milliseconds: value.toInt())),
+            ),
           ),
 
           /// ===== Time =====
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(format(current),
-                    style: const TextStyle(
-                        fontSize: 12, color: Colors.black54)),
-                Text(format(total),
-                    style: const TextStyle(
-                        fontSize: 12, color: Colors.black54)),
+                Text(
+                  format(audio.currentPosition),
+                  style:
+                      const TextStyle(fontSize: 11, color: Colors.black45),
+                ),
+                Text(
+                  format(effectiveTotal),
+                  style:
+                      const TextStyle(fontSize: 11, color: Colors.black45),
+                ),
               ],
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          /// ===== Controls =====
+          /// ===== Control Buttons =====
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -90,34 +101,46 @@ class BottomControl extends StatelessWidget {
               IconButton(
                 icon: Icon(
                   Icons.shuffle,
-                  color: isShuffle ? Colors.green : Colors.black54,
+                  color: audio.isShuffle ? lightGreen : Colors.black45,
                 ),
-                onPressed: onShuffle,
+                onPressed: audio.toggleShuffle,
               ),
+
+              const SizedBox(width: 6),
 
               /// Previous
               IconButton(
-                iconSize: 34,
-                icon: const Icon(Icons.skip_previous),
-                onPressed: onPrevious,
+                iconSize: 36,
+                icon: const Icon(Icons.skip_previous_rounded),
+                color: Colors.black54,
+                onPressed: onPrevious ?? audio.playPrevious,
               ),
 
               const SizedBox(width: 12),
 
               /// Play / Pause
               GestureDetector(
-                onTap: onPlayPause,
+                onTap: audio.isPlaying ? audio.pause : audio.resume,
                 child: Container(
-                  width: 68,
-                  height: 68,
-                  decoration: const BoxDecoration(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.green,
+                    color: lightGreen,
+                    boxShadow: [
+                      BoxShadow(
+                        color: lightGreen.withOpacity(0.45),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
                   ),
                   child: Icon(
-                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    audio.isPlaying
+                        ? Icons.pause_rounded
+                        : Icons.play_arrow_rounded,
                     color: Colors.white,
-                    size: 38,
+                    size: 40,
                   ),
                 ),
               ),
@@ -126,9 +149,10 @@ class BottomControl extends StatelessWidget {
 
               /// Next
               IconButton(
-                iconSize: 34,
-                icon: const Icon(Icons.skip_next),
-                onPressed: onNext,
+                iconSize: 36,
+                icon: const Icon(Icons.skip_next_rounded),
+                color: Colors.black54,
+                onPressed: onNext ?? audio.playNext,
               ),
             ],
           ),

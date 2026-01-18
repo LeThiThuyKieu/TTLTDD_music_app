@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/song_model.dart';
 import '../services/favorite_api_service.dart';
+import '../services/audio_player_service.dart';
+import '../screens/home/music_player_screen.dart';
 
 class SongItem extends StatelessWidget {
   final SongModel song;
@@ -49,7 +52,7 @@ class SongItem extends StatelessWidget {
               height: 50,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) =>
-              const Icon(Icons.music_note, size: 40),
+                  const Icon(Icons.music_note, size: 40),
             ),
           ),
 
@@ -78,21 +81,35 @@ class SongItem extends StatelessWidget {
                   color: Colors.green,
                   size: 28,
                 ),
-                onPressed: onPlay,
+                onPressed: onPlay ??
+                    () {
+                      context
+                          .read<AudioPlayerService>()
+                          .playSong(song);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const MusicPlayerScreen(),
+                        ),
+                      );
+                    },
               ),
 
-              // ❤️ Favorite (icon đổi real-time)
+              // ❤️ Favorite
               IconButton(
                 icon: Icon(
-                  isFav ? Icons.favorite : Icons.favorite_border,
+                  isFav
+                      ? Icons.favorite
+                      : Icons.favorite_border,
                   color: isFav ? Colors.red : null,
                 ),
                 onPressed: sid == null
                     ? null
                     : () async {
-                  await FavoriteApiService.instance
-                      .toggleFavorite(sid);
-                },
+                        await FavoriteApiService.instance
+                            .toggleFavorite(sid);
+                      },
               ),
 
               // ⋮ Menu
@@ -103,8 +120,9 @@ class SongItem extends StatelessWidget {
                     context: context,
                     showDragHandle: true,
                     shape: const RoundedRectangleBorder(
-                      borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(16)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
                     ),
                     builder: (_) => SafeArea(
                       child: Column(
@@ -116,14 +134,19 @@ class SongItem extends StatelessWidget {
                               isFav
                                   ? Icons.favorite
                                   : Icons.favorite_border,
-                              color: isFav ? Colors.red : null,
+                              color:
+                                  isFav ? Colors.red : null,
                             ),
                             title: Text(
-                                isFav ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'),
+                              isFav
+                                  ? 'Bỏ yêu thích'
+                                  : 'Thêm vào yêu thích',
+                            ),
                             onTap: () async {
                               Navigator.pop(context);
                               if (sid != null) {
-                                await FavoriteApiService.instance
+                                await FavoriteApiService
+                                    .instance
                                     .toggleFavorite(sid);
                               }
                             },
@@ -131,8 +154,10 @@ class SongItem extends StatelessWidget {
 
                           // Thêm vào playlist
                           ListTile(
-                            leading: const Icon(Icons.playlist_add),
-                            title: const Text('Thêm vào playlist'),
+                            leading:
+                                const Icon(Icons.playlist_add),
+                            title: const Text(
+                                'Thêm vào playlist'),
                             onTap: () {
                               Navigator.pop(context);
                               onAddToPlaylist?.call();
@@ -141,8 +166,10 @@ class SongItem extends StatelessWidget {
 
                           // Xem ca sĩ
                           ListTile(
-                            leading: const Icon(Icons.person),
-                            title: const Text('Xem ca sĩ'),
+                            leading:
+                                const Icon(Icons.person),
+                            title:
+                                const Text('Xem ca sĩ'),
                             onTap: () {
                               Navigator.pop(context);
                               onXemCaSi?.call();
@@ -151,8 +178,10 @@ class SongItem extends StatelessWidget {
 
                           // Đi đến album
                           ListTile(
-                            leading: const Icon(Icons.album),
-                            title: const Text('Đi đến album'),
+                            leading:
+                                const Icon(Icons.album),
+                            title:
+                                const Text('Đi đến album'),
                             onTap: () {
                               Navigator.pop(context);
                               onThamGiaAlbum?.call();
@@ -169,10 +198,19 @@ class SongItem extends StatelessWidget {
             ],
           ),
 
-          // Tap toàn item
+          // ===== TAP TOÀN ITEM =====
           onTap: onTap ??
-                  () {
-                debugPrint('Open song: ${song.title}');
+              () {
+                context
+                    .read<AudioPlayerService>()
+                    .playSong(song);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const MusicPlayerScreen(),
+                  ),
+                );
               },
         );
       },

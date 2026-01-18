@@ -8,6 +8,7 @@ import '../../../services/audio_player_service.dart';
 import '../../../widgets/song_item.dart';
 import '../../home/song_list_screen.dart';
 import '../../home/artist/artist_detail_screen.dart';
+import '../music_player_screen.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
   final AlbumModel album;
@@ -220,7 +221,13 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                     onPlay: () =>
                         context.read<AudioPlayerService>().playSong(song),
                     onTap: () {
-                      debugPrint('Open song: ${song.title}');
+                      context.read<AudioPlayerService>().playSong(song);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MusicPlayerScreen(),
+                        ),
+                      );
                     },
                   );
                 },
