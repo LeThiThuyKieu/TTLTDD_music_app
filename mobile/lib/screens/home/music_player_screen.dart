@@ -1,48 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/song_model.dart';
+
 import '../../services/audio_player_service.dart';
 import '../../widgets/info_widget.dart';
 import '../../widgets/disc_widget.dart';
 import '../../widgets/lyrics_widget.dart';
 import '../../widgets/bottom_control.dart';
-//Huong
+
 class MusicPlayerScreen extends StatelessWidget {
   const MusicPlayerScreen({super.key});
 
-  String formatDuration(Duration d) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    return "${twoDigits(d.inMinutes.remainder(60))}:${twoDigits(d.inSeconds.remainder(60))}";
-  }
-
   @override
   Widget build(BuildContext context) {
-      final PageController _pageController =
-      PageController(initialPage: 1);
+    final PageController pageController =
+        PageController(initialPage: 1);
+
     return Consumer<AudioPlayerService>(
       builder: (context, audioService, child) {
         final song = audioService.currentSong;
 
+        /// ===== CHƯA CHỌN BÀI HÁT =====
         if (song == null) {
           return Scaffold(
             appBar: AppBar(
-                title: Text("Music Player"),
+              title: const Text("Music Player"),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
-
-            body: Center(child: Text("Chọn một bài hát để phát")),
+            body: const Center(
+              child: Text("Chọn một bài hát để phát"),
+            ),
           );
         }
 
+        /// ===== PLAYER =====
         return Scaffold(
-          backgroundColor: Colors.white, // xanh nhạt
+          backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: const Color(0xFFF0F9F1), // cùng màu với nền
+            backgroundColor: const Color(0xFFF0F9F1),
             elevation: 0,
-            toolbarHeight: 30, // làm AppBar nhỏ lại
+            toolbarHeight: 30,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.of(context).pop(),
@@ -50,24 +49,41 @@ class MusicPlayerScreen extends StatelessWidget {
           ),
           body: Column(
             children: [
+              /// ===== TOP CONTENT =====
               Expanded(
                 child: PageView(
-                  controller: _pageController,
+                  controller: pageController,
                   children: [
                     InfoWidget(song: song),
-                    DiscWidget(song: song, isPlaying: audioService.isPlaying),
-                    LyricsWidget(lyrics: song.lyrics),
+                    DiscWidget(
+                      song: song,
+                      isPlaying: audioService.isPlaying,
+                    ),
+                    LyricsWidget(
+                      lyrics:
+                          song.lyrics ?? 'Chưa có lời bài hát',
+                    ),
                   ],
                 ),
               ),
+
+              /// ===== BOTTOM CONTROL =====
               BottomControl(
-                onPrevious: () {
-                  audioService.playPrevious();
+                isPlaying: audioService.isPlaying,
+                isShuffle: audioService.isShuffle,
+                current: audioService.currentPosition,
+                total: audioService.totalDuration,
+
+                onPlayPause: () {
+                  audioService.isPlaying
+                      ? audioService.pause()
+                      : audioService.resume();
                 },
 
-                onNext: () {
-                  audioService.playNext();
-                },
+                onPrevious: audioService.playPrevious,
+                onNext: audioService.playNext,
+                onShuffle: audioService.toggleShuffle,
+                onSeek: audioService.seek,
               ),
             ],
           ),
