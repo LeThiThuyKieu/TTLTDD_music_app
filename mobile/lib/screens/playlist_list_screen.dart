@@ -16,9 +16,12 @@ class PlaylistListScreen extends StatefulWidget {
 
 class _PlaylistListScreenState extends State<PlaylistListScreen> {
   bool _loading = true;
-  String? _error;
 
+  // lưu lỗi nếu gọi API thất bại
+  String? _error;
+// danh sách playlist
   List<PlaylistModel> _playlists = [];
+  // key sắp xếp: recent | name
   String _sortKey = 'recent'; // recent | name
 
   @override
@@ -37,7 +40,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
     try {
       final list = await PlaylistApiService.instance.getMyPlaylists();
 
-      // ❌ không hiển thị playlist like trùng
+      // loại bỏ playlist like trùng
       final filtered = list.where((p) => !_isLikesPlaylist(p.name)).toList();
 
       setState(() {
