@@ -60,13 +60,13 @@ class _DiscWidgetState extends State<DiscWidget>
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
 
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFFF0F9F1),
+            Color(0xFFF0F9F1),
             Colors.white,
           ],
         ),

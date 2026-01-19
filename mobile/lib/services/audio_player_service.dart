@@ -21,6 +21,9 @@ class AudioPlayerService extends ChangeNotifier {
   /// SHUFFLE
   bool _isShuffle = false;
 
+  /// Flag để ngăn chặn các lệnh phát song trùng lặp
+  bool _isLoadingSong = false;
+
   // ===== GETTERS =====
   SongModel? get currentSong => _currentSong;
   bool get isPlaying => _isPlaying;
@@ -53,11 +56,23 @@ class AudioPlayerService extends ChangeNotifier {
 
   // ===== PLAY SINGLE SONG =====
   Future<void> playSong(SongModel song) async {
-    await _player.stop();
+    // Ngăn chặn các lệnh phát song trùng lặp
+    if (_isLoadingSong) {
+      return;
+    }
 
-    _currentSong = song;
-    _isPlaying = true;
-    notifyListeners();
+    _isLoadingSong = true;
+
+    try {
+      // Dừng bài hát hiện tại
+      await _player.stop();
+
+      // Đợi một chút để đảm bảo bài hát cũ hoàn toàn dừng
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      _currentSong = song;
+      _isPlaying = true;
+      notifyListeners();
 
     String sourceUrl = song.fileUrl;
     if (!sourceUrl.startsWith('http')) {
@@ -67,6 +82,9 @@ class AudioPlayerService extends ChangeNotifier {
     }
 
     await _player.play(UrlSource(sourceUrl));
+    } finally {
+      _isLoadingSong = false;
+    }
   }
 
   // ===== PLAY FROM PLAYLIST =====
@@ -76,6 +94,10 @@ class AudioPlayerService extends ChangeNotifier {
   ) async {
     if (playlist.isEmpty) return;
 
+    // Ngăn chặn các lệnh phát song trùng lặp
+    if (_isLoadingSong) {
+      return;
+    }
     _originalPlaylist = List.from(playlist);
 
     if (_isShuffle) {

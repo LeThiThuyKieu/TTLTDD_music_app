@@ -69,21 +69,21 @@ class MusicPlayerScreen extends StatelessWidget {
 
               /// ===== BOTTOM CONTROL =====
               BottomControl(
-                isPlaying: audioService.isPlaying,
-                isShuffle: audioService.isShuffle,
-                current: audioService.currentPosition,
-                total: audioService.totalDuration,
-
-                onPlayPause: () {
-                  audioService.isPlaying
-                      ? audioService.pause()
-                      : audioService.resume();
-                },
+                // isPlaying: audioService.isPlaying,
+                // isShuffle: audioService.isShuffle,
+                // current: audioService.currentPosition,
+                // total: audioService.totalDuration,
+                //
+                // onPlayPause: () {
+                //   audioService.isPlaying
+                //       ? audioService.pause()
+                //       : audioService.resume();
+                // },
 
                 onPrevious: audioService.playPrevious,
                 onNext: audioService.playNext,
-                onShuffle: audioService.toggleShuffle,
-                onSeek: audioService.seek,
+                // onShuffle: audioService.toggleShuffle,
+                // onSeek: audioService.seek,
               ),
             ],
           ),

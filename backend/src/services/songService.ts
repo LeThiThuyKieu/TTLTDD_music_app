@@ -46,5 +46,15 @@ export class SongService {
 static async getSongDetail(id: number) {
   return await SongRepository.findByIdWithFullInfo(id);
 }
+// Gợi ý bài hát theo ưu tiên playlist -> nghệ sĩ -> thể loại -> phổ biến/ngẫu nhiên 
+static async getRecommendedSongs( 
+  songId: number, userId: number | null, limit: number = 20 ): Promise<SongWithArtists[]> { 
+  // Đảm bảo bài hát tồn tại 
+  const song = await SongRepository.findById(songId); 
+  if (!song) { 
+    throw new Error("Song not found"); 
+    } 
+  return await SongRepository.findRecommendations(songId, userId, limit);
 
+}
 }
