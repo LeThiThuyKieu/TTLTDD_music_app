@@ -7,6 +7,8 @@ import { requireAdmin } from "../../middleware/admin";
 
 const router = Router();
 
+// lấy danh sách bài hát select
+router.get('/select', authenticate, requireAdmin, AdminSongController.getSongsForSelect);
 // Lấy danh sách bài hát ( GET /api/admin/songs )
 router.get("/", authenticate, requireAdmin, AdminSongController.getAllSongs);
 

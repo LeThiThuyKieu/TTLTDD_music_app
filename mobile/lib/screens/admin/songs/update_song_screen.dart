@@ -428,6 +428,7 @@ class _AdminUpdateSongScreenState extends State<AdminUpdateSongScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
           isExpanded: true,
+          menuMaxHeight: 300,
           value: value,
           hint: Text(hint),
           items: items

@@ -8,7 +8,7 @@ import '../api_service.dart';
 class ArtistService {
   final ApiService _api = ApiService();
 // DANH SÁCH NGHỆ SĨ
-  Future<List<ArtistModel>> getAllArtists({int limit = 20, int offset = 0}) async {
+  Future<List<ArtistModel>> getAllArtists({int limit = 100, int offset = 0}) async {
     final response = await _api.get('/admin/artists', queryParams: {
       'limit': limit.toString(),
       'offset': offset.toString(),

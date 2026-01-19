@@ -27,7 +27,7 @@ class _AdminAddAlbumScreenState extends State<AdminAddAlbumScreen> {
   List<ArtistModel> artists = [];
   ArtistModel? selectedArtist;
 
-  List<SongModel> songs = [];
+  List<Map<String, dynamic>> songs = [];
   List<int> selectedSongIds = [];
 
   bool isLoading = true;
@@ -46,10 +46,12 @@ class _AdminAddAlbumScreenState extends State<AdminAddAlbumScreen> {
       final fetchedArtists = await _artistService.getAllArtists(limit: 100, offset: 0);
 
       // Lấy tất cả bài hát
-      final fetchedSongs = await _songService.getAllSongs(limit: 200, offset: 0);
+      final fetchedSongs = await _songService.getSongsForSelect();
 
       // Lọc những bài chưa có album
-      final songsWithoutAlbum = fetchedSongs.where((s) => s.albumId == null).toList(); // Lấy ra bài hát có albumId = null
+      final songsWithoutAlbum = fetchedSongs
+          .where((s) => s['album_id'] == null)
+          .toList();
 
       setState(() {
         artists = fetchedArtists;
@@ -156,10 +158,12 @@ class _AdminAddAlbumScreenState extends State<AdminAddAlbumScreen> {
           // Dropdown chọn nghệ sĩ
           DropdownButtonFormField<ArtistModel>(
             value: selectedArtist,
+            isExpanded: true,
+            menuMaxHeight: 400,
             items: artists
                 .map((artist) => DropdownMenuItem(
               value: artist,
-              child: Text(artist.name),
+              child: Text(artist.name, overflow: TextOverflow.ellipsis,),
             ))
                 .toList(),
             onChanged: (artist) => setState(() => selectedArtist = artist),
@@ -187,11 +191,12 @@ class _AdminAddAlbumScreenState extends State<AdminAddAlbumScreen> {
               ),
               child: ListView(
                 children: songs.map((song) {
-                  final selected = selectedSongIds.contains(song.songId);
+                  final int songId = song['song_id'];
+                  final bool selected = selectedSongIds.contains(songId);
                   return CheckboxListTile(
-                    title: Text(song.title),
+                    title: Text(song['title']),
                     value: selected,
-                    onChanged: (_) => _toggleSongSelection(song.songId!),
+                    onChanged: (_) => _toggleSongSelection(songId),
                   );
                 }).toList(),
               ),

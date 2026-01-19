@@ -407,8 +407,9 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<GenreModel>(
-          isExpanded: true,
           value: selectedGenre,
+          isExpanded: true,
+          menuMaxHeight: 300,
           hint: const Text('Thể loại'),
           items: genres.map((g) {
             return DropdownMenuItem(
@@ -432,6 +433,7 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<ArtistModel>(
           isExpanded: true,
+          menuMaxHeight: 400,
           value: selectedArtist,
           hint: const Text('Ca sĩ'),
           items: artists.map((a) {

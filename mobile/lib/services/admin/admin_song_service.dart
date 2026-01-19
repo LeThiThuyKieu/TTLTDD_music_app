@@ -9,21 +9,67 @@ class SongService {
   final ApiService _api = ApiService();
 
   // DS BÀI HÁT
-  Future<List<SongModel>> getAllSongs({int limit = 20, int offset = 0}) async {
-    final response = await _api.get('/admin/songs', queryParams: {
-      'limit': limit.toString(),
-      'offset': offset.toString(),
-    });
-    debugPrint('JSON from API: $response');
+  Future<({List<SongModel> songs, int total,})> getAllSongs({
+    int limit = 10,
+    int offset = 0,
+  }) async {
+    final response = await _api.get('/admin/songs',
+      queryParams: {
+        'limit': limit.toString(),
+        'offset': offset.toString(),
+      },
+    );
 
-    // Kiểm tra dữ liệu nhận được từ API có phải là 1 list
-    if (response['data'] is! List) {
-      throw Exception('Invalid API format: data is not a list');
+    final data = response['data'];
+    if (data is! List) {
+      throw Exception('Invalid API format');
     }
 
-    return (response['data'] as List)
-        .map((e) => SongModel.fromJson(e))
-        .toList();
+    return (
+    songs: data.map((e) => SongModel.fromJson(e)).toList(),
+    total: response['total'] as int,
+    );
+  }
+
+  // Future<List<SongModel>> getAllSongs({int limit = 10, int offset = 0}) async {
+  //   final response = await _api.get('/admin/songs', queryParams: {
+  //     'limit': limit.toString(),
+  //     'offset': offset.toString(),
+  //   });
+  //   debugPrint('JSON from API: $response');
+  //
+  //   // Kiểm tra dữ liệu nhận được từ API có phải là 1 list
+  //   if (response['data'] is! List) {
+  //     throw Exception('Invalid API format: data is not a list');
+  //   }
+  //
+  //   return (response['data'] as List)
+  //       .map((e) => SongModel.fromJson(e))
+  //       .toList();
+  // }
+
+  // DANH SÁCH BÀI HÁT CHO SELECT
+  // Future<List<SongModel>> getSongsForSelect() async {
+  //   final response = await _api.get('/admin/songs/select');
+  //
+  //   final data = response['data'];
+  //   if (data is! List) {
+  //     throw Exception('Invalid API format');
+  //   }
+  //
+  //   return data.map((e) => SongModel.fromJson(e)).toList();
+  // }
+
+  // DS bài hát cho select
+  Future<List<Map<String, dynamic>>> getSongsForSelect() async {
+    final response = await _api.get('/admin/songs/select');
+
+    final data = response['data'];
+    if (data is! List) {
+      throw Exception('Invalid API format');
+    }
+
+    return List<Map<String, dynamic>>.from(data);
   }
 
   // XOÁ BÀI HÁT

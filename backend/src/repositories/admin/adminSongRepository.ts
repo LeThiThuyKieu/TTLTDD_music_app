@@ -63,8 +63,30 @@ export class AdminSongRepository {
 
     return Array.from(map.values());
   }
+// LẤY DANH SÁCH BÀI HÁT CHO SELECT
+static async findSongsForSelect() {
+  const sql = `
+    SELECT 
+      song_id,
+      title,
+      album_id
+    FROM songs
+    ORDER BY title ASC
+  `;
 
-  // LLẤY CHI TIẾT BÀI HÁT THEO ID
+  const [rows] = await pool.query<any[]>(sql);
+  return rows;
+}
+
+  // LẤY TỔNG BÁI HÁT
+  static async countSongs(): Promise<number> {
+  const [rows]: any = await pool.query(
+    `SELECT COUNT(*) as total FROM songs`
+  );
+  return rows[0].total;
+}
+
+  // LẤY CHI TIẾT BÀI HÁT THEO ID
   static async findSongById(song_id: number, includeDetails = false): Promise<SongWithArtists | null> {
   const sql = `
     SELECT s.song_id, s.title, s.genre_id, s.duration, s.lyrics, s.file_url, s.file_public_id, s.cover_url, s.cover_public_id, s.is_active, a.artist_id, a.name AS artist_name

@@ -24,7 +24,7 @@ class TopSongsList extends StatelessWidget {
           const SizedBox(height: 6),
           const Center(
             child: Text(
-              'Danh sách bài hát phổ biến',
+              'Top 10 bài hát phổ biến',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w600,

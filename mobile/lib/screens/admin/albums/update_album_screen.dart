@@ -32,7 +32,7 @@ class _AdminUpdateAlbumScreenState extends State<AdminUpdateAlbumScreen> {
   List<ArtistModel> artists = [];
   ArtistModel? selectedArtist;
 
-  List<SongModel> songs = [];
+  List<Map<String, dynamic>> songs = [];
   List<int> selectedSongIds = [];
 
   bool isLoading = true;
@@ -51,39 +51,45 @@ class _AdminUpdateAlbumScreenState extends State<AdminUpdateAlbumScreen> {
       final fetchedArtists = await _artistService.getAllArtists(limit: 100, offset: 0);
 
       // Lấy tất cả bài hát
-      final allSongs = await _songService.getAllSongs(limit: 200, offset: 0);
+      final selectSongs = await _songService.getSongsForSelect();
 
       // Lấy chi tiết album
       final album = await _albumService.getAlbumDetail(widget.albumId);
 
       // Lọc bài chưa có album
-      final songsWithoutAlbum = allSongs.where((s) => s.albumId == null).toList();
+      //final songsWithoutAlbum = allSongs.where((s) => s.albumId == null).toList();
 
       // Lấy danh sách id bài hát đã thuộc album đang edit
       final albumSongIds = album.songs?.map((s) => s.songId!).toList() ?? [];
 
-      // Kết hợp danh sách bài hát (lọc trùng + đúng type)
-      final Map<int, SongModel> songMap = {};
-
-// Bài hát đã thuộc album
-      for (final s in album.songs ?? <SongModel>[]) {
-        if (s.songId != null) {
-          songMap[s.songId!] = s;
-        }
-      }
-
-// Bài hát chưa có album
-      for (final s in songsWithoutAlbum) {
-        if (s.songId != null) {
-          songMap[s.songId!] = s;
-        }
-      }
-
-      final List<SongModel> combinedSongs = songMap.values.toList();
+      // Merge danh sách bài hát (lọc trùng)
+//       final Map<int, SongModel> songMap = {};
+//
+// // Bài hát đã thuộc album
+//       for (final s in album.songs ?? <SongModel>[]) {
+//         if (s.songId != null) {
+//           songMap[s.songId!] = s;
+//         }
+//       }
+//
+// // Bài hát chưa có album
+//       for (final s in songsWithoutAlbum) {
+//         if (s.songId != null) {
+//           songMap[s.songId!] = s;
+//         }
+//       }
+//
+//       final List<SongModel> combinedSongs = songMap.values.toList();
+      final mergedSongs = selectSongs.where((s) {
+        final albumId = s['album_id'];
+        final songId = s['song_id'];
+        return albumId == null || albumSongIds.contains(songId);
+      }).toList();
 
       setState(() {
         artists = fetchedArtists;
-        songs = combinedSongs;
+        // songs = combinedSongs;
+        songs = mergedSongs;
 
         _nameCtrl.text = album.title;
 
@@ -208,6 +214,8 @@ class _AdminUpdateAlbumScreenState extends State<AdminUpdateAlbumScreen> {
           const SizedBox(height: 16),
           DropdownButtonFormField<ArtistModel>(
             value: selectedArtist,
+            isExpanded: true,
+            menuMaxHeight: 400,
             items: artists
                 .map((artist) => DropdownMenuItem(
               value: artist,
@@ -238,15 +246,12 @@ class _AdminUpdateAlbumScreenState extends State<AdminUpdateAlbumScreen> {
               ),
               child: ListView(
                 children: songs.map((song) {
-                  final selected = selectedSongIds.contains(song.songId);
+                  final int songId = song['song_id'];
+                  final bool selected = selectedSongIds.contains(songId);
                   return CheckboxListTile(
-                    title: Text(song.title),
-                    value: selectedSongIds.contains(song.songId),
-                      onChanged: (bool? checked) {
-                        if (song.songId != null) {
-                          _toggleSongSelection(song.songId!);
-                        }
-                      },
+                    title: Text(song['title']),
+                    value: selected,
+                    onChanged: (_) => _toggleSongSelection(songId),
                   );
                 }).toList(),
               ),

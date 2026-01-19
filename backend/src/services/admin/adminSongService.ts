@@ -7,6 +7,15 @@ export class AdminSongService {
   static async getAllSongs(limit: number, offset: number): Promise<SongWithArtists []> {
     return AdminSongRepository.findAllSong(limit, offset);
   }
+  // LẤY DANH SÁCH BÀI HÁT CHO SELECT
+  static async getSongsForSelect() {
+  return AdminSongRepository.findSongsForSelect();
+}
+
+  // LẤY TỔNG BÁI HÁT
+  static async countSongs() {
+  return AdminSongRepository.countSongs();
+}
   // LẤY CHI TIẾT BÀI HÁT THEO ID
   static async getSongById(song_id: number, includeDetails = false): Promise<SongWithArtists | null> {
     return AdminSongRepository.findSongById(song_id, includeDetails);

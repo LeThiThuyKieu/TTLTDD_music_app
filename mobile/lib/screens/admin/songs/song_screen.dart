@@ -18,6 +18,12 @@ class _SongScreenState extends State<AdminSongScreen> {
   String selectedStatus = 'Tất cả';
   String searchText = '';
   bool isLoading = false;
+  int limit = 10;
+  int currentPage = 1;
+  int totalItems = 0;
+  int get totalPages => (totalItems / limit).ceil();
+
+
 
   @override
   void initState() {
@@ -25,14 +31,18 @@ class _SongScreenState extends State<AdminSongScreen> {
     _loadSongs();
   }
   // Load danh sách
-  Future<void> _loadSongs() async {
+  Future<void> _loadSongs({int page = 1}) async {
     try {
-      setState(() => isLoading = true);
+      setState(() { isLoading = true;  currentPage = page;} );
 
-      final songs = await _songService.getAllSongs(); //JSON được fetch ở đây
+      final result = await _songService.getAllSongs(
+        limit: limit,
+        offset: (page - 1) * limit,
+      );
 
       setState(() {
-        allSongs = songs;
+        allSongs = result.songs;
+        totalItems = result.total;
         isLoading = false;
       });
     } catch (e) {
@@ -120,6 +130,80 @@ class _SongScreenState extends State<AdminSongScreen> {
       return matchSearch && matchStatus;
     }).toList();
   }
+
+  // Widget phân trang
+  Widget _buildPagination() {
+    return Column(
+      children: [
+        Text(
+          'Showing ${(currentPage - 1) * limit + 1} '
+              'to ${((currentPage * limit) > totalItems ? totalItems : currentPage * limit)} '
+              'of $totalItems entries',
+          style: const TextStyle(fontSize: 12),
+        ),
+        const SizedBox(height: 8),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _pageButton('<<', currentPage > 1
+                ? () => _loadSongs(page: 1)
+                : null),
+
+            _pageButton('<', currentPage > 1
+                ? () => _loadSongs(page: currentPage - 1)
+                : null),
+
+            // ...List.generate(
+            //   totalPages,
+            //       (index) {
+            //     final page = index + 1;
+            //     return _pageNumber(page);
+            //   },
+            // ),
+
+            _pageButton('>', currentPage < totalPages
+                ? () => _loadSongs(page: currentPage + 1)
+                : null),
+
+            _pageButton('>>', currentPage < totalPages
+                ? () => _loadSongs(page: totalPages)
+                : null),
+          ],
+        ),
+      ],
+    );
+  }
+// BUTTON phân trang
+  Widget _pageButton(String text, VoidCallback? onTap) {
+    return IconButton(
+      icon: Text(text),
+      onPressed: onTap,
+    );
+  }
+
+  Widget _pageNumber(int page) {
+    final isActive = page == currentPage;
+
+    return GestureDetector(
+      onTap: () => _loadSongs(page: page),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF8DB27C) : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: Text(
+          '$page',
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -214,9 +298,12 @@ class _SongScreenState extends State<AdminSongScreen> {
                       (song) => _SongItem(
                     song: song,
                     onDelete: () async => _deleteSong(song),
-                        onUpdated: _loadSongs,
+                        // onUpdated: _loadSongs,
+                        onUpdated: () => _loadSongs(page: currentPage),
                   ),
                 ),
+                const SizedBox(height: 16),
+                _buildPagination(),
               ],
             ),
           ),

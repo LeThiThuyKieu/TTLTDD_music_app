@@ -4,18 +4,21 @@ import { AdminSongService } from "../../services/admin/adminSongService";
 import { uploadToCloudinary } from "../../config/cloudinary";
 
 export class AdminSongController {
-  //ADMIN: Lấy danh sách bài hát (GET /api/admin/songs)
+  //ADMIN: Lấy danh sách bài hát (GET /api/admin/songs?limit=10&offset=0)
     static async getAllSongs(req: AuthenticatedRequest, res: Response ){
      try {
        const limit = Number(req.query.limit) || 20;
        const offset = Number(req.query.offset) || 0;
 
-       const songs = await AdminSongService.getAllSongs(limit, offset);
-
+       const [songs, total] = await Promise.all([
+      AdminSongService.getAllSongs(limit, offset),
+      AdminSongService.countSongs()
+    ]);
    res.status(200).json({
         success: true,
         limit,
         offset,
+        total,
         data: songs
       });
     } catch (error) {
@@ -26,6 +29,24 @@ export class AdminSongController {
       });
     }
   }
+
+  //ADMIN : Lấy danh sách bài hát cho select
+  static async getSongsForSelect(req: AuthenticatedRequest,res: Response) {
+  try {
+    const songs = await AdminSongService.getSongsForSelect();
+
+    return res.status(200).json({
+      success: true,
+      data: songs,
+    });
+  } catch (error) {
+    console.error("Admin get songs select error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch songs for select",
+    });
+  }
+}
   //ADMIN: Lấy XOÁ bài hát theo ID (DELETE /api/admin/songs/:id)
   static async deleteSongById(req: AuthenticatedRequest, res: Response) {
     try {
