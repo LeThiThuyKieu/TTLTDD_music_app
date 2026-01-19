@@ -40,6 +40,12 @@ dependencies:
   #toast
   fluttertoast: ^8.2.4
 
+  #file_picker:
+  file_picker: ^8.0.0
+#  http: ^1.2.0
+  just_audio: ^0.9.36
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

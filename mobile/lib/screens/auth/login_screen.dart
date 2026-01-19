@@ -35,12 +35,15 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-
+      final role = await _authService.getUserRole();
       showToast(
         message: 'Đăng nhập thành công',
       );
+      if (!mounted) return;
 
-      if (mounted) {
+      if (role == 'admin') {
+        Navigator.pushReplacementNamed(context, '/admin');
+      } else {
         Navigator.pushReplacementNamed(context, '/main');
       }
     } catch (e) {
