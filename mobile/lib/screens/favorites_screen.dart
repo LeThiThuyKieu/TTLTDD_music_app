@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../models/song_model.dart';
 import '../services/api_service.dart';
+import '../services/audio_player_service.dart';
 import '../services/favorite_api_service.dart';
 import '../widgets/song_item.dart';
 import '../widgets/add_to_playlist_sheet.dart';
+import 'home/music_player_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -32,7 +36,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     });
 
     try {
-      // Load danh sách bài hát yêu thích
       final res = await _api.get('/favorites');
       final data = (res['data'] ?? res) as dynamic;
 
@@ -45,7 +48,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         }
       }
 
-      //  Load danh sách favorite ids (để sync toàn app)
+      // sync favorite ids toàn app
       await FavoriteApiService.instance.loadFavorites();
 
       setState(() {
@@ -67,45 +70,63 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(child: Text('Lỗi: $_error'))
-          : ValueListenableBuilder<Set<int>>(
-        valueListenable:
-        FavoriteApiService.instance.favoriteSongIds,
-        builder: (context, favIds, _) {
-          //  lọc lại list theo favorite hiện tại
-          final filteredSongs = _songs
-              .where((s) =>
-          s.songId != null &&
-              favIds.contains(s.songId))
-              .toList();
+              ? Center(child: Text('Lỗi: $_error'))
+              : ValueListenableBuilder<Set<int>>(
+                  valueListenable:
+                      FavoriteApiService.instance.favoriteSongIds,
+                  builder: (context, favIds, _) {
+                    final filteredSongs = _songs
+                        .where((s) =>
+                            s.songId != null &&
+                            favIds.contains(s.songId))
+                        .toList();
 
-          if (filteredSongs.isEmpty) {
-            return const Center(
-              child: Text('Chưa có bài hát yêu thích'),
-            );
-          }
+                    if (filteredSongs.isEmpty) {
+                      return const Center(
+                        child: Text('Chưa có bài hát yêu thích'),
+                      );
+                    }
 
-          return RefreshIndicator(
-            onRefresh: _load,
-            child: ListView.builder(
-              itemCount: filteredSongs.length,
-              itemBuilder: (context, index) {
-                final song = filteredSongs[index];
+                    return RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.builder(
+                        itemCount: filteredSongs.length,
+                        itemBuilder: (context, index) {
+                          final song = filteredSongs[index];
 
-                return SongItem(
-                  song: song,
-                  onPlay: () =>
-                      debugPrint('Play: ${song.title}'),
-                  onTap: () =>
-                      debugPrint('Open player: ${song.title}'),
-                  onAddToPlaylist: () =>
-                      showAddToPlaylistSheet(context, song),
-                );
-              },
-            ),
-          );
-        },
-      ),
+                          return SongItem(
+                            song: song,
+
+                            /// ▶ nút play nhỏ
+                            onPlay: () {
+                              context
+                                  .read<AudioPlayerService>()
+                                  .playSong(song);
+                            },
+
+                            /// 👉 BẤM VÀO BÀI HÁT → MỞ PLAYER
+                            onTap: () {
+                              context
+                                  .read<AudioPlayerService>()
+                                  .playSong(song);
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const MusicPlayerScreen(),
+                                ),
+                              );
+                            },
+
+                            onAddToPlaylist: () =>
+                                showAddToPlaylistSheet(context, song),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }

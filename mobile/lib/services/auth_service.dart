@@ -264,4 +264,7 @@ class AuthService {
       rethrow;
     }
   }
+
+  //  /// Bất đồng bộ trả về token
+  Future<String?> get token async => await getToken();
 }

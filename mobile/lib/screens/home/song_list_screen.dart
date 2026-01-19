@@ -5,6 +5,7 @@ import '../../models/song_model.dart';
 import '../../widgets/song_item.dart';
 import '../../widgets/add_to_playlist_sheet.dart';
 import '../../services/audio_player_service.dart';
+import 'music_player_screen.dart';
 import '../../services/favorite_api_service.dart';
 
 class SongListScreen extends StatefulWidget {
@@ -46,7 +47,14 @@ class _SongListScreenState extends State<SongListScreen> {
               context.read<AudioPlayerService>().playSong(song);
             },
             onTap: () {
-              debugPrint('Open player: ${song.title}');
+              // Phát bài và mở màn hình player đầy đủ
+              context.read<AudioPlayerService>().playSong(song);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MusicPlayerScreen(),
+                ),
+              );
             },
             onAddToPlaylist: () {
               showAddToPlaylistSheet(context, song);

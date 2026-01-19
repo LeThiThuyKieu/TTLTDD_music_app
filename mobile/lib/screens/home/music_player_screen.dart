@@ -13,20 +13,40 @@ class MusicPlayerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PageController pageController =
-    PageController(initialPage: 1);
+        PageController(initialPage: 1);
 
     return Consumer<AudioPlayerService>(
       builder: (context, audioService, child) {
         final song = audioService.currentSong;
 
+        /// ===== CHƯA CHỌN BÀI HÁT =====
         if (song == null) {
-          return const Scaffold(
-            body: Center(child: Text("Chọn một bài hát để phát")),
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Music Player"),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            body: const Center(
+              child: Text("Chọn một bài hát để phát"),
+            ),
           );
         }
 
+        /// ===== PLAYER =====
         return Scaffold(
           backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: const Color(0xFFF0F9F1),
+            elevation: 0,
+            toolbarHeight: 30,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
           body: Column(
             children: [
               /// ===== TOP CONTENT =====
@@ -40,7 +60,8 @@ class MusicPlayerScreen extends StatelessWidget {
                       isPlaying: audioService.isPlaying,
                     ),
                     LyricsWidget(
-                      lyrics: song.lyrics ?? 'Chưa có lời bài hát',
+                      lyrics:
+                          song.lyrics ?? 'Chưa có lời bài hát',
                     ),
                   ],
                 ),
@@ -61,7 +82,6 @@ class MusicPlayerScreen extends StatelessWidget {
 
                 onPrevious: audioService.playPrevious,
                 onNext: audioService.playNext,
-
                 onShuffle: audioService.toggleShuffle,
                 onSeek: audioService.seek,
               ),

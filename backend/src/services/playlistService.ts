@@ -88,4 +88,21 @@ export class PlaylistService {
 
     return await PlaylistRepository.delete(playlistId);
   }
+
+   /**
+   * Lấy playlist của user theo bài hát
+   */
+  static async getPlaylistsBySong(
+  songId: number,
+  userId: number
+) { 
+  const playlistIds =
+    await PlaylistRepository.findPlaylistIdsBySong(songId, userId);
+
+  const songs =
+    await PlaylistRepository.findSongsByPlaylistIds(playlistIds);
+
+  return songs;
+}
+
 }

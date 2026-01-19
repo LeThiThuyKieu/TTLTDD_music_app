@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:music_app/screens/home/music_player_screen.dart';
 
 import '../../models/song_model.dart';
 import '../../models/artist_model.dart';
@@ -349,74 +350,86 @@ class _HomeScreenState extends State<HomeScreen> {
         itemCount: trendingSongs.length,
         itemBuilder: (context, index) {
           final song = trendingSongs[index];
-          return Container(
-            width: 150,
-            margin: const EdgeInsets.only(right: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ẢNH + NÚT PLAY
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Stack(
-                    children: [
-                      // Ảnh bài hát
-                      Image.network(
-                        song.coverUrl ?? '',
-                        height: 150,
-                        width: 150,
-                        fit: BoxFit.cover,
-                      ),
+          return GestureDetector(
+            onTap: () {
+              // Bấm vào card (trừ nút play) -> phát bài rồi mở màn hình player
+              context.read<AudioPlayerService>().playSong(song);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MusicPlayerScreen(),
+                ),
+              );
+            },
+            child: Container(
+              width: 150,
+              margin: const EdgeInsets.only(right: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ẢNH + NÚT PLAY
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      children: [
+                        // Ảnh bài hát
+                        Image.network(
+                          song.coverUrl ?? '',
+                          height: 150,
+                          width: 150,
+                          fit: BoxFit.cover,
+                        ),
 
-                      // Nút play
-                      Positioned(
-                        bottom: 5,
-                        right: 5,
-                        child: GestureDetector(
-                          onTap: () {
-                            context.read<AudioPlayerService>().playSong(song);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF8D918D),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow,
-                              color: Colors.white,
-                              size: 18,
+                        // Nút play
+                        Positioned(
+                          bottom: 5,
+                          right: 5,
+                          child: GestureDetector(
+                            onTap: () {
+                              context.read<AudioPlayerService>().playSong(song);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF8D918D),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                // Tên bài hát
-                Text(
-                  song.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(height: 8),
+                  // Tên bài hát
+                  Text(
+                    song.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                // Tên nghệ sĩ
-                Text(
-                  song.artists != null && song.artists!.isNotEmpty
-                      ? song.artists!.first.name
-                      : 'Unknown Artist',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    // color: Colors.black54,
+                  // Tên nghệ sĩ
+                  Text(
+                    song.artists != null && song.artists!.isNotEmpty
+                        ? song.artists!.first.name
+                        : 'Unknown Artist',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      // color: Colors.black54,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
