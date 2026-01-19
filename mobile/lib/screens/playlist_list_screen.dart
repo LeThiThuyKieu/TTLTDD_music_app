@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/playlist_model.dart';
 import '../../services/playlist_api_service.dart';
+import '../../services/favorite_api_service.dart';
+import 'favorites_screen.dart';
 import 'playlist_detail_screen.dart';
 
 class PlaylistListScreen extends StatefulWidget {
@@ -20,6 +22,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
   void initState() {
     super.initState();
     _load();
+    FavoriteApiService.instance.loadFavorites(); // ✅ load likes
   }
 
   Future<void> _load() async {
@@ -31,7 +34,6 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
     try {
       final list = await PlaylistApiService.instance.getMyPlaylists();
 
-      // ✅ tránh trùng với tile "Your Likes" cố định
       final filtered = list.where((p) => !_isLikesPlaylist(p.name)).toList();
 
       setState(() {
@@ -91,7 +93,6 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
               title: const Text("Name (A-Z)"),
               onChanged: (v) => Navigator.pop(context, v),
             ),
-            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -106,290 +107,35 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
   }
 
   // =========================
-  // ✅ New Playlist BottomSheet (giống hình mẫu)
+  // ✅ YOUR LIKES (FIX HOÀN CHỈNH)
   // =========================
-  Future<void> _createPlaylistDialog() async {
-    final nameCtrl = TextEditingController();
-    bool isPublic = true;
-
-    final created = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 8,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 4),
-                  const Text(
-                    "New Playlist",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _sheetTextField(
-                    controller: nameCtrl,
-                    hint: "Most Popular Songs",
-                  ),
-                  const SizedBox(height: 10),
-
-                  // giống UI mẫu, để disabled demo
-                  _sheetTextField(
-                    controller: TextEditingController(),
-                    hint: "Most Popular Songs Latest Releases and Updates",
-                    enabled: false,
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Public/Private dropdown
-                  InkWell(
-                    onTap: () async {
-                      final value = await showModalBottomSheet<bool>(
-                        context: ctx,
-                        showDragHandle: true,
-                        backgroundColor: Colors.white,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                        ),
-                        builder: (_) => SafeArea(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              RadioListTile<bool>(
-                                value: true,
-                                groupValue: isPublic,
-                                title: const Text("Public"),
-                                onChanged: (v) => Navigator.pop(ctx, v),
-                              ),
-                              RadioListTile<bool>(
-                                value: false,
-                                groupValue: isPublic,
-                                title: const Text("Private"),
-                                onChanged: (v) => Navigator.pop(ctx, v),
-                              ),
-                              const SizedBox(height: 8),
-                            ],
-                          ),
-                        ),
-                      );
-
-                      if (value != null) {
-                        setModalState(() => isPublic = value);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF7F7F7),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFE7E7E7)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.public, size: 18, color: Colors.black54),
-                          const SizedBox(width: 10),
-                          Text(
-                            isPublic ? "Public" : "Private",
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const Spacer(),
-                          const Icon(Icons.keyboard_arrow_down, color: Colors.black45),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _sheetButton(
-                          label: "Cancel",
-                          filled: false,
-                          onTap: () => Navigator.pop(ctx, false),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _sheetButton(
-                          label: "Create",
-                          filled: true,
-                          onTap: () async {
-                            final name = nameCtrl.text.trim();
-                            if (name.isEmpty) return;
-
-                            await PlaylistApiService.instance.createPlaylist(
-                              name: name,
-                              isPublic: isPublic ? 1 : 0,
-                            );
-
-                            if (ctx.mounted) Navigator.pop(ctx, true);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+  Widget _buildYourLikesTile() {
+    return ValueListenableBuilder<Set<int>>(
+      valueListenable: FavoriteApiService.instance.favoriteSongIds,
+      builder: (context, favIds, _) {
+        return _RowTile(
+          leading: const CircleAvatar(
+            radius: 22,
+            backgroundColor: Color(0xFF22C55E),
+            child: Icon(Icons.favorite, color: Colors.white),
+          ),
+          title: "Your Likes",
+          subtitle: "${favIds.length} songs",
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const FavoritesScreen(),
               ),
             );
           },
+          trailing: IconButton(
+            icon: const Icon(Icons.more_vert, color: Colors.black54),
+            onPressed: () {},
+          ),
         );
       },
     );
-
-    if (created == true && mounted) {
-      await _load();
-    }
-  }
-
-  // =========================
-  // ✅ Your Likes tile
-  // =========================
-  int _likesSongsCount() {
-    // /playlists/my không trả songs -> tạm 0.
-    // Sau này có API favorites/count thì thay ở đây.
-    return 0;
-  }
-
-  Widget _buildYourLikesTile() {
-    final count = _likesSongsCount();
-
-    return _RowTile(
-      leading: const CircleAvatar(
-        radius: 22,
-        backgroundColor: Color(0xFF22C55E),
-        child: Icon(Icons.favorite, color: Colors.white),
-      ),
-      title: "Your Likes",
-      subtitle: "$count songs",
-      onTap: () {
-        // TODO: điều hướng sang Favorites screen nếu bạn có
-      },
-      trailing: IconButton(
-        icon: const Icon(Icons.more_vert, color: Colors.black54),
-        onPressed: () {},
-      ),
-    );
-  }
-
-  Future<void> _openPlaylistMenu(PlaylistModel p) async {
-    final pid = p.playlistId;
-
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      showDragHandle: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w800)),
-              subtitle: Text(_songsCountLabel(p)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: const Text("Rename"),
-              onTap: () => Navigator.pop(context, "rename"),
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text("Delete", style: TextStyle(color: Colors.red)),
-              onTap: () => Navigator.pop(context, "delete"),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-
-    if (!mounted || action == null) return;
-
-    if (action == "rename") {
-      await _renamePlaylist(pid, p.name);
-    } else if (action == "delete") {
-      await _deletePlaylist(pid);
-    }
-  }
-
-  Future<void> _renamePlaylist(int playlistId, String oldName) async {
-    final controller = TextEditingController(text: oldName);
-
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Rename playlist"),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: "New name"),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text("Save")),
-        ],
-      ),
-    );
-
-    final newName = controller.text.trim();
-    if (ok == true && newName.isNotEmpty && newName != oldName) {
-      await PlaylistApiService.instance.updatePlaylist(playlistId, name: newName);
-      await _load();
-    }
-  }
-
-  Future<void> _deletePlaylist(int playlistId) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete playlist?"),
-        content: const Text("This action cannot be undone."),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel")),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete"),
-          ),
-        ],
-      ),
-    );
-
-    if (ok == true) {
-      await PlaylistApiService.instance.deletePlaylist(playlistId);
-      await _load();
-    }
-  }
-
-  Future<void> _openDetail(PlaylistModel p) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PlaylistDetailScreen(playlistId: p.playlistId),
-      ),
-    );
-    await _load();
-  }
-
-  static String _songsCountLabel(PlaylistModel p) {
-    if (p.songs == null) return "— songs";
-    return "${p.songs!.length} songs";
   }
 
   static bool _isLikesPlaylist(String name) {
@@ -415,17 +161,6 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
           "Playlists",
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w800),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black54),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_horiz, color: Colors.black54),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 6),
-        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -436,7 +171,6 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
           children: [
-            // ✅ Sort row (Recently Added có mũi tên xuống)
             Row(
               children: [
                 const Text("Sort by", style: TextStyle(fontWeight: FontWeight.w700)),
@@ -454,7 +188,6 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(width: 4),
                       const Icon(Icons.keyboard_arrow_down,
                           size: 18, color: Color(0xFF22C55E)),
                     ],
@@ -462,9 +195,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            const Divider(height: 1),
-            const SizedBox(height: 10),
+            const Divider(),
 
             // Add new playlist
             _RowTile(
@@ -475,30 +206,37 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
               ),
               title: "Add New Playlist",
               subtitle: null,
-              onTap: _createPlaylistDialog, // ✅ mở sheet giống hình
+              onTap: () {},
               trailing: const SizedBox(width: 24),
             ),
+
             const SizedBox(height: 6),
 
-            // ✅ Your Likes
+            // ✅ YOUR LIKES
             _buildYourLikesTile(),
+
             const SizedBox(height: 6),
 
-            // playlist items
             ..._playlists.map((p) {
-              final isLikes = _isLikesPlaylist(p.name);
               return _RowTile(
-                leading: _PlaylistThumb(
-                  coverUrl: p.coverUrl,
-                  isLikes: isLikes,
+                leading: const CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Color(0xFFEFFDF5),
+                  child: Icon(Icons.queue_music, color: Color(0xFF22C55E)),
                 ),
                 title: p.name,
-                subtitle: _songsCountLabel(p),
-                onTap: () => _openDetail(p),
-                trailing: IconButton(
-                  icon: const Icon(Icons.more_vert, color: Colors.black54),
-                  onPressed: () => _openPlaylistMenu(p),
-                ),
+                subtitle: "${p.songs?.length ?? 0} songs",
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PlaylistDetailScreen(
+                        playlistId: p.playlistId,
+                      ),
+                    ),
+                  );
+                },
+                trailing: const Icon(Icons.more_vert),
               );
             }),
           ],
@@ -509,9 +247,8 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
 }
 
 // =========================
-// UI components
+// UI Row Tile
 // =========================
-
 class _RowTile extends StatelessWidget {
   final Widget leading;
   final String title;
@@ -542,10 +279,8 @@ class _RowTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 3),
-                    Text(subtitle!, style: const TextStyle(color: Colors.black54, fontSize: 12)),
-                  ],
+                  if (subtitle != null)
+                    Text(subtitle!, style: const TextStyle(color: Colors.black54)),
                 ],
               ),
             ),
@@ -555,101 +290,4 @@ class _RowTile extends StatelessWidget {
       ),
     );
   }
-}
-
-class _PlaylistThumb extends StatelessWidget {
-  final String? coverUrl;
-  final bool isLikes;
-
-  const _PlaylistThumb({required this.coverUrl, required this.isLikes});
-
-  @override
-  Widget build(BuildContext context) {
-    if (coverUrl != null && coverUrl!.trim().isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.network(
-          coverUrl!,
-          width: 44,
-          height: 44,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _fallback(),
-        ),
-      );
-    }
-    return _fallback();
-  }
-
-  Widget _fallback() {
-    return CircleAvatar(
-      radius: 22,
-      backgroundColor: const Color(0xFFEFFDF5),
-      child: Icon(
-        isLikes ? Icons.favorite : Icons.queue_music,
-        color: const Color(0xFF22C55E),
-      ),
-    );
-  }
-}
-
-// =========================
-// BottomSheet helpers
-// =========================
-
-Widget _sheetTextField({
-  required TextEditingController controller,
-  required String hint,
-  bool enabled = true,
-}) {
-  return TextField(
-    controller: controller,
-    enabled: enabled,
-    decoration: InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: const Color(0xFFF7F7F7),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE7E7E7)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE7E7E7)),
-      ),
-      disabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE7E7E7)),
-      ),
-    ),
-  );
-}
-
-Widget _sheetButton({
-  required String label,
-  required bool filled,
-  required VoidCallback onTap,
-}) {
-  return SizedBox(
-    height: 44,
-    child: filled
-        ? ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF22C55E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        elevation: 0,
-      ),
-      onPressed: onTap,
-      child: Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
-    )
-        : OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF22C55E),
-        side: const BorderSide(color: Color(0xFF22C55E)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      ),
-      onPressed: onTap,
-      child: Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
-    ),
-  );
 }

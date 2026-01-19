@@ -17,16 +17,10 @@ class SongItem extends StatelessWidget {
   /// callback khi chọn "Thêm vào playlist"
   final VoidCallback? onAddToPlaylist;
 
-  /// Callback khi bấm "Yêu thích" trong menu 3 chấm
-  final VoidCallback? onYeuThich;
-
-  /// Callback khi bấm "Thêm vào playlist" trong menu 3 chấm
-  final VoidCallback? onThemVaoPlaylist;
-
-  /// Callback khi bấm "Xem ca sĩ" trong menu 3 chấm
+  /// Callback khi bấm "Xem ca sĩ"
   final VoidCallback? onXemCaSi;
 
-  /// Callback khi bấm "Đi đến album" trong menu 3 chấm
+  /// Callback khi bấm "Đi đến album"
   final VoidCallback? onThamGiaAlbum;
 
   const SongItem({
@@ -35,8 +29,6 @@ class SongItem extends StatelessWidget {
     this.onPlay,
     this.onTap,
     this.onAddToPlaylist,
-    this.onYeuThich,
-    this.onThemVaoPlaylist,
     this.onXemCaSi,
     this.onThamGiaAlbum,
   });
@@ -60,7 +52,7 @@ class SongItem extends StatelessWidget {
               height: 50,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) =>
-              const Icon(Icons.music_note, size: 40),
+                  const Icon(Icons.music_note, size: 40),
             ),
           ),
 
@@ -73,7 +65,7 @@ class SongItem extends StatelessWidget {
 
           // ===== CA SĨ =====
           subtitle: Text(
-            song.artists?.map((e) => e.name).join(', ') ?? 'Unknown artist',
+            song.artists.map((e) => e.name).join(', '),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -82,77 +74,123 @@ class SongItem extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ▶️ Nút play
+              // ▶️ Play
               IconButton(
                 icon: const Icon(
                   Icons.play_circle_fill,
                   color: Colors.green,
                   size: 28,
                 ),
-                onPressed: onPlay,
+                onPressed: onPlay ??
+                    () {
+                      context
+                          .read<AudioPlayerService>()
+                          .playSong(song);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              const MusicPlayerScreen(),
+                        ),
+                      );
+                    },
               ),
 
-              // ⋮ Nút menu 3 chấm
+              // ❤️ Favorite
+              IconButton(
+                icon: Icon(
+                  isFav
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: isFav ? Colors.red : null,
+                ),
+                onPressed: sid == null
+                    ? null
+                    : () async {
+                        await FavoriteApiService.instance
+                            .toggleFavorite(sid);
+                      },
+              ),
+
+              // ⋮ Menu
               IconButton(
                 icon: const Icon(Icons.more_vert),
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
-                    builder: (_) => Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Menu: Yêu thích
-                        ListTile(
-                          leading: const Icon(Icons.favorite_border),
-                          title: const Text('Yêu thích'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            (onYeuThich ??
-                                    () {
-                                  debugPrint('Yêu thích ${song.title}');
-                                })();
-                          },
-                        ),
+                    showDragHandle: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
+                    ),
+                    builder: (_) => SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Yêu thích
+                          ListTile(
+                            leading: Icon(
+                              isFav
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color:
+                                  isFav ? Colors.red : null,
+                            ),
+                            title: Text(
+                              isFav
+                                  ? 'Bỏ yêu thích'
+                                  : 'Thêm vào yêu thích',
+                            ),
+                            onTap: () async {
+                              Navigator.pop(context);
+                              if (sid != null) {
+                                await FavoriteApiService
+                                    .instance
+                                    .toggleFavorite(sid);
+                              }
+                            },
+                          ),
 
-                        // Menu: Thêm vào playlist
-                        ListTile(
-                          leading: const Icon(Icons.playlist_add),
-                          title: const Text('Thêm vào playlist'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            (onThemVaoPlaylist ??
-                                    () {
-                                  debugPrint('Thêm ${song.title} vào playlist');
-                                })();
-                          },
-                        ),
+                          // Thêm vào playlist
+                          ListTile(
+                            leading:
+                                const Icon(Icons.playlist_add),
+                            title: const Text(
+                                'Thêm vào playlist'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              onAddToPlaylist?.call();
+                            },
+                          ),
 
-                        // Menu: Xem ca sĩ
-                        ListTile(
-                          leading: const Icon(Icons.person),
-                          title: const Text('Xem ca sĩ'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            (onXemCaSi ??
-                                    () {
-                                  debugPrint('Xem ca sĩ của ${song.title}');
-                                })();
-                          },
-                        ),
+                          // Xem ca sĩ
+                          ListTile(
+                            leading:
+                                const Icon(Icons.person),
+                            title:
+                                const Text('Xem ca sĩ'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              onXemCaSi?.call();
+                            },
+                          ),
 
-                        // Menu: Đi đến album
-                        ListTile(
-                          leading: const Icon(Icons.album),
-                          title: const Text('Đi đến album'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            (onThamGiaAlbum ??
-                                    () {
-                                  debugPrint('Đi đến album của ${song.title}');
-                                })();
-                          },
-                        ),
-                      ],
+                          // Đi đến album
+                          ListTile(
+                            leading:
+                                const Icon(Icons.album),
+                            title:
+                                const Text('Đi đến album'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              onThamGiaAlbum?.call();
+                            },
+                          ),
+
+                          const SizedBox(height: 8),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -160,18 +198,20 @@ class SongItem extends StatelessWidget {
             ],
           ),
 
-          // Khi bấm vào toàn bộ item
+          // ===== TAP TOÀN ITEM =====
           onTap: onTap ??
-                  () {
-                    // Bấm vào card (trừ nút play) -> phát bài rồi mở màn hình player
-                    context.read<AudioPlayerService>().playSong(song);
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                        builder: (_) => const MusicPlayerScreen(),
-                        ),
-                    );
-                  },
+              () {
+                context
+                    .read<AudioPlayerService>()
+                    .playSong(song);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const MusicPlayerScreen(),
+                  ),
+                );
+              },
         );
       },
     );
