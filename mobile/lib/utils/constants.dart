@@ -5,6 +5,7 @@ class AppConstants {
   static const String keyUserEmail = 'user_email';
   static const String keyUserName = 'user_name';
   static const String keyUserAvatar = 'user_avatar';
+  static const String keyUserRole = 'user_role';
 
   // Error Messages
   static const String errorNetwork = 'Lỗi kết nối mạng';

@@ -20,8 +20,16 @@ class ApiConfig {
   static const String usersById = '/users';
   
   static const String songs = '/songs';
+
+  static const String search = '/search';
+  // Tìm kiếm bài hát theo
   static const String songsSearch = '/songs/search';
+  // Lấy danh sách bài hát theo thể loại/genre.
   static const String songsByGenre = '/songs/genre';
+
+  // Tìm kiếm nghệ sĩ theo tên.
+  static const String artistsSearch = '/artists/search';
+  
   static const String songPlaylists = '/songs'; // /songs/:id/playlists
   static const String songDetail = '/songs'; // API mới: lấy chi tiết bài hát (song + artists + album + genre)
 

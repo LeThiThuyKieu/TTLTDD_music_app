@@ -15,8 +15,10 @@ import 'artist/artist_list_screen.dart';
 import 'song_list_screen.dart';
 import 'package:provider/provider.dart';
 import '../../services/audio_player_service.dart';
+import '../search/search_screen.dart';
 import 'album/album_detail_screen.dart';
 import 'album/album_list_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -197,7 +199,19 @@ class _HomeScreenState extends State<HomeScreen> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         const Spacer(),
-        const Icon(Icons.search),
+        //Icon search
+        // const Icon(Icons.search),
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SearchScreen(),
+              ),
+            );
+          },
+        ),
         const SizedBox(width: 16),
         IconButton(
           icon: const Icon(Icons.logout),

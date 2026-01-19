@@ -1,3 +1,5 @@
+import 'package:music_app/models/song_model.dart';
+
 import 'artist_model.dart';
 
 class AlbumModel {
@@ -8,6 +10,7 @@ class AlbumModel {
   final DateTime? releaseDate;
   final int? isActive;
   final ArtistModel? artist;
+  final List<SongModel>? songs;
 
   AlbumModel({
     this.albumId,
@@ -17,6 +20,7 @@ class AlbumModel {
     this.releaseDate,
     this.isActive,
     this.artist,
+    this.songs,
   });
 
   factory AlbumModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +36,11 @@ class AlbumModel {
       artist: json['artist'] != null
           ? ArtistModel.fromJson(json['artist'])
           : null,
+      songs: json['songs'] != null
+          ? (json['songs'] as List)
+          .map((e) => SongModel.fromJson(e))
+          .toList()
+          : [],
     );
   }
 
@@ -44,6 +53,7 @@ class AlbumModel {
       'release_date': releaseDate?.toIso8601String(),
       'is_active': isActive,
       'artist': artist?.toJson(),
+      'songs': songs?.map((s) => s.toJson()).toList(),
     };
   }
 }

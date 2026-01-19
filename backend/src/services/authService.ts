@@ -41,7 +41,9 @@ export class AuthService {
 
     // Tạo JWT token
     const token = jwt.sign(
-      { user_id: user.user_id, email: user.email },
+      { user_id: user.user_id, email: user.email
+        , role: user.role,
+       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
     );
@@ -79,7 +81,9 @@ export class AuthService {
 
     // Tạo JWT token
     const token = jwt.sign(
-      { user_id: user.user_id!, email: user.email },
+      { user_id: user.user_id!, email: user.email,
+        role: user.role,
+       },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions
     );

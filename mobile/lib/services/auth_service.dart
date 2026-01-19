@@ -30,6 +30,7 @@ class AuthService {
     await prefs.remove(AppConstants.keyUserEmail);
     await prefs.remove(AppConstants.keyUserName);
     await prefs.remove(AppConstants.keyUserAvatar);
+    await prefs.remove(AppConstants.keyUserRole);
   }
 
   // Lưu thông tin user
@@ -147,6 +148,8 @@ class AuthService {
         name: userData['name'] as String,
         avatarUrl: avatarUrl,
       );
+      final role = userData['role'] as String? ?? 'user';
+      await saveUserRole(role);
     } catch (e) {
       rethrow;
     }
@@ -193,6 +196,8 @@ class AuthService {
         name: userData['name'] as String,
         avatarUrl: avatarUrl,
       );
+      final role = userData['role'] as String? ?? 'user';
+      await saveUserRole(role);
     } catch (e) {
       rethrow;
     }
@@ -264,6 +269,18 @@ class AuthService {
       rethrow;
     }
   }
+  // Lưu role
+  Future<void> saveUserRole(String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.keyUserRole, role);
+  }
+
+// Lấy role
+  Future<String?> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.keyUserRole);
+  }
+
 
   //  /// Bất đồng bộ trả về token
   Future<String?> get token async => await getToken();

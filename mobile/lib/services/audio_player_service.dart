@@ -115,10 +115,12 @@ class AudioPlayerService extends ChangeNotifier {
   Future<void> playNext() async {
     if (_playQueue == null || _playQueue!.isEmpty) return;
 
-    if (_currentIndex < _playQueue!.length - 1) {
-      _currentIndex++;
+    // if (_currentIndex < _playQueue!.length - 1) {
+    //   _currentIndex++;
+    // nếu ch tới bài cuối thì phát tiếp, bài cúi thì quay lại bào đầu tiên
+    _currentIndex = (_currentIndex + 1) % _playQueue!.length;
       await playSong(_playQueue![_currentIndex]);
-    }
+    // }
   }
 
   Future<void> playPrevious() async {

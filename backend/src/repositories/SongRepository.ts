@@ -136,6 +136,11 @@ export class SongRepository {
     const q = `%${query}%`;
 
     const [rows] = await pool.execute(
+      // `SELECT * FROM songs s JOIN song_artists sa ON s.song_id = sa.song_id
+      //                         JOIN artists a ON a.artist_id = sa.artist_id
+      //  WHERE s.title LIKE ? AND s.is_active = 1
+      //  ORDER BY s.song_id DESC LIMIT ?`,
+      // [`%${query}%`, limit]
       `
       SELECT 
         s.*,
@@ -153,6 +158,7 @@ export class SongRepository {
       LIMIT ? OFFSET ?
       `,
       [q, q, limit, offset]
+
     );
 
     return this.mapRowsToSongsWithArtists(rows as any[]);
