@@ -38,7 +38,7 @@ class PlaylistApiService {
 
   Future<void> createPlaylist({
     required String name,
-    int? isPublic,
+    bool? isPublic,
     String? coverUrl,
   }) async {
     await _api.post('/playlists', {

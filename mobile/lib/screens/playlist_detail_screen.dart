@@ -354,15 +354,18 @@ class _PlaylistHeader extends StatelessWidget {
           Row(
             children: [
               // thumb trái
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  color: const Color(0xFFF2F2F2),
-                  child: const Icon(Icons.queue_music, color: Colors.black38),
-                ),
-              ),
+      ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: 56,
+        height: 56,
+        color: const Color(0xFFEFF2F2),
+        child: Image.asset(
+          'assets/images/default_1.png',
+          fit: BoxFit.cover,
+        ),
+      ),
+    ),
               const SizedBox(width: 12),
 
               // title + subtitle
@@ -389,7 +392,7 @@ class _PlaylistHeader extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // ✅ hàng icon tim / download / share / more ở TRÊN (đúng yêu cầu)
+          // ✅ hàng icon tim / download / share / more ở TRÊN
           Row(
             children: [
               _CircleIconButton(icon: Icons.favorite_border, onTap: onLike),
@@ -501,7 +504,7 @@ class _SongTile extends StatelessWidget {
                 ),
               ),
 
-              // ✅ 3 chấm (Like chuyển vào đây)
+              //  3 chấm (Like chuyển vào đây)
               IconButton(
                 onPressed: onMore,
                 icon: const Icon(Icons.more_vert, color: Colors.black54),
