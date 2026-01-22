@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../models/artist_model.dart';
 import '../../../services/artist_service.dart';
+import '../../../services/audio_player_service.dart';
+import '../../../widgets/scaffold_with_mini_player.dart';
 import 'artist_detail_screen.dart';
 
 class ArtistListScreen extends StatefulWidget {
@@ -21,7 +24,10 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
+
+    return ScaffoldWithMiniPlayer(
       backgroundColor: Colors.white,
 
       // ===== bar =====
@@ -44,7 +50,7 @@ class _ArtistListScreenState extends State<ArtistListScreen> {
 
       // ===== danh sach artist =====
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, hasSong ? 70 : 0),
         child: GridView.builder(
           itemCount: widget.artists.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

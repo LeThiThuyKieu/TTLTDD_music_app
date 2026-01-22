@@ -37,6 +37,7 @@
 //
 import 'package:flutter/material.dart';
 import 'package:music_app/screens/onboarding/splash_screen.dart';
+import 'package:music_app/services/auth_service.dart';
 import 'package:music_app/utils/theme_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -61,6 +62,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AudioPlayerService()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        Provider(create: (_) => AuthService()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

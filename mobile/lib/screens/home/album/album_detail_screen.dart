@@ -6,6 +6,7 @@ import '../../../models/song_model.dart';
 import '../../../services/album_service.dart';
 import '../../../services/audio_player_service.dart';
 import '../../../widgets/song_item.dart';
+import '../../../widgets/scaffold_with_mini_player.dart';
 import '../../home/song_list_screen.dart';
 import '../../home/artist/artist_detail_screen.dart';
 import '../music_player_screen.dart';
@@ -45,7 +46,10 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
+
+    return ScaffoldWithMiniPlayer(
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
@@ -54,6 +58,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
         title: Text(widget.album.title),
       ),
       body: SingleChildScrollView(
+        padding: EdgeInsets.only(bottom: hasSong ? 70 : 0),
         child: Column(
           children: [
             const SizedBox(height: 16),

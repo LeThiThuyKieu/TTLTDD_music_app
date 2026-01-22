@@ -14,6 +14,14 @@ router.get("/search", optionalAuth, SongController.search);
 // Lấy bài hát theo genre
 router.get("/genre/:genreId", optionalAuth, SongController.getByGenre);
 
+// Gợi ý bài hát (ưu tiên playlist -> nghệ sĩ -> thể loại -> phổ biến)
+router.get(
+	"/:id/playlists/songs",
+	optionalAuth,
+	SongController.getRecommendations
+);
+
+
 // Lấy bài hát theo ID
 router.get("/:id", optionalAuth, SongController.getById);
 
@@ -23,4 +31,6 @@ router.post("/", optionalAuth, validate(validateSong), SongController.create);
 // Lấy bài hát theo ID (đầy đủ: song + artists + album + genre)
 router.get("/:id/detail", optionalAuth, SongController.getDetail);
 
+
 export default router;
+

@@ -5,6 +5,7 @@ import '../../../models/artist_model.dart';
 import '../../../models/song_model.dart';
 import '../../../services/audio_player_service.dart';
 import '../../../widgets/song_item.dart';
+import '../../../widgets/scaffold_with_mini_player.dart';
 import '../song_list_screen.dart';
 import '../music_player_screen.dart';
 
@@ -20,7 +21,10 @@ class ArtistDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
+
+    return ScaffoldWithMiniPlayer(
       backgroundColor: Colors.white,
 
       // ===== bar =====
@@ -31,6 +35,7 @@ class ArtistDetailScreen extends StatelessWidget {
       ),
 
       body: SingleChildScrollView(
+        padding: EdgeInsets.only(bottom: hasSong ? 70 : 0),
         child: Column(
           children: [
             const SizedBox(height: 8),

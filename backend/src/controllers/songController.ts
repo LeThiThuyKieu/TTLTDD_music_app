@@ -200,5 +200,50 @@ export class SongController {
     });
   }
 }
+ // Gợi ý bài hát ưu tiên: cùng playlist -> cùng nghệ sĩ -> cùng thể loại -> phổ biến/ngẫu nhiên
+  static async getRecommendations(
+    req: AuthenticatedRequest,
+    res: Response
+  ): Promise<void> {
+    try {
+      const songId = parseInt(req.params.id);
+      if (isNaN(songId)) {
+        res.status(400).json({ error: "Invalid song ID" });
+        return;
+      }
 
+      const limitRaw = parseInt(req.query.limit as string);
+      const limit = Number.isFinite(limitRaw)
+        ? Math.min(Math.max(limitRaw, 1), 50)
+        : 20;
+
+      // userId có thể null nếu chưa đăng nhập (optionalAuth)
+      const userId = req.user?.user_id ?? null;
+
+      const songs = await SongService.getRecommendedSongs(
+        songId,
+        userId,
+        limit
+      );
+
+      res.json({
+        success: true,
+        data: songs,
+        pagination: {
+          limit,
+          count: songs.length,
+        },
+      });
+    } catch (error: any) {
+      if (error?.message === "Song not found") {
+        res.status(404).json({ success: false, error: "Song not found" });
+        return;
+      }
+      console.error("Get recommended songs error:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Internal server error",
+      });
+    }
+  }
 }

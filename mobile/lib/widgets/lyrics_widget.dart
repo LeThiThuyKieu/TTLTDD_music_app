@@ -33,7 +33,7 @@ class LyricsWidget extends StatelessWidget {
               'Chưa có lời bài hát',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 34,
+                fontSize: 30,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF9CA3AF),
                 letterSpacing: 0.5,
@@ -51,7 +51,7 @@ class LyricsWidget extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Color(0xFF2A2F36),
-                  fontSize: 24,
+                  fontSize: 20,
                   height: 2.0,
                   letterSpacing: 0.4,
                   fontWeight: FontWeight.w400,

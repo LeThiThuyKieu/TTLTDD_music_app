@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/song_model.dart';
 import '../../models/artist_model.dart';
 import '../../models/album_model.dart';
 import '../../models/genre_model.dart';
 import '../../services/search_service.dart';
+import '../../services/audio_player_service.dart';
+import '../../widgets/scaffold_with_mini_player.dart';
 
 import 'widgets/browse_categories.dart';
 import 'widgets/recent_searches.dart';
@@ -144,7 +147,7 @@ class _SearchScreenState extends State<SearchScreen>
     final showRecent = _focusNode.hasFocus && _query.isEmpty;
     final showResults = _query.isNotEmpty;
 
-    return Scaffold(
+    return ScaffoldWithMiniPlayer(
       backgroundColor: Colors.white,
 
       /// ================= APP BAR =================
