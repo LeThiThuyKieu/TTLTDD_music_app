@@ -235,7 +235,7 @@ class ApiService {
         request.files.add(
           await http.MultipartFile.fromPath(
             entry.key,     // key backend: music / cover
-            entry.value.path,
+            entry.value.path, // đường dẫn tuyết đối trong máy
           ),
         );
       }
@@ -280,9 +280,9 @@ class ApiService {
         );
       }
 
-      final streamedResponse = await request.send();
+      final streamedResponse = await request.send(); //Gửi request lên server
       final response =
-      await http.Response.fromStream(streamedResponse);
+      await http.Response.fromStream(streamedResponse); //Đọc hết dữ liệu từ stream
 
       return await _handleResponse(response);
     } catch (e) {

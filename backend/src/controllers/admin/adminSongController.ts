@@ -51,7 +51,7 @@ export class AdminSongController {
   static async deleteSongById(req: AuthenticatedRequest, res: Response) {
     try {
       const song_id = Number(req.params.id);
-      if (isNaN(song_id)) {
+      if (isNaN(song_id)) { // không f number
         return res.status(400).json({
           success: false,
           message: "Invalid song ID"
@@ -94,6 +94,7 @@ export class AdminSongController {
       [fieldname: string]: Express.Multer.File[];
     };
 
+    //lấy file nhạc từ request upload
     const musicFile = files?.music?.[0];
     if (!musicFile) {
       return res.status(400).json({

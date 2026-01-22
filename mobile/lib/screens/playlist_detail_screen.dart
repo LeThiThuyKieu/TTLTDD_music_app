@@ -3,7 +3,10 @@ import '../../models/playlist_model.dart';
 import '../../services/playlist_api_service.dart';
 import '../../widgets/song_item.dart';
 import '../../widgets/add_to_playlist_sheet.dart';
-
+/// Màn hình hiển thị chi tiết một playlist
+/// - Lấy dữ liệu playlist từ API
+/// - Hiển thị danh sách bài hát
+/// - Cho phép xóa bài khỏi playlist
 class PlaylistDetailScreen extends StatefulWidget {
   final int playlistId;
   const PlaylistDetailScreen({super.key, required this.playlistId});
@@ -20,9 +23,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    _load();// Gọi API ngay khi màn hình được khởi tạo
   }
-
+  /// Gọi API lấy thông tin chi tiết playlist
   Future<void> _load() async {
     setState(() {
       _loading = true;
@@ -30,6 +33,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     });
 
     try {
+      // Gọi API lấy playlist theo id
       final p = await PlaylistApiService.instance.getPlaylistDetail(widget.playlistId);
 
       debugPrint("DETAIL OK id=${widget.playlistId} name=${p.name} songs=${p.songs?.length}");
@@ -46,8 +50,9 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       });
     }
   }
-
+  /// Xóa một bài hát khỏi playlist
   Future<void> _removeSong(int songId) async {
+    // Gọi API xóa bài hát
     await PlaylistApiService.instance.removeSongFromPlaylist(widget.playlistId, songId);
     await _load();
     if (!mounted) return;
@@ -55,7 +60,8 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
       const SnackBar(content: Text('Đã xóa bài khỏi playlist')),
     );
   }
-
+  /// Trả về chuỗi tên nghệ sĩ của bài hát
+  /// Tránh lỗi khi dữ liệu backend không đồng nhất
   String _artistLine(dynamic song) {
     try {
       final artists = song?.artists;
@@ -96,7 +102,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
             ),
             const Divider(height: 1),
 
-            // ✅ Like chuyển vào menu 3 chấm (theo yêu cầu)
+            // Like chuyển vào menu 3 chấm (theo yêu cầu)
             ListTile(
               leading: const Icon(Icons.favorite_border),
               title: const Text("Like"),
@@ -299,7 +305,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
                       if (sid != null) await _removeSong(sid);
                     },
 
-                    // ✅ row bài hát: KHÔNG có tim, tim nằm trong menu 3 chấm
+                    //  row bài hát: KHÔNG có tim, tim nằm trong menu 3 chấm
                     child: _SongTile(
                       title: song.title,
                       subtitle: _artistLine(song),
@@ -359,8 +365,11 @@ class _PlaylistHeader extends StatelessWidget {
                 child: Container(
                   width: 56,
                   height: 56,
-                  color: const Color(0xFFF2F2F2),
-                  child: const Icon(Icons.queue_music, color: Colors.black38),
+                  color: const Color(0xFFEFF2F2),
+                  child: Image.asset(
+                    'assets/images/default_1.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -389,7 +398,7 @@ class _PlaylistHeader extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // ✅ hàng icon tim / download / share / more ở TRÊN (đúng yêu cầu)
+          //  hàng icon tim / download / share / more ở TRÊN
           Row(
             children: [
               _CircleIconButton(icon: Icons.favorite_border, onTap: onLike),
@@ -501,7 +510,7 @@ class _SongTile extends StatelessWidget {
                 ),
               ),
 
-              // ✅ 3 chấm (Like chuyển vào đây)
+              //  3 chấm (Like chuyển vào đây)
               IconButton(
                 onPressed: onMore,
                 icon: const Icon(Icons.more_vert, color: Colors.black54),

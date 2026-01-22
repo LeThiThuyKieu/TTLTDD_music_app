@@ -19,7 +19,7 @@ class GenreDistributionCard extends StatelessWidget {
   const GenreDistributionCard({super.key, required this.genres});
   @override
   Widget build(BuildContext context) {
-    final totalSongs =
+    final totalSongs = //fold = duyệt list và cộng dồn
     genres.fold<int>(0, (sum, item) => sum + item.songCount);
 
     return Container(
@@ -137,12 +137,13 @@ class DonutChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.butt;
 
     for (final item in data) {
+      //tính tỷ lệ phần trăm và quy đổi sang góc quét
       final sweepAngle = (item.songCount / total) * 6.28318;
       paint.color = item.color;
-
+// vẽ cung tròn (arc) tương ứng 1 genre
       canvas.drawArc(
         Rect.fromLTWH(0, 0, size.width, size.height),
-        startAngle,
+        startAngle, //cập nhật startAngle sau mỗi lần vẽ.
         sweepAngle,
         false,
         paint,

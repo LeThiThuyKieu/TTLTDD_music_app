@@ -11,13 +11,14 @@ class AdminSongScreen extends StatefulWidget {
   @override
   State<AdminSongScreen> createState() => _SongScreenState();
 }
-
+// LOGIC
 class _SongScreenState extends State<AdminSongScreen> {
-  final SongService _songService = SongService();
-  List<SongModel> allSongs = [];
+  //  Các biến
+  final SongService _songService = SongService(); //service gọi API
+  List<SongModel> allSongs = []; // ds bài hát từ service
   String selectedStatus = 'Tất cả';
   String searchText = '';
-  bool isLoading = false;
+  bool isLoading = false; //loading API
   int limit = 10;
   int currentPage = 1;
   int totalItems = 0;
@@ -34,12 +35,12 @@ class _SongScreenState extends State<AdminSongScreen> {
   Future<void> _loadSongs({int page = 1}) async {
     try {
       setState(() { isLoading = true;  currentPage = page;} );
-
+      // Gọi API
       final result = await _songService.getAllSongs(
         limit: limit,
         offset: (page - 1) * limit,
       );
-
+      //   Update UI
       setState(() {
         allSongs = result.songs;
         totalItems = result.total;
@@ -109,7 +110,7 @@ class _SongScreenState extends State<AdminSongScreen> {
         const SnackBar(content: Text('Xoá bài hát thành công')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar( //Hiển thị thông báo.
         SnackBar(content: Text('Xoá thất bại: $e')),
       );
     }
@@ -144,6 +145,7 @@ class _SongScreenState extends State<AdminSongScreen> {
         const SizedBox(height: 8),
 
         Row(
+          //căn chỉnh các widget con theo trục chính
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _pageButton('<<', currentPage > 1
@@ -178,17 +180,17 @@ class _SongScreenState extends State<AdminSongScreen> {
   Widget _pageButton(String text, VoidCallback? onTap) {
     return IconButton(
       icon: Text(text),
-      onPressed: onTap,
+      onPressed: onTap, // hàm được truyền từ bên ngoài Sẽ chạy khi bấm nút
     );
   }
 
   Widget _pageNumber(int page) {
     final isActive = page == currentPage;
 
-    return GestureDetector(
-      onTap: () => _loadSongs(page: page),
+    return GestureDetector( //widget bắt sự kiện chạm
+      onTap: () => _loadSongs(page: page), //Khi xảy ra sự kiện tap → chạy _loadSongs(...).
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 4), // đối xứng
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFF8DB27C) : Colors.transparent,
@@ -210,10 +212,12 @@ class _SongScreenState extends State<AdminSongScreen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       child: Column(
+        // trục dọc
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           /// PAGE NAME
           Row(
+            // trục ngang
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
@@ -221,10 +225,10 @@ class _SongScreenState extends State<AdminSongScreen> {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2C3930)),
               ),
               FloatingActionButton(
-                mini: true,
+                mini: true, //Làm cho nút nhỏ hơn bình thường
                 backgroundColor: const Color(0xFF8DB27C),
                 onPressed: () async{
-                  // Mở screen thêm bài hát
+                  // Mở screen thêm bài hát (đẩy  màn hình theem mới lên trên
                   final added = await Navigator.push(context, MaterialPageRoute(builder: (_) =>
                         AdminAddSongScreen()
                   ),
@@ -254,7 +258,7 @@ class _SongScreenState extends State<AdminSongScreen> {
               // TIÊU ĐỀ
               children: [
                 const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center, // căn chỉnh theo trục dọc
                   children: [
                     Icon(Icons.library_music, size: 30),
                     SizedBox(width: 15),
@@ -272,9 +276,9 @@ class _SongScreenState extends State<AdminSongScreen> {
                 InputBox(
                   icon: Icons.search,
                   hint: 'Tìm kiếm bài hát...',
-                  onChanged: (value) {
-                    setState(() {
-                      searchText = value;
+                  onChanged: (value) { //callback được gọi mỗi khi nội dung ô nhập thay đổi
+                    setState(() { //State đã thay đổi → rebuild UI
+                      searchText = value; //Lưu text tìm kiếm vào biến state
                     });
                   },
                 ),
@@ -297,8 +301,9 @@ class _SongScreenState extends State<AdminSongScreen> {
                 ...filteredSongs.map(
                       (song) => _SongItem(
                     song: song,
+                    //Truyền hàm xoá từ cha xuống con
                     onDelete: () async => _deleteSong(song),
-                        // onUpdated: _loadSongs,
+                        // Callback khi update bài hát thành công
                         onUpdated: () => _loadSongs(page: currentPage),
                   ),
                 ),
@@ -336,7 +341,7 @@ class _SongItem extends StatelessWidget {
           // IMAGE
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
+            child: Image.network( //Ảnh từ server
               song.coverUrl ?? '',
               width: 44,
               height: 44,

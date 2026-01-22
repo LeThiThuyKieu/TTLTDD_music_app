@@ -1,6 +1,6 @@
-import 'dart:io';
+import 'dart:io';  // dùng file
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart'; // dùng depugPrint (ghi log)
 
 import '../../models/song_model.dart';
 import '../api_service.dart';
@@ -30,36 +30,6 @@ class SongService {
     total: response['total'] as int,
     );
   }
-
-  // Future<List<SongModel>> getAllSongs({int limit = 10, int offset = 0}) async {
-  //   final response = await _api.get('/admin/songs', queryParams: {
-  //     'limit': limit.toString(),
-  //     'offset': offset.toString(),
-  //   });
-  //   debugPrint('JSON from API: $response');
-  //
-  //   // Kiểm tra dữ liệu nhận được từ API có phải là 1 list
-  //   if (response['data'] is! List) {
-  //     throw Exception('Invalid API format: data is not a list');
-  //   }
-  //
-  //   return (response['data'] as List)
-  //       .map((e) => SongModel.fromJson(e))
-  //       .toList();
-  // }
-
-  // DANH SÁCH BÀI HÁT CHO SELECT
-  // Future<List<SongModel>> getSongsForSelect() async {
-  //   final response = await _api.get('/admin/songs/select');
-  //
-  //   final data = response['data'];
-  //   if (data is! List) {
-  //     throw Exception('Invalid API format');
-  //   }
-  //
-  //   return data.map((e) => SongModel.fromJson(e)).toList();
-  // }
-
   // DS bài hát cho select
   Future<List<Map<String, dynamic>>> getSongsForSelect() async {
     final response = await _api.get('/admin/songs/select');
@@ -99,7 +69,7 @@ class SongService {
         'duration': duration.toString(),
         if (lyrics != null) 'lyrics': lyrics,
 
-        // Gửi nhiều artist_id (backend thường nhận array)
+        // Gửi nhiều artist_id
         'artist_ids': artistIds.join(','),
       },
       files: {

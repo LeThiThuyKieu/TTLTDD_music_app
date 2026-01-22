@@ -14,7 +14,7 @@ class PlaylistApiService {
     final raw = (res is Map && res['data'] != null) ? res['data'] : res;
 
     if (raw is List) {
-      // ✅ Fix quan trọng: ép từng item về Map<String, dynamic>
+      //  Fix quan trọng: ép từng item về Map<String, dynamic>
       // tránh whereType lọc mất vì kiểu Map<dynamic,dynamic>
       return raw.map((e) {
         final map = Map<String, dynamic>.from(e as Map);
@@ -38,7 +38,7 @@ class PlaylistApiService {
 
   Future<void> createPlaylist({
     required String name,
-    int? isPublic,
+    bool? isPublic,
     String? coverUrl,
   }) async {
     await _api.post('/playlists', {
@@ -48,7 +48,7 @@ class PlaylistApiService {
     });
   }
 
-  /// ⚠️ backend của bạn hiện CHƯA có PUT /playlists/:id -> rename sẽ fail.
+  /// ️ backend của bạn hiện CHƯA có PUT /playlists/:id -> rename sẽ fail.
   Future<void> updatePlaylist(int playlistId, {required String name}) async {
     await _api.put('/playlists/$playlistId', {'name': name});
   }

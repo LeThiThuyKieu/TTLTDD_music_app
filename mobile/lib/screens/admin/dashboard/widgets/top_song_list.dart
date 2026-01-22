@@ -5,7 +5,7 @@ class TopSongsList extends StatelessWidget {
   final List<TopSong> songs;
 
   const TopSongsList({
-    super.key,
+    super.key, //truyền key từ widget con lên constructor của widget cha
     required this.songs,
   });
 

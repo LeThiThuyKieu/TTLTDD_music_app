@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../../models/playlist_model.dart';
 import '../../services/playlist_api_service.dart';
 import '../../services/favorite_api_service.dart';
-import 'favorites_screen.dart';
+
 import 'playlist_detail_screen.dart';
+import 'favorites_screen.dart';
 
 class PlaylistListScreen extends StatefulWidget {
   const PlaylistListScreen({super.key});
@@ -14,15 +16,19 @@ class PlaylistListScreen extends StatefulWidget {
 
 class _PlaylistListScreenState extends State<PlaylistListScreen> {
   bool _loading = true;
+
+  // lưu lỗi nếu gọi API thất bại
   String? _error;
+// danh sách playlist
   List<PlaylistModel> _playlists = [];
-  String _sortKey = "recent"; // recent | name
+  // key sắp xếp: recent | name
+  String _sortKey = 'recent'; // recent | name
 
   @override
   void initState() {
     super.initState();
     _load();
-    FavoriteApiService.instance.loadFavorites(); // ✅ load likes
+    FavoriteApiService.instance.loadFavorites();
   }
 
   Future<void> _load() async {
@@ -34,6 +40,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
     try {
       final list = await PlaylistApiService.instance.getMyPlaylists();
 
+      // loại bỏ playlist like trùng
       final filtered = list.where((p) => !_isLikesPlaylist(p.name)).toList();
 
       setState(() {
@@ -51,88 +58,96 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
   List<PlaylistModel> _applySort(List<PlaylistModel> list) {
     final copied = [...list];
 
-    if (_sortKey == "name") {
-      copied.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-      return copied;
+    if (_sortKey == 'name') {
+      copied.sort((a, b) =>
+          a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    } else {
+      copied.sort((a, b) {
+        final ad = a.createdAt;
+        final bd = b.createdAt;
+        if (ad != null && bd != null) return bd.compareTo(ad);
+        return b.playlistId.compareTo(a.playlistId);
+      });
     }
-
-    copied.sort((a, b) {
-      final ad = a.createdAt;
-      final bd = b.createdAt;
-      if (ad != null && bd != null) return bd.compareTo(ad);
-      return b.playlistId.compareTo(a.playlistId);
-    });
-
     return copied;
   }
 
   Future<void> _pickSort() async {
-    final value = await showModalBottomSheet<String>(
+    final v = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
-      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const ListTile(
-              title: Text("Sort by", style: TextStyle(fontWeight: FontWeight.w800)),
-            ),
-            RadioListTile<String>(
-              value: "recent",
-              groupValue: _sortKey,
-              title: const Text("Recently Added"),
-              onChanged: (v) => Navigator.pop(context, v),
-            ),
-            RadioListTile<String>(
-              value: "name",
-              groupValue: _sortKey,
-              title: const Text("Name (A-Z)"),
-              onChanged: (v) => Navigator.pop(context, v),
-            ),
-          ],
-        ),
+      builder: (_) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const ListTile(
+            title:
+            Text('Sort by', style: TextStyle(fontWeight: FontWeight.w800)),
+          ),
+          RadioListTile(
+            value: 'recent',
+            groupValue: _sortKey,
+            title: const Text('Recently Added'),
+            onChanged: (v) => Navigator.pop(context, v),
+          ),
+          RadioListTile(
+            value: 'name',
+            groupValue: _sortKey,
+            title: const Text('Name (A–Z)'),
+            onChanged: (v) => Navigator.pop(context, v),
+          ),
+        ],
       ),
     );
 
-    if (value != null && mounted) {
+    if (v != null) {
       setState(() {
-        _sortKey = value;
+        _sortKey = v;
         _playlists = _applySort(_playlists);
       });
     }
   }
 
-  // =========================
-  // ✅ YOUR LIKES (FIX HOÀN CHỈNH)
-  // =========================
-  Widget _buildYourLikesTile() {
+  // ============================
+  // ADD NEW PLAYLIST
+  // ============================
+  Future<void> _openCreatePlaylist() async {
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const _CreatePlaylistSheet(),
+    );
+
+    if (ok == true) _load();
+  }
+
+  // ============================
+  // YOUR LIKES TILE
+  // ============================
+  Widget _buildYourLikes() {
     return ValueListenableBuilder<Set<int>>(
       valueListenable: FavoriteApiService.instance.favoriteSongIds,
-      builder: (context, favIds, _) {
+      builder: (_, favIds, __) {
         return _RowTile(
           leading: const CircleAvatar(
             radius: 22,
             backgroundColor: Color(0xFF22C55E),
             child: Icon(Icons.favorite, color: Colors.white),
           ),
-          title: "Your Likes",
-          subtitle: "${favIds.length} songs",
+          title: 'Your Likes',
+          subtitle: '${favIds.length} songs',
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const FavoritesScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const FavoritesScreen()),
             );
           },
-          trailing: IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.black54),
-            onPressed: () {},
-          ),
         );
       },
     );
@@ -140,10 +155,9 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
 
   static bool _isLikesPlaylist(String name) {
     final n = name.toLowerCase();
-    return n.contains("your likes") ||
-        n.contains("like") ||
-        n.contains("favorite") ||
-        n.contains("yêu thích");
+    return n.contains('like') ||
+        n.contains('favorite') ||
+        n.contains('yêu thích');
   }
 
   @override
@@ -154,42 +168,51 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black87),
+          icon:
+          const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Playlists",
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w800),
+          'Playlists',
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.black54),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(child: Text("Lỗi: $_error"))
+          ? Center(child: Text('Lỗi: $_error'))
           : RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: const EdgeInsets.all(16),
           children: [
             Row(
               children: [
-                const Text("Sort by", style: TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(width: 16),
+                const Text('Sort by',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(width: 12),
                 InkWell(
                   onTap: _pickSort,
                   child: Row(
                     children: [
-                      const Icon(Icons.swap_vert, size: 18, color: Color(0xFF22C55E)),
+                      const Icon(Icons.swap_vert,
+                          size: 18, color: Color(0xFF22C55E)),
                       const SizedBox(width: 6),
                       Text(
-                        _sortKey == "name" ? "Name (A-Z)" : "Recently Added",
+                        _sortKey == 'name'
+                            ? 'Name (A–Z)'
+                            : 'Recently Added',
                         style: const TextStyle(
                           color: Color(0xFF22C55E),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const Icon(Icons.keyboard_arrow_down,
-                          size: 18, color: Color(0xFF22C55E)),
                     ],
                   ),
                 ),
@@ -197,48 +220,49 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
             ),
             const Divider(),
 
-            // Add new playlist
+            // ADD NEW PLAYLIST
             _RowTile(
               leading: const CircleAvatar(
                 radius: 22,
                 backgroundColor: Color(0xFF22C55E),
                 child: Icon(Icons.add, color: Colors.white),
               ),
-              title: "Add New Playlist",
-              subtitle: null,
-              onTap: () {},
-              trailing: const SizedBox(width: 24),
+              title: 'Add New Playlist',
+              onTap: _openCreatePlaylist,
             ),
 
             const SizedBox(height: 6),
 
-            // ✅ YOUR LIKES
-            _buildYourLikesTile(),
+            // YOUR LIKES
+            _buildYourLikes(),
 
             const SizedBox(height: 6),
 
-            ..._playlists.map((p) {
-              return _RowTile(
-                leading: const CircleAvatar(
-                  radius: 22,
-                  backgroundColor: Color(0xFFEFFDF5),
-                  child: Icon(Icons.queue_music, color: Color(0xFF22C55E)),
+            ..._playlists.map((p) => _RowTile(
+              leading: const CircleAvatar(
+                radius: 22,
+                backgroundColor: Color(0xFFEFFDF5),
+                child: Padding(
+                  padding: EdgeInsets.all(6),
+                  child: Image(
+                    image: AssetImage('assets/images/default_album.png'),
+                    fit: BoxFit.contain,
+                  ),
                 ),
-                title: p.name,
-                subtitle: "${p.songs?.length ?? 0} songs",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PlaylistDetailScreen(
-                        playlistId: p.playlistId,
-                      ),
-                    ),
-                  );
-                },
-                trailing: const Icon(Icons.more_vert),
-              );
-            }),
+              ),
+
+              title: p.name,
+              subtitle: '${p.songs?.length ?? 0} songs',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PlaylistDetailScreen(
+                        playlistId: p.playlistId),
+                  ),
+                );
+              },
+            )),
           ],
         ),
       ),
@@ -246,22 +270,124 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
   }
 }
 
-// =========================
-// UI Row Tile
-// =========================
+// ==========================
+// CREATE PLAYLIST SHEET
+// ==========================
+class _CreatePlaylistSheet extends StatefulWidget {
+  const _CreatePlaylistSheet();
+
+  @override
+  State<_CreatePlaylistSheet> createState() => _CreatePlaylistSheetState();
+}
+
+class _CreatePlaylistSheetState extends State<_CreatePlaylistSheet> {
+  final _nameCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
+  bool _public = true;
+  bool _loading = false;
+
+  Future<void> _create() async {
+    if (_nameCtrl.text.trim().isEmpty) return;
+
+    setState(() => _loading = true);
+
+    try {
+      await PlaylistApiService.instance.createPlaylist(
+        name: _nameCtrl.text.trim(),
+        isPublic: _public,
+      );
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('New Playlist',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+
+          TextField(
+            controller: _nameCtrl,
+            decoration: const InputDecoration(hintText: 'Playlist name'),
+          ),
+          const SizedBox(height: 10),
+
+          TextField(
+            controller: _descCtrl,
+            decoration: const InputDecoration(hintText: 'Description'),
+          ),
+          const SizedBox(height: 10),
+
+          DropdownButtonFormField<bool>(
+            value: _public,
+            items: const [
+              DropdownMenuItem(value: true, child: Text('Public')),
+              DropdownMenuItem(value: false, child: Text('Private')),
+            ],
+            onChanged: (v) => setState(() => _public = v ?? true),
+          ),
+
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _loading ? null : () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _create,
+                  child: _loading
+                      ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                      : const Text('Create'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ==========================
+// ROW TILE
+// ==========================
 class _RowTile extends StatelessWidget {
   final Widget leading;
   final String title;
   final String? subtitle;
   final VoidCallback onTap;
-  final Widget trailing;
 
   const _RowTile({
     required this.leading,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
     required this.onTap,
-    required this.trailing,
   });
 
   @override
@@ -278,13 +404,17 @@ class _RowTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                  Text(title,
+                      style:
+                      const TextStyle(fontWeight: FontWeight.w800)),
                   if (subtitle != null)
-                    Text(subtitle!, style: const TextStyle(color: Colors.black54)),
+                    Text(subtitle!,
+                        style:
+                        const TextStyle(color: Colors.black54)),
                 ],
               ),
             ),
-            trailing,
+            const Icon(Icons.more_vert, color: Colors.black54),
           ],
         ),
       ),

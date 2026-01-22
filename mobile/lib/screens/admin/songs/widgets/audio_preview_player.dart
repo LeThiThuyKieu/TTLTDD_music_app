@@ -37,7 +37,6 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
       setState(() => _position = p);
     });
 
-    /// 🔥 FIX QUAN TRỌNG NHẤT
     _player.playerStateStream.listen((state) {
       setState(() {
         isPlaying = state.playing;
@@ -84,8 +83,11 @@ class _AudioPreviewPlayerState extends State<AudioPreviewPlayer> {
     if (_player.audioSource == null) {
       if (widget.localFile != null) {
         await _player.setFilePath(widget.localFile!.path);
+        // đọc file MP3 trực tiếp từ ổ cứng máy rồi phát nhạc
       } else if (widget.networkUrl != null) {
         await _player.setUrl(widget.networkUrl!);
+        // mở stream HTTP và just_audio bắt đầu bufer vài giây đầu để phát nhạc
+      //just_audio.setUrl() dùng streaming + buffer, không download file
       }
     }
 

@@ -42,6 +42,7 @@ static async getOverview() {
 
     const daily = [];
 
+    // { date: "2026-01-14", value: 0 },
     for (let i = 6; i >= 0; i--) {
       const date = dayjs().subtract(i, "day").format("YYYY-MM-DD");
       daily.push({
@@ -65,7 +66,7 @@ static async getOverview() {
         title: "Lượt nghe hôm nay",
         subtitle: "So với hôm qua",
         value: data.today_plays,
-        percent: calcPercent(data.today_plays, data.yesterday_plays),
+        percent: calcPercent(data.today_plays, data.yesterday_plays),//(today - yesterday) / yesterday * 100
       },
       {
         title: "Tổng lượt yêu thích",

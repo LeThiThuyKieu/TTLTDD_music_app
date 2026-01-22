@@ -42,7 +42,7 @@ class StatWideCard extends StatelessWidget {
                     style:
                     const TextStyle(fontSize: 13, color: Colors.grey)),
                 const SizedBox(height: 12),
-                TweenAnimationBuilder<double>(
+                TweenAnimationBuilder<double>( //animation
                   tween: Tween(begin: 0, end: value.toDouble()),
                   duration: const Duration(milliseconds: 1200),
                   builder: (_, val, __) {

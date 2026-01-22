@@ -74,10 +74,12 @@ class SmoothAreaChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // tìm giá trị lớn nhất
     final maxValue =
     values.reduce((a, b) => a > b ? a : b).toDouble();
+    // khoảng cách giữa các đểm trên trục X
     final stepX = size.width / (values.length - 1);
-
+// 1 điểm trên canvas
     final points = <Offset>[];
 
     for (int i = 0; i < values.length; i++) {
@@ -86,7 +88,7 @@ class SmoothAreaChartPainter extends CustomPainter {
           size.height - (values[i] / maxValue) * size.height;
       points.add(Offset(x, y));
     }
-
+// Khai báo Paint
     final linePaint = Paint()
       ..color = Colors.green.shade700
       ..strokeWidth = 2.5
@@ -94,18 +96,18 @@ class SmoothAreaChartPainter extends CustomPainter {
 
     final areaPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = Colors.green.withOpacity(0.25);
+      ..color = Colors.green.withOpacity(0.25);// hiệu ứng
 
-    final linePath = Path();
-    final areaPath = Path();
-
+    final linePath = Path(); //vẽ đường cong
+    final areaPath = Path(); // vùng bên dưới
+// điểm băt đầu
     linePath.moveTo(points.first.dx, points.first.dy);
     areaPath.moveTo(points.first.dx, points.first.dy);
-
+//Vẽ đường cong Bezier
     for (int i = 0; i < points.length - 1; i++) {
       final p0 = points[i];
       final p1 = points[i + 1];
-
+// Tạo control points
       final controlPoint1 =
       Offset((p0.dx + p1.dx) / 2, p0.dy);
       final controlPoint2 =

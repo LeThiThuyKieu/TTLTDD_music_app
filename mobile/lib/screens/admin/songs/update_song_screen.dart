@@ -130,8 +130,8 @@ class _AdminUpdateSongScreenState extends State<AdminUpdateSongScreen> {
       await player.dispose();
 
       setState(() {
-        musicFile = file;
-        oldMusicUrl = null;
+        musicFile = file; // file mới
+        oldMusicUrl = null; // bỏ file cũ
         duration = d?.inSeconds ?? 0;
         _durationCtrl.text = duration.toString();
       });

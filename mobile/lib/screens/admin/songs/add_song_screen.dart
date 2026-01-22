@@ -65,24 +65,26 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
 
 // Hàm upload file
   Future<void> _pickMusicFile() async {
+    //Mở trình chọn file của hệ điều hành
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['mp3'],
+      allowedExtensions: ['mp3'], // đuôi file
     );
 
     if (result != null && result.files.single.path != null) {
+      // tạo đối tượng File
       final file = File(result.files.single.path!);
 
       // just_audio để đọc duration tự động
-      final player = AudioPlayer();
+      final player = AudioPlayer(); //Tạo player tạm đọc metadata
       await player.setFilePath(file.path);
       final d = player.duration;
-      await player.dispose();
+      await player.dispose(); //Giải phóng tài nguyên
 
       setState(() {
         musicFile = file;
         duration = d?.inSeconds ?? 0;
-        _durationCtrl.text = duration.toString();
+        _durationCtrl.text = duration.toString(); //Hiển thị duration lên TextField
       });
     }
   }
@@ -142,10 +144,10 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold( //layout của flutter
       backgroundColor: const Color(0xFFF1F6F1),
       appBar: AppBar(
-        elevation: 0,
+        elevation: 0, //không đỗ bóng
         backgroundColor: const Color(0xFFF1F6F1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -234,7 +236,7 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
     return _card(
       title: 'File nhạc',
       subtitle: musicFile != null
-          ? 'Đã chọn: ${musicFile!.path.split('/').last}'
+          ? 'Đã chọn: ${musicFile!.path.split('/').last}' // lấy tên file
           : 'Chấp nhận file .mp3',
       child: _uploadArea(
         icon: Icons.music_note,
@@ -261,7 +263,7 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0xFF8DB27C)),
           ),
-          child: coverImage == null
+          child: coverImage == null // ch có image
               ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
@@ -272,7 +274,8 @@ class _AdminAddSongScreenState extends State<AdminAddSongScreen> {
                   style: TextStyle(color: Colors.black54)),
             ],
           )
-              : ClipRRect(
+          // đã upload image
+              : ClipRRect( //cắt (clip) widget con theo hình chữ nhật bo góc
             borderRadius: BorderRadius.circular(14),
             child: Image.file(
               coverImage!,
