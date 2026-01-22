@@ -21,6 +21,9 @@ class AudioPlayerService extends ChangeNotifier {
   /// SHUFFLE
   bool _isShuffle = false;
 
+  /// Flag để ngăn chặn các lệnh phát song trùng lặp
+  bool _isLoadingSong = false;
+
   // ===== GETTERS =====
   SongModel? get currentSong => _currentSong;
   bool get isPlaying => _isPlaying;
@@ -53,11 +56,23 @@ class AudioPlayerService extends ChangeNotifier {
 
   // ===== PLAY SINGLE SONG =====
   Future<void> playSong(SongModel song) async {
-    await _player.stop();
+    // Ngăn chặn các lệnh phát song trùng lặp
+    if (_isLoadingSong) {
+      return;
+    }
 
-    _currentSong = song;
-    _isPlaying = true;
-    notifyListeners();
+    _isLoadingSong = true;
+
+    try {
+      // Dừng bài hát hiện tại
+      await _player.stop();
+
+      // Đợi một chút để đảm bảo bài hát cũ hoàn toàn dừng
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      _currentSong = song;
+      _isPlaying = true;
+      notifyListeners();
 
     String sourceUrl = song.fileUrl;
     if (!sourceUrl.startsWith('http')) {
@@ -67,6 +82,9 @@ class AudioPlayerService extends ChangeNotifier {
     }
 
     await _player.play(UrlSource(sourceUrl));
+    } finally {
+      _isLoadingSong = false;
+    }
   }
 
   // ===== PLAY FROM PLAYLIST =====
@@ -76,6 +94,10 @@ class AudioPlayerService extends ChangeNotifier {
   ) async {
     if (playlist.isEmpty) return;
 
+    // Ngăn chặn các lệnh phát song trùng lặp
+    if (_isLoadingSong) {
+      return;
+    }
     _originalPlaylist = List.from(playlist);
 
     if (_isShuffle) {
@@ -115,8 +137,6 @@ class AudioPlayerService extends ChangeNotifier {
   Future<void> playNext() async {
     if (_playQueue == null || _playQueue!.isEmpty) return;
 
-    // if (_currentIndex < _playQueue!.length - 1) {
-    //   _currentIndex++;
     // nếu ch tới bài cuối thì phát tiếp, bài cúi thì quay lại bào đầu tiên
     _currentIndex = (_currentIndex + 1) % _playQueue!.length;
       await playSong(_playQueue![_currentIndex]);
@@ -126,10 +146,10 @@ class AudioPlayerService extends ChangeNotifier {
   Future<void> playPrevious() async {
     if (_playQueue == null || _playQueue!.isEmpty) return;
 
-    if (_currentIndex > 0) {
-      _currentIndex--;
+    // nếu đang ở bài đầu tiên thì quay về bài cuối, ngược lại thì lùi 1 bài
+    _currentIndex = (_currentIndex - 1 + _playQueue!.length) % _playQueue!.length;
       await playSong(_playQueue![_currentIndex]);
-    }
+    // }
   }
 
   Future<void> pause() async {

@@ -24,36 +24,71 @@ class InfoWidget extends StatefulWidget {
 class _InfoWidgetState extends State<InfoWidget> {
   List<SongModel> _suggestSongs = [];
   bool _loading = true;
+  int? _currentSongId;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _currentSongId = widget.song.songId;
       _loadFromBE();
     });
   }
 
+  @override
+  void didUpdateWidget(covariant InfoWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final newId = widget.song.songId;
+    if (newId != null && newId != _currentSongId) {
+      setState(() {
+        _currentSongId = newId;
+        _loading = true;
+        _suggestSongs = [];
+        _errorMessage = null;
+      });
+      _loadFromBE();
+    }
+  }
+
   Future<void> _loadFromBE() async {
     try {
+      final songId = widget.song.songId;
+      if (songId == null) {
+        setState(() {
+          _loading = false;
+          _errorMessage = 'Không tìm thấy mã bài hát để gợi ý';
+        });
+        return;
+      }
+
       final token = await context.read<AuthService>().getToken();
       if (token == null) {
-        setState(() => _loading = false);
+        setState(() {
+          _loading = false;
+          _errorMessage = 'Đăng nhập để xem gợi ý';
+        });
         return;
       }
 
       final songs = await PlaylistApi.getPlaylistsBySong(
-        songId: widget.song.songId!,
+        songId: songId,
         token: token,
+        limit: 12,
       );
 
       setState(() {
         _suggestSongs = songs;
         _loading = false;
+        _errorMessage = null;
       });
     } catch (e) {
       debugPrint('Load suggested songs error: $e');
       if (mounted) {
-        setState(() => _loading = false);
+        setState(() {
+          _loading = false;
+          _errorMessage = 'Không tải được gợi ý. Thử lại sau.';
+        });
       }
     }
   }
@@ -149,14 +184,6 @@ class _InfoWidgetState extends State<InfoWidget> {
                       Icon(Icons.queue_music,
                           color: Colors.black54, size: 22),
                       SizedBox(width: 8),
-                      Text(
-                        'Danh sách phát',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontSize: 16,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -178,43 +205,59 @@ class _InfoWidgetState extends State<InfoWidget> {
                   padding: EdgeInsets.symmetric(vertical: 24),
                   child: Center(child: CircularProgressIndicator()),
                 )
-              else if (_suggestSongs.isEmpty)
+              else if (_errorMessage != null)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 28),
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Colors.red.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Column(
-                    children: [
-                      Icon(Icons.music_off,
-                          size: 36, color: Colors.black38),
-                      SizedBox(height: 8),
-                      Text(
-                        "Chưa có bài hát nào liên quan",
-                        style:
-                        TextStyle(color: Colors.black54, fontSize: 16),
-                      ),
-                    ],
+                  child: Text(
+                    _errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.redAccent, fontSize: 15),
                   ),
                 )
-              else
-                Column(
-                  children: _suggestSongs
-                      .map(
-                        (s) => SongItem(
-                      song: s,
-                      onPlay: () {
-                        audio.playSongFromPlaylist([s], 0);
-                      },
-                      onTap: () {
-                        audio.playSongFromPlaylist([s], 0);
-                      },
+              else if (_suggestSongs.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 28),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Column(
+                      children: [
+                        Icon(Icons.music_off,
+                            size: 36, color: Colors.black38),
+                        SizedBox(height: 8),
+                        Text(
+                          "Chưa có bài hát nào liên quan",
+                          style:
+                          TextStyle(color: Colors.black54, fontSize: 16),
+                        ),
+                      ],
                     ),
                   )
-                      .toList(),
-                ),
+                else
+                  Column(
+                    children: _suggestSongs
+                        .asMap()
+                        .entries
+                        .map(
+                          (entry) => SongItem(
+                        song: entry.value,
+                        onPlay: () {
+                          audio.playSongFromPlaylist(_suggestSongs, entry.key);
+                        },
+                        onTap: () {
+                          audio.playSongFromPlaylist(_suggestSongs, entry.key);
+                        },
+                      ),
+                    )
+                        .toList(),
+                  ),
             ],
           ),
         ),

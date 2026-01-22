@@ -342,5 +342,66 @@ export class SongRepository {
   const list = this.mapRowsToSongsWithArtists(rows as any[]);
   return list[0] ?? null;
 }
+static async findRecommendations(
+  songId: number,
+  userId: number | null,
+  limit: number = 20
+): Promise<SongWithArtists[]> {
+  const [rows] = await pool.execute(
+    `
+    SELECT
+      s.*,
+      a.artist_id,
+      a.name AS artist_name,
+      a.avatar_url AS artist_avatar,
+      a.description AS artist_description,
+      a.is_active AS artist_is_active,
+      CASE WHEN pl.song_id IS NOT NULL THEN 3 ELSE 0 END +
+      CASE WHEN sa_match.song_id IS NOT NULL THEN 2 ELSE 0 END +
+      CASE WHEN s.genre_id IS NOT NULL AND s.genre_id = tgt.genre_id THEN 1 ELSE 0 END
+        AS priority_score
+    FROM songs s
+    LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+    LEFT JOIN artists a ON sa.artist_id = a.artist_id AND a.is_active = 1
+
+    /* cùng playlist */
+    LEFT JOIN (
+      SELECT DISTINCT ps_other.song_id
+      FROM playlist_songs ps_target
+      INNER JOIN playlist_songs ps_other
+        ON ps_target.playlist_id = ps_other.playlist_id
+      INNER JOIN playlists p
+        ON p.playlist_id = ps_target.playlist_id
+      WHERE ps_target.song_id = ?
+        AND ps_other.song_id <> ps_target.song_id
+        AND (? IS NULL OR p.user_id = ? OR p.is_public = 1)
+    ) pl ON pl.song_id = s.song_id
+
+    /* cùng nghệ sĩ */
+    LEFT JOIN (
+      SELECT DISTINCT sa1.song_id
+      FROM song_artists sa1
+      WHERE sa1.artist_id IN (
+        SELECT sa2.artist_id FROM song_artists sa2 WHERE sa2.song_id = ?
+      )
+    ) sa_match ON sa_match.song_id = s.song_id
+
+    /* lấy genre của bài gốc */
+    LEFT JOIN songs tgt ON tgt.song_id = ?
+
+    WHERE s.is_active = 1
+      AND s.song_id <> ?
+
+    ORDER BY
+      priority_score DESC,
+      RAND()
+
+    LIMIT ?
+    `,
+    [songId, userId, userId, songId, songId, songId, limit]
+  );
+
+  return this.mapRowsToSongsWithArtists(rows as any[]);
+}
 
 }

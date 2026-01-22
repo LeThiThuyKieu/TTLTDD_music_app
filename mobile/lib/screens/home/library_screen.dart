@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../playlist_list_screen.dart';
+import '../../services/audio_player_service.dart';
 
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
@@ -10,6 +12,8 @@ class LibraryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
 
     return Scaffold(
       backgroundColor: _bg,
@@ -44,7 +48,7 @@ class LibraryScreen extends StatelessWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, hasSong ? 80 : 20),
         children: [
           // ===== YOUR HISTORY HEADER =====
           Row(

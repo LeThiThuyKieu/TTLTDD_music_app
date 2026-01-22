@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/song_model.dart';
 import '../../widgets/song_item.dart';
 import '../../widgets/add_to_playlist_sheet.dart';
+import '../../widgets/scaffold_with_mini_player.dart';
 import '../../services/audio_player_service.dart';
 import 'music_player_screen.dart';
 import '../../services/favorite_api_service.dart';
@@ -30,13 +31,16 @@ class _SongListScreenState extends State<SongListScreen> {
   @override
   Widget build(BuildContext context) {
     final songs = widget.songs;
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
 
-    return Scaffold(
+    return ScaffoldWithMiniPlayer(
       appBar: AppBar(
         title: const Text('Bài hát'),
         centerTitle: false,
       ),
       body: ListView.builder(
+        padding: EdgeInsets.only(bottom: hasSong ? 70 : 0),
         itemCount: songs.length,
         itemBuilder: (context, index) {
           final song = songs[index];
