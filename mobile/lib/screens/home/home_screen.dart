@@ -119,58 +119,50 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   @override
   Widget build(BuildContext context) {
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    children: [
-                      const SizedBox(height: 20),
-                      _buildHeader(),
+      body: SafeArea(
+        child: isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+              )
+            : ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  const SizedBox(height: 20),
+                  _buildHeader(),
 
-                      const SizedBox(height: 30),
-                      _buildSectionHeader(
-                        title: 'Album hot',
-                        onSeeMore: _openAllAlbums,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildAlbumList(),
-
-                      const SizedBox(height: 30),
-                      _buildSectionHeader(
-                        title: 'Nghệ sĩ nổi bật',
-                        onSeeMore: _openAllArtists,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildArtistList(),
-
-                      const SizedBox(height: 30),
-                      _buildSectionHeader(
-                        title: 'Nhạc hot thịnh hành',
-                        onSeeMore: _openAllSongs,
-                      ),
-                      const SizedBox(height: 12),
-                      _buildSongList(),
-
-                      const SizedBox(height: 100), // chừa chỗ cho mini player
-                    ],
+                  const SizedBox(height: 30),
+                  _buildSectionHeader(
+                    title: 'Album hot',
+                    onSeeMore: _openAllAlbums,
                   ),
-          ),
+                  const SizedBox(height: 12),
+                  _buildAlbumList(),
 
-          // MINI PLAYER NẰM DƯỚI (nghe nhạc mini)
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: MiniPlayer(),
-          ),
-        ],
+                  const SizedBox(height: 30),
+                  _buildSectionHeader(
+                    title: 'Nghệ sĩ nổi bật',
+                    onSeeMore: _openAllArtists,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildArtistList(),
+
+                  const SizedBox(height: 30),
+                  _buildSectionHeader(
+                    title: 'Nhạc hot thịnh hành',
+                    onSeeMore: _openAllSongs,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildSongList(),
+
+                  // chừa chỗ cho mini player nếu có
+                  SizedBox(height: hasSong ? 80 : 20),
+                ],
+              ),
       ),
     );
   }

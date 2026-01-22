@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/playlist_model.dart';
 import '../../services/playlist_api_service.dart';
+import '../../services/audio_player_service.dart';
 import '../../widgets/song_item.dart';
 import '../../widgets/add_to_playlist_sheet.dart';
+import '../../widgets/scaffold_with_mini_player.dart';
 
 class PlaylistDetailScreen extends StatefulWidget {
   final int playlistId;
@@ -174,8 +177,10 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
   Widget build(BuildContext context) {
     final p = _playlist;
     final songs = p?.songs;
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
 
-    return Scaffold(
+    return ScaffoldWithMiniPlayer(
       backgroundColor: const Color(0xFFF6F7F8),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -205,7 +210,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
           : RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          padding: EdgeInsets.fromLTRB(16, 14, 16, hasSong ? 80 : 16),
           children: [
             // ===== HEADER giống mẫu =====
             _PlaylistHeader(

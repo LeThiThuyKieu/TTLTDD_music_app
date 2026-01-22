@@ -6,6 +6,7 @@ import '../models/song_model.dart';
 import '../services/audio_player_service.dart';
 import '../services/genre_api_service.dart';
 import '../widgets/song_item.dart';
+import '../widgets/scaffold_with_mini_player.dart';
 import 'home/music_player_screen.dart';
 
 class GenreDetailScreen extends StatefulWidget {
@@ -125,8 +126,10 @@ class _GenreDetailScreenState extends State<GenreDetailScreen> {
   Widget build(BuildContext context) {
     final genre = _genre;
     final title = genre?.name ?? widget.genreName ?? "Genre";
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
 
-    return Scaffold(
+    return ScaffoldWithMiniPlayer(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -144,7 +147,7 @@ class _GenreDetailScreenState extends State<GenreDetailScreen> {
           : RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          padding: EdgeInsets.fromLTRB(16, 8, 16, hasSong ? 80 : 24),
           children: [
             const SizedBox(height: 10),
 

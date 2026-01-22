@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/playlist_model.dart';
 import '../../services/playlist_api_service.dart';
 import '../../services/favorite_api_service.dart';
+import '../../services/audio_player_service.dart';
+import '../../widgets/scaffold_with_mini_player.dart';
 import 'favorites_screen.dart';
 import 'playlist_detail_screen.dart';
 
@@ -148,7 +151,10 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
+
+    return ScaffoldWithMiniPlayer(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -169,7 +175,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
           : RefreshIndicator(
         onRefresh: _load,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: EdgeInsets.fromLTRB(16, 8, 16, hasSong ? 80 : 16),
           children: [
             Row(
               children: [

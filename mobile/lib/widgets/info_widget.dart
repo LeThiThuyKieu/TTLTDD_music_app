@@ -184,14 +184,6 @@ class _InfoWidgetState extends State<InfoWidget> {
                       Icon(Icons.queue_music,
                           color: Colors.black54, size: 22),
                       SizedBox(width: 8),
-                      Text(
-                        'Danh sách phát',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontSize: 16,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -251,14 +243,16 @@ class _InfoWidgetState extends State<InfoWidget> {
                 else
                   Column(
                     children: _suggestSongs
+                        .asMap()
+                        .entries
                         .map(
-                          (s) => SongItem(
-                        song: s,
+                          (entry) => SongItem(
+                        song: entry.value,
                         onPlay: () {
-                          audio.playSongFromPlaylist([s], 0);
+                          audio.playSongFromPlaylist(_suggestSongs, entry.key);
                         },
                         onTap: () {
-                          audio.playSongFromPlaylist([s], 0);
+                          audio.playSongFromPlaylist(_suggestSongs, entry.key);
                         },
                       ),
                     )

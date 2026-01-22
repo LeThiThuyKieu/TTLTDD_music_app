@@ -78,8 +78,9 @@ class _MiniPlayerState extends State<MiniPlayer> {
                       ),
                     ),
                     Text(
-                      song.artists?.map((e) => e.name).join(', ') ??
-                          'Unknown artist',
+                      song.artists.isNotEmpty
+                          ? song.artists.map((e) => e.name).join(', ')
+                          : 'Unknown artist',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -94,7 +95,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
               /// Previous
               IconButton(
                 icon: const Icon(Icons.skip_previous),
-                onPressed: () {},
+                onPressed: player.playPrevious,
               ),
 
               /// Play / Pause
@@ -111,7 +112,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
               /// Next
               IconButton(
                 icon: const Icon(Icons.skip_next),
-                onPressed: () {},
+                onPressed: player.playNext,
               ),
 
               /// ❤️ LIKE BUTTON

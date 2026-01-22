@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/genre_model.dart';
 import '../../services/genre_api_service.dart';
+import '../../services/audio_player_service.dart';
 import '../genre_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -86,6 +88,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6F7),
       appBar: AppBar(
@@ -104,7 +109,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
           : RefreshIndicator(
         onRefresh: _loadGenres,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, hasSong ? 80 : 16),
           children: [
             Container(
               height: 42,

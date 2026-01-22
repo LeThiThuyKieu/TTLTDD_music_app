@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../models/album_model.dart';
 import '../../../services/album_service.dart';
+import '../../../services/audio_player_service.dart';
+import '../../../widgets/scaffold_with_mini_player.dart';
 import 'album_detail_screen.dart';
 
 class AlbumListScreen extends StatefulWidget {
@@ -46,7 +49,10 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final audioPlayer = context.watch<AudioPlayerService>();
+    final hasSong = audioPlayer.currentSong != null;
+
+    return ScaffoldWithMiniPlayer(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Albums'),
@@ -55,7 +61,7 @@ class _AlbumListScreenState extends State<AlbumListScreen> {
         foregroundColor: Colors.black,
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.fromLTRB(16, 0, 16, hasSong ? 70 : 0),
         child: isLoading
             ? const Center(child: CircularProgressIndicator(color: Color(0xFF4CAF50)))
             : GridView.builder(
